@@ -1,0 +1,179 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+
+.hero {
+    display: grid;
+    /* CHANGE 1: Give text more space (1.2) and image less space (0.8) */
+    grid-template-columns: 1.2fr 0.8fr; 
+    /* CHANGE 2: Reduced height from 90vh to 650px so it's not huge */
+    min-height: 650px; 
+    width: 100%;
+    background-color: white;
+    border-bottom: 1px solid #eaeaea;
+    margin-bottom: 30px;
+    align-items: center; /* Vertically centers the content */
+}
+
+/* --- Left Side: Content --- */
+.content {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 4rem 5rem; /* Slightly reduced padding */
+    background-color: #FAFAFA;
+    height: 100%; /* Fills the left side */
+}
+
+.headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem; /* Slightly smaller font to match smaller hero */
+    line-height: 1.1;
+    color: #111;
+    margin-bottom: 1.5rem;
+    font-weight: 600;
+}
+
+.italic {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-weight: 400;
+}
+
+.subtext {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    line-height: 1.6;
+    color: #555;
+    max-width: 480px;
+    margin-bottom: 2.5rem;
+}
+
+/* --- Buttons --- */
+.ctaGroup {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 3rem;
+}
+
+.primaryBtn, .secondaryBtn {
+    padding: 14px 28px;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border-radius: 4px;
+}
+
+.primaryBtn {
+    background-color: #000;
+    color: #fff;
+    border: 1px solid #000;
+}
+
+.primaryBtn:hover {
+    background-color: transparent;
+    color: #000;
+}
+
+.secondaryBtn {
+    background-color: transparent;
+    color: #000;
+    border: 1px solid #ccc;
+}
+
+.secondaryBtn:hover {
+    border-color: #000;
+    background-color: #fff;
+}
+
+/* --- Stats --- */
+.stats {
+    display: flex;
+    gap: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e0e0e0;
+}
+
+.stats div { font-family: 'Inter', sans-serif; }
+
+.stats strong {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #000;
+    display: block;
+    line-height: 1;
+    margin-bottom: 5px;
+}
+
+.stats span {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: #666;
+}
+
+/* --- Right Side: Image --- */
+.imageContainer {
+    position: relative;
+    /* CHANGE 3: Constrain the image container height and add padding */
+    height: 500px; 
+    /* width: 100%; */
+    padding-right: 3rem; /* Moves image away from the right edge */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.heroImage {
+    width: 100%;
+    height: 100%;
+    border-radius: 12px; /* Nicer rounded corners */
+    object-fit: cover;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.1); /* Adds a subtle premium drop shadow */
+}
+
+/* =========================================
+   RESPONSIVE DESIGN
+   ========================================= */
+
+/* Tablet */
+@media (max-width: 1024px) {
+    .hero {
+        grid-template-columns: 1fr 1fr; /* Back to 50/50 on smaller laptops */
+        min-height: auto;
+    }
+    .content { padding: 4rem 3rem; }
+    .imageContainer { padding-right: 2rem; height: 400px; }
+    .headline { font-size: 3rem; }
+}
+
+/* Mobile */
+@media (max-width: 768px) {
+    .hero {
+        grid-template-columns: 1fr; /* Stack Vertical */
+        padding-bottom: 2rem;
+    }
+
+    .imageContainer {
+        order: 1; 
+        height: 300px; /* Smaller height on mobile */
+        padding: 1.5rem; /* Add padding all around */
+    }
+
+    .content {
+        order: 2;
+        padding: 1rem 1.5rem;
+    }
+
+    .headline { font-size: 2.5rem; }
+
+    .ctaGroup {
+        flex-direction: column;
+        width: 100%;
+    }
+
+    .primaryBtn, .secondaryBtn {
+        width: 100%;
+        text-align: center;
+    }
+}

@@ -1,0 +1,147 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
+
+.footer {
+    background-color: #000000; /* Pure Black */
+    color: #ffffff;
+    padding: 60px 20px 30px; /* Top, Side, Bottom padding */
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+/* --- The Grid Layout (Desktop View) --- */
+.grid {
+    display: grid;
+    /* Creates 4 equal columns */
+    grid-template-columns: repeat(4, 1fr);
+    gap: 40px;
+    margin-bottom: 60px; /* Space between links and bottom divider */
+}
+
+/* --- Typography & Styling --- */
+.col {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+/* Brand Column */
+.brandName {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 16px;
+    color: #fff;
+}
+
+.tagline {
+    font-size: 0.95rem;
+    color: #b0b0b0; /* Light Gray for readability */
+    line-height: 1.5;
+    max-width: 250px;
+}
+
+/* Section Headings */
+.heading {
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 20px;
+    color: #fff;
+}
+
+/* Links List */
+.linkList {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.linkList li {
+    margin-bottom: 12px;
+}
+
+.linkList a {
+    text-decoration: none;
+    color: #b0b0b0; /* Light Gray */
+    font-size: 0.95rem;
+    transition: color 0.2s ease;
+}
+
+.linkList a:hover {
+    color: #ffffff; /* White on hover */
+}
+
+/* Contact Info */
+.contactInfo a, 
+.contactInfo p {
+    display: block;
+    color: #b0b0b0;
+    text-decoration: none;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+    font-style: normal;
+}
+
+.contactInfo a:hover {
+    color: #ffffff;
+}
+
+/* --- Divider Line --- */
+.divider {
+    border: none;
+    border-top: 1px solid #333333; /* Very subtle dark gray line */
+    margin: 0;
+    padding: 0;
+    width: 100%;
+}
+
+/* --- Copyright Section --- */
+.copyright {
+    padding-top: 30px;
+    text-align: center;
+}
+
+.copyright p {
+    color: #888888; /* Darker gray for copyright */
+    font-size: 0.85rem;
+}
+
+/* =========================================
+   RESPONSIVE VIEWS
+   ========================================= */
+
+/* Tablet View (Between 600px and 1024px) */
+@media (max-width: 1024px) {
+    .grid {
+        /* Switch to 2 columns grid */
+        grid-template-columns: repeat(2, 1fr);
+        gap: 50px;
+    }
+}
+
+/* Mobile View (Below 600px) */
+@media (max-width: 600px) {
+    .footer {
+        padding: 40px 20px 20px;
+    }
+
+    .grid {
+        /* Stack everything in 1 column */
+        grid-template-columns: 1fr;
+        gap: 40px;
+        margin-bottom: 40px;
+    }
+
+    .brandName {
+        font-size: 1.75rem;
+    }
+    
+    .tagline {
+        max-width: 100%; /* Let text flow on mobile */
+    }
+}

@@ -1,0 +1,46 @@
+.fadeInSection {
+    opacity: 0;
+    transform: translateY(40px); /* Start 40px lower */
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    will-change: opacity, transform;
+}
+
+/* The state when visible */
+.isVisible {
+    opacity: 1;
+    transform: none;
+}
+
+/* --- Optional Directions --- */
+
+/* Slide Up (Default) */
+.up {
+    transform: translateY(40px);
+}
+.isVisible.up {
+    transform: translateY(0);
+}
+
+/* Slide Left */
+.left {
+    transform: translateX(-40px);
+}
+.isVisible.left {
+    transform: translateX(0);
+}
+
+/* Slide Right */
+.right {
+    transform: translateX(40px);
+}
+.isVisible.right {
+    transform: translateX(0);
+}
+
+/* Scale Up (Pop) */
+.scale {
+    transform: scale(0.95);
+}
+.isVisible.scale {
+    transform: scale(1);
+}

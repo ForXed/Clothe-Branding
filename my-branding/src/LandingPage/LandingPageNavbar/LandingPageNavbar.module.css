@@ -1,0 +1,110 @@
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.2rem 3rem;
+    background-color: white;
+    border-bottom: 1px solid #f0f0f0;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.logoWrapper {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    cursor: pointer;
+}
+
+.brandName {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    color: black;
+}
+
+/* Middle Links */
+.navLinks {
+    display: flex;
+    list-style: none;
+    gap: 2.5rem;
+}
+
+.navLinks a {
+    text-decoration: none;
+    color: #666;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+
+.navLinks a:hover { color: black; }
+
+/* Buttons */
+.authButtons {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+}
+
+.loginBtn, .startBtn {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap; /* Prevents text wrapping */
+}
+
+.loginBtn {
+    background: transparent;
+    border: none;
+    color: black;
+    padding: 10px 16px;
+}
+
+.startBtn {
+    background: black;
+    color: white;
+    border: 1px solid black;
+    border-radius: 4px;
+    padding: 10px 24px;
+}
+
+.startBtn:hover {
+    background: white;
+    color: black;
+}
+
+/* --- RESPONSIVE --- */
+
+/* Tablet & Mobile: Hide text links, adjust padding */
+@media (max-width: 900px) {
+    .navbar {
+        padding: 1rem 1.5rem;
+    }
+    .navLinks {
+        display: none; /* Hide middle links on smaller screens */
+    }
+}
+
+/* Mobile: Compact buttons */
+@media (max-width: 480px) {
+    .brandName {
+        font-size: 1.25rem;
+    }
+    .startBtn {
+        padding: 8px 16px;
+        font-size: 0.85rem;
+    }
+    .loginBtn {
+        padding: 8px 10px;
+        font-size: 0.85rem;
+    }
+    .authButtons {
+        gap: 0.5rem;
+    }
+}

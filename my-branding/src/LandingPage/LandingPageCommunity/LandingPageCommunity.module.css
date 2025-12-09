@@ -1,0 +1,117 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+
+.section {
+    background-color: #000; /* Solid Black */
+    color: #fff;
+    padding: 6rem 0;
+    overflow: hidden;
+    width: 100%;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    text-align: center;
+    padding: 0 2rem;
+    margin-bottom: 4rem;
+}
+
+.heading {
+    font-family: 'Playfair Display', serif;
+    font-size: 3.5rem;
+    margin-bottom: 1.5rem;
+    line-height: 1.1;
+}
+
+.subtext {
+    font-family: 'Inter', sans-serif;
+    color: #888;
+    font-size: 1.1rem;
+    max-width: 600px;
+    margin: 0 auto 4rem;
+    line-height: 1.6;
+}
+
+/* --- Stats Grid --- */
+.statsGrid {
+    display: flex;
+    justify-content: center;
+    gap: 4rem;
+    border-top: 1px solid #333;
+    padding-top: 3rem;
+}
+
+.statItem {
+    display: flex;
+    flex-direction: column;
+}
+
+.number {
+    font-family: 'Inter', sans-serif;
+    font-size: 2.5rem;
+    font-weight: 800;
+    margin-bottom: 0.5rem;
+    background: -webkit-linear-gradient(#fff, #666);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.label {
+    font-family: 'Inter', sans-serif;
+    color: #666;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-size: 0.8rem;
+}
+
+/* --- Infinite Marquee --- */
+.marqueeContainer {
+    width: 100%;
+    border-top: 1px solid #222;
+    border-bottom: 1px solid #222;
+    padding: 1.5rem 0;
+    background: #0a0a0a;
+}
+
+.marqueeTrack {
+    display: flex;
+    white-space: nowrap;
+    animation: scrollText 30s linear infinite;
+}
+
+.marqueeItem {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #444; /* Dimmed text */
+    margin-right: 2rem;
+    text-transform: uppercase;
+    transition: color 0.3s;
+}
+
+.marqueeItem:hover {
+    color: #fff; /* Light up on hover */
+}
+
+.dot {
+    color: #222;
+    margin-left: 2rem;
+}
+
+@keyframes scrollText {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+
+/* --- Responsive --- */
+@media (max-width: 768px) {
+    .heading { font-size: 2.5rem; }
+    
+    .statsGrid {
+        flex-direction: column;
+        gap: 2rem;
+        padding-top: 2rem;
+    }
+
+    .number { font-size: 2rem; }
+}

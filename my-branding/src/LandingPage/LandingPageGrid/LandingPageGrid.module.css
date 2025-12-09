@@ -1,0 +1,94 @@
+.gridContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-auto-rows: 250px; /* Base height for rows */
+    gap: 16px;
+    padding: 0 40px 80px;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.card {
+    position: relative;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #f0f0f0;
+    transition: transform 0.3s ease;
+}
+
+.image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: scale 0.4s ease;
+}
+
+/* --- The Bento Spans --- */
+
+/* 2x2 Square (Big) */
+.big {
+    grid-column: span 2;
+    grid-row: span 2;
+}
+
+/* 2x1 Horizontal (Wide) */
+.wide {
+    grid-column: span 2;
+}
+
+/* 1x2 Vertical (Tall) */
+.tall {
+    grid-row: span 2;
+}
+
+/* 1x1 Square (Small) - Default */
+.small {
+    grid-column: span 1;
+    grid-row: span 1;
+}
+
+/* Hover Effects */
+.card:hover .image {
+    scale: 1.05;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0,0,0,0.2);
+    opacity: 0;
+    transition: opacity 0.3s;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    padding: 16px;
+}
+
+.card:hover .overlay {
+    opacity: 1;
+}
+
+.saveBtn {
+    background: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+/* Mobile Fallback: Everything becomes 1 column or regular grid */
+@media (max-width: 768px) {
+    .gridContainer {
+        grid-template-columns: 1fr;
+        grid-auto-rows: auto;
+        padding: 0 20px 40px;
+    }
+    
+    .big, .wide, .tall, .small {
+        grid-column: span 1 !important;
+        grid-row: span 1 !important;
+        height: 300px; /* Fixed height for consistency on phone */
+    }
+}

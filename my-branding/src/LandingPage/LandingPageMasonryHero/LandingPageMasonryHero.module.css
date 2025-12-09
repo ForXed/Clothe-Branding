@@ -1,0 +1,184 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,600&display=swap');
+
+.hero {
+    position: relative;
+    width: 100%;
+    min-height: 85vh; /* Tall hero section */
+    overflow: hidden; /* Clips the scrolling images */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: white;
+}
+
+/* --- Masonry Background --- */
+.masonryContainer {
+    position: absolute;
+    top: -20%;
+    left: -10%;
+    width: 120%; /* Wider than screen to accommodate tilt */
+    height: 150%; /* Taller than screen for scrolling */
+    z-index: 0;
+    opacity: 0.12; /* Very subtle background texture */
+    transform: rotate(-5deg); /* Artistic tilt */
+    pointer-events: none;
+}
+
+.masonryGrid {
+    column-count: 4;
+    column-gap: 20px;
+    animation: scrollUp 60s linear infinite; /* Smooth slow scroll */
+}
+
+.masonryItem {
+    break-inside: avoid;
+    margin-bottom: 20px;
+}
+
+.masonryItem img {
+    width: 100%;
+    display: block;
+    border-radius: 12px;
+    filter: grayscale(100%); /* Strict Black & White theme */
+}
+
+@keyframes scrollUp {
+    0% { transform: translateY(0); }
+    100% { transform: translateY(-30%); }
+}
+
+/* --- Gradient Overlay --- */
+.overlay {
+    position: absolute;
+    inset: 0;
+    /* Radial gradient fades from solid white (center) to transparent (edges) */
+    background: radial-gradient(circle, rgba(255,255,255,1) 10%, rgba(255,255,255,0.95) 40%, rgba(255,255,255,0.4) 100%);
+    z-index: 1;
+}
+
+/* --- Content --- */
+.content {
+    position: relative;
+    z-index: 2;
+    text-align: center;
+    max-width: 800px;
+    padding: 0 20px;
+}
+
+.headline {
+    font-family: 'Playfair Display', serif;
+    font-size: 4.5rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: #000;
+    margin-bottom: 1.5rem;
+}
+
+.highlight {
+    font-style: italic;
+    font-weight: 400;
+    text-decoration: underline;
+    text-decoration-thickness: 3px;
+    text-underline-offset: 6px;
+}
+
+.subtext {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.25rem;
+    color: #444;
+    margin-bottom: 3rem;
+    line-height: 1.5;
+}
+
+/* --- Search Bar --- */
+.searchWrapper {
+    position: relative;
+    max-width: 550px;
+    margin: 0 auto 30px;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.1);
+    border-radius: 50px;
+    background: white;
+}
+
+.searchInput {
+    width: 100%;
+    padding: 20px 140px 20px 30px; /* Right padding creates space for button */
+    border-radius: 50px;
+    border: 1px solid #eee;
+    font-size: 1.1rem;
+    outline: none;
+    font-family: 'Inter', sans-serif;
+}
+
+.searchInput:focus {
+    border-color: #000;
+}
+
+.searchButton {
+    position: absolute;
+    right: 8px;
+    top: 8px;
+    bottom: 8px;
+    background: #000; /* Black button */
+    color: white;
+    border: none;
+    padding: 0 28px;
+    border-radius: 40px;
+    font-weight: 600;
+    font-family: 'Inter', sans-serif;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.searchButton:hover {
+    background: #333;
+}
+
+/* --- CTA Button --- */
+.ctaButton {
+    background: transparent;
+    border: none;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #000;
+    cursor: pointer;
+    border-bottom: 1px solid black;
+    padding-bottom: 2px;
+}
+
+.ctaButton:hover {
+    color: #444;
+    border-color: #444;
+}
+
+/* --- Responsive --- */
+@media (max-width: 1024px) {
+    .headline { font-size: 3.5rem; }
+    .masonryGrid { column-count: 3; }
+}
+
+@media (max-width: 768px) {
+    .hero { min-height: 80vh; }
+    .headline { font-size: 2.8rem; }
+    .masonryGrid { column-count: 2; }
+    
+    .searchWrapper {
+        display: flex;
+        flex-direction: column;
+        background: transparent;
+        box-shadow: none;
+        gap: 10px;
+    }
+
+    .searchInput {
+        padding: 16px 20px;
+        border: 1px solid #ccc;
+    }
+
+    .searchButton {
+        position: static; /* Stack button below input on mobile */
+        width: 100%;
+        padding: 16px;
+    }
+}
