@@ -8,8 +8,8 @@ import BrutigePlatform from './Homepage/BrutigePlatform';
 
 function App() {
   return (
-    <LandingPage />
-    // <BrutigePlatform />
+    // <LandingPage />
+    <BrutigePlatform />
     // <Router>
     //   <Routes>
     //     <Route path="/login" element={<SignIn />} />
