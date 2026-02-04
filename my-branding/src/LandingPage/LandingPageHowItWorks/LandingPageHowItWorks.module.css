@@ -1,50 +1,87 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
 .section {
-    padding: 6rem 2rem;
-    background: white;
-    text-align: center;
+    padding: 120px 5%;
+    background-color: #ffffff; /* Pure White as requested */
+    text-align: left; /* Alignment changed to left for a more modern look */
+    overflow: hidden;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 0 auto;
 }
 
 .heading {
     font-family: 'Playfair Display', serif;
-    font-size: 2.5rem;
-    margin-bottom: 4rem;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    font-weight: 700;
+    line-height: 1;
+    margin-bottom: 100px;
+    color: #000;
+}
+
+.outline {
+    color: transparent;
+    -webkit-text-stroke: 1.5px #000;
 }
 
 .grid {
-    display: flex;
-    justify-content: center;
-    gap: 4rem;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 40px;
 }
 
 .card {
-    max-width: 300px;
+    position: relative;
     display: flex;
     flex-direction: column;
-    align-items: center;
+    padding-bottom: 40px;
 }
 
-.circle {
-    width: 50px;
-    height: 50px;
-    background: black;
-    color: white;
-    border-radius: 50%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    font-weight: 700;
-    font-size: 1.2rem;
-    margin-bottom: 1.5rem;
+.stepNumber {
+    font-family: 'Inter', sans-serif;
+    font-size: 5rem;
+    font-weight: 900;
+    line-height: 1;
+    color: #000;
+    opacity: 0.05; /* Faint large numbers from your first design */
+    margin-bottom: -30px; /* Overlaps slightly with title */
+    letter-spacing: -5px;
 }
 
 .title {
     font-family: 'Inter', sans-serif;
-    font-size: 1.25rem;
-    margin-bottom: 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    margin-bottom: 15px;
+    color: #000;
+    position: relative;
+    z-index: 1;
 }
 
 .desc {
-    color: #666;
-    line-height: 1.5;
+    font-family: 'Inter', sans-serif;
+    font-size: 1rem;
+    color: #555;
+    line-height: 1.6;
+    max-width: 250px;
+}
+
+/* --- The Animated Line --- */
+.stepLine {
+    width: 100%;
+    height: 2px;
+    background-color: #000000;
+    margin-top: auto; /* Pushes line to bottom of card */
+    opacity: 1;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .section { padding: 80px 5%; }
+    .heading { font-size: 3rem; margin-bottom: 60px; }
+    .grid { gap: 60px; }
+    .stepNumber { font-size: 4rem; }
 }

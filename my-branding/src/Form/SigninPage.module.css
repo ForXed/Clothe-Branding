@@ -1,0 +1,211 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+/* --- MAIN LAYOUT --- */
+.mainWrapper {
+    display: flex;
+    min-height: 100vh; /* Changed from height to min-height for scrolling */
+    width: 100%;
+    background: #fff;
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden; /* Prevent side-to-side wobble */
+}
+
+/* --- FORM SECTION (WHITE) --- */
+.formSection {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    padding: 80px 60px;
+    background: #fff;
+}
+
+.formWrapper {
+    width: 100%;
+    max-width: 400px;
+    margin: auto; /* Vertically centers when content is short */
+    display: flex;
+    flex-direction: column;
+}
+
+.logoHeader {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 50px;
+}
+
+.brandName {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    color: #000;
+}
+
+.title {
+    font-size: 3rem;
+    font-weight: 900;
+    letter-spacing: -2px;
+    line-height: 1;
+    margin-bottom: 10px;
+    color: #000;
+}
+
+.subtitle {
+    color: #666;
+    margin-bottom: 40px;
+}
+
+/* --- SOCIAL BUTTONS --- */
+.socialGrid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+}
+
+.socialBtn {
+    background: #fff;
+    border: 1.5px solid #000;
+    padding: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: 0.3s ease;
+}
+
+.socialBtn img { width: 16px; filter: grayscale(100%); }
+.socialBtn:hover { background: #000; color: #fff; }
+.socialBtn:hover img { filter: grayscale(0%); }
+
+/* --- DIVIDER --- */
+.divider {
+    text-align: center;
+    position: relative;
+    margin: 40px 0;
+}
+
+.divider::before {
+    content: "";
+    position: absolute;
+    top: 50%; left: 0; width: 100%;
+    height: 1px; background: #eee;
+}
+
+.dividerText {
+    position: relative;
+    background: #fff;
+    padding: 0 15px;
+    font-size: 0.7rem;
+    font-weight: 900;
+    color: #ccc;
+}
+
+/* --- INPUTS --- */
+.form { display: flex; flex-direction: column; gap: 20px; }
+.inputGroup { display: flex; flex-direction: column; gap: 8px; }
+.inputGroup label { font-size: 0.75rem; font-weight: 900; color: #000; text-transform: uppercase; }
+
+.inputGroup input {
+    padding: 16px;
+    border: 1.5px solid #000;
+    font-size: 1rem;
+    outline: none;
+    border-radius: 0;
+}
+
+.submitBtn {
+    background: #000;
+    color: #fff;
+    padding: 18px;
+    border: none;
+    font-weight: 900;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.submitBtn:hover { background: #333; }
+
+.footerLink { margin-top: 30px; text-align: center; color: #888; font-size: 0.9rem; padding-bottom: 20px; }
+.footerLink a { color: #000; font-weight: 900; text-decoration: underline; }
+
+/* --- BRAND SECTION (BLACK - HIDDEN ON MOBILE) --- */
+.brandSection {
+    flex: 1.2;
+    background: #000;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px;
+}
+
+.line {
+    position: absolute;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.typewriterText {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #fff;
+    line-height: 1.2;
+    letter-spacing: -1.5px;
+    min-height: 120px;
+}
+
+.cursor { color: #fff; margin-left: 4px; font-weight: 200; }
+
+/* ============================================================
+   RESPONSIVE LOGIC
+   ============================================================ */
+
+/* TABLETS & MOBILE (900px and below) */
+@media (max-width: 900px) {
+    /* Hide the entire branding section as requested */
+    .brandSection {
+        display: none;
+    }
+
+    .mainWrapper {
+        display: flex;
+        flex-direction: column;
+        overflow-y: auto; /* ENABLE VERTICAL SCROLLING */
+        height: auto;
+    }
+
+    .formSection {
+        padding: 40px 20px;
+        min-height: 100vh; /* Ensures white space covers the whole screen */
+    }
+
+    .formWrapper {
+        max-width: 380px;
+        margin: auto; /* Keep it centered, but allow it to grow */
+    }
+
+    .title {
+        font-size: 2.4rem;
+    }
+}
+
+/* SMALL PHONES */
+@media (max-width: 480px) {
+    .socialGrid {
+        grid-template-columns: 1fr;
+    }
+    
+    .title {
+        font-size: 2rem;
+    }
+
+    .formSection {
+        padding: 20px 15px; /* Tighter padding for small screens */
+    }
+}

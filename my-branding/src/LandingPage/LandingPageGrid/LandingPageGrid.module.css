@@ -1,19 +1,54 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
+
+.wrapper {
+    max-width: 100%;
+    margin: 0 auto;
+    padding: 120px 0;
+    background-color: #ffffff; /* Reverted to Pure White to match Brutige branding */
+    overflow: hidden;
+}
+
+.header {
+    padding: 0 5%;
+    margin-bottom: 60px;
+    text-align: left;
+}
+
+.title {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.5rem, 6vw, 4.5rem);
+    color: #000;
+    margin-bottom: 15px;
+    font-weight: 700;
+    line-height: 1;
+}
+
+.outline {
+    color: transparent;
+    -webkit-text-stroke: 1px #000;
+}
+
+.subtitle {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.1rem;
+    color: #666;
+    max-width: 500px;
+}
+
+/* --- Bento Grid Container --- */
 .gridContainer {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    grid-auto-rows: 250px; /* Base height for rows */
-    gap: 16px;
-    padding: 0 40px 80px;
-    max-width: 1400px;
-    margin: 0 auto;
+    grid-template-columns: repeat(4, 1fr);
+    grid-auto-rows: 280px;
+    gap: 20px;
+    padding: 0 5%;
 }
 
 .card {
     position: relative;
-    border-radius: 24px;
+    background: #000; /* Contrast for images */
     overflow: hidden;
-    background: #f0f0f0;
-    transition: transform 0.3s ease;
+    cursor: pointer;
 }
 
 .image {
@@ -21,74 +56,83 @@
     height: 100%;
     object-fit: cover;
     display: block;
-    transition: scale 0.4s ease;
+    filter: grayscale(100%); /* Grayscale from Design 1 */
+    transition: all 0.7s cubic-bezier(0.19, 1, 0.22, 1);
 }
 
-/* --- The Bento Spans --- */
+/* --- Bento Spans --- */
+.wide { grid-column: span 2; }
+.tall { grid-row: span 2; }
+.small { grid-column: span 1; }
 
-/* 2x2 Square (Big) */
-.big {
-    grid-column: span 2;
-    grid-row: span 2;
-}
-
-/* 2x1 Horizontal (Wide) */
-.wide {
-    grid-column: span 2;
-}
-
-/* 1x2 Vertical (Tall) */
-.tall {
-    grid-row: span 2;
-}
-
-/* 1x1 Square (Small) - Default */
-.small {
-    grid-column: span 1;
-    grid-row: span 1;
-}
-
-/* Hover Effects */
-.card:hover .image {
-    scale: 1.05;
-}
-
-.overlay {
+/* --- Hover Effects (Merging Design 1) --- */
+.galleryOverlay {
     position: absolute;
     inset: 0;
-    background: rgba(0,0,0,0.2);
-    opacity: 0;
-    transition: opacity 0.3s;
+    background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 70%);
     display: flex;
-    justify-content: flex-end;
-    align-items: flex-start;
-    padding: 16px;
+    align-items: flex-end;
+    padding: 30px;
+    opacity: 0;
+    transition: opacity 0.4s ease;
 }
 
-.card:hover .overlay {
-    opacity: 1;
-}
-
-.saveBtn {
-    background: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 20px;
+.overlayContent h3 {
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.25rem;
     font-weight: 700;
+    margin-bottom: 15px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.viewBtn {
+    background: #fff;
+    color: #000;
+    border: none;
+    padding: 10px 20px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
     cursor: pointer;
 }
 
-/* Mobile Fallback: Everything becomes 1 column or regular grid */
+.card:hover .galleryOverlay {
+    opacity: 1;
+}
+
+.card:hover .image {
+    scale: 1.1;
+    filter: grayscale(0%); /* Turns to color on hover from Design 1 */
+}
+
+/* --- Responsive --- */
+@media (max-width: 1024px) {
+    .gridContainer {
+        grid-template-columns: repeat(2, 1fr);
+        grid-auto-rows: 250px;
+    }
+}
+
 @media (max-width: 768px) {
+    .title { font-size: 2.8rem; }
+    
     .gridContainer {
         grid-template-columns: 1fr;
-        grid-auto-rows: auto;
-        padding: 0 20px 40px;
+        grid-auto-rows: 350px;
+        padding: 0 20px;
     }
     
-    .big, .wide, .tall, .small {
+    .wide, .tall, .small {
         grid-column: span 1 !important;
         grid-row: span 1 !important;
-        height: 300px; /* Fixed height for consistency on phone */
+    }
+
+    .galleryOverlay {
+        opacity: 1; /* Keep titles visible on mobile */
+    }
+    .image {
+        filter: grayscale(0%);
     }
 }

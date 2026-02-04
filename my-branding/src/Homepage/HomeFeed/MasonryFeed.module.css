@@ -1,0 +1,240 @@
+.container {
+    padding: 0 5%;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.hero {
+    max-width: 900px;
+    margin: 60px 0;
+}
+
+.heroText {
+    font-family: 'Cormorant Garamond', serif;
+    font-style: italic;
+    font-size: 3.5rem;
+    line-height: 1.2;
+    letter-spacing: -1.5px;
+    font-weight: 400;
+    margin: 0 0 15px;
+}
+
+.heroSubtext {
+    font-size: 1.1rem;
+    color: #666;
+    font-weight: 500;
+    margin: 0;
+}
+
+.masonry {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 30px;
+    margin-bottom: 60px;
+}
+
+.card {
+    cursor: pointer;
+    position: relative;
+    animation: cardAppear 0.6s ease;
+    transition: transform 0.3s;
+}
+
+@keyframes cardAppear {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.imageBox {
+    aspect-ratio: 3/4;
+    border-radius: 24px;
+    overflow: hidden;
+    background: #f9f9f9;
+    position: relative;
+}
+
+.imageBox img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+.card:hover .imageBox img {
+    transform: scale(1.08);
+}
+
+.categoryTag {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(10px);
+    color: #fff;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+}
+
+.cardActions {
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    opacity: 0;
+    transform: translateY(10px);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 2;
+}
+
+.cardActions.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.saveBtn,
+.quickAddBtn {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border: none;
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.3s;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.saveBtn:hover,
+.quickAddBtn:hover {
+    background: #000;
+    color: #fff;
+    transform: scale(1.1);
+}
+
+.saved {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+.cardDetails {
+    padding: 20px 8px;
+}
+
+.cardInfo {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+.cardInfo h4 {
+    font-weight: 600;
+    font-size: 1.05rem;
+    margin: 0;
+    flex: 1;
+}
+
+.price {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 700;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+}
+
+/* Responsive */
+@media (max-width: 1200px) {
+    .masonry {
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 25px;
+    }
+
+    .heroText {
+        font-size: 2.8rem;
+    }
+}
+
+@media (max-width: 900px) {
+    .container {
+        padding: 0 4%;
+        padding-bottom: 100px;
+    }
+
+    .hero {
+        margin: 40px 0;
+    }
+
+    .heroText {
+        font-size: 2.2rem;
+    }
+
+    .heroSubtext {
+        font-size: 1rem;
+    }
+
+    .masonry {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .imageBox {
+        border-radius: 16px;
+    }
+
+    .categoryTag {
+        font-size: 0.65rem;
+        padding: 5px 10px;
+    }
+
+    /* Show actions on mobile by default */
+    .cardActions {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    .saveBtn,
+    .quickAddBtn {
+        width: 40px;
+        height: 40px;
+    }
+
+    .cardInfo h4 {
+        font-size: 0.9rem;
+    }
+
+    .price {
+        font-size: 1.1rem;
+    }
+}
+
+@media (max-width: 480px) {
+    .heroText {
+        font-size: 1.8rem;
+    }
+
+    .cardDetails {
+        padding: 15px 5px;
+    }
+}

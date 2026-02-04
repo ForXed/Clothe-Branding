@@ -1,0 +1,12 @@
+.chatWrapper { height: calc(100vh - 80px); display: flex; flex-direction: column; background: #fff; }
+.contactInfo { padding: 20px 5%; border-bottom: 1px solid #eee; display: flex; align-items: center; gap: 15px; }
+.makerAvatar { width: 45px; height: 45px; background: #000; color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 900; }
+
+.messageHistory { flex: 1; padding: 30px 5%; display: flex; flex-direction: column; gap: 20px; overflow-y: auto; }
+.received, .sent { padding: 15px 20px; border-radius: 20px; max-width: 60%; font-size: 0.95rem; line-height: 1.5; }
+.received { background: #f0f0f0; align-self: flex-start; border-bottom-left-radius: 0; }
+.sent { background: #000; color: #fff; align-self: flex-end; border-bottom-right-radius: 0; }
+
+.inputArea { padding: 20px 5%; border-top: 1px solid #eee; display: flex; gap: 15px; align-items: center; }
+.inputArea input { flex: 1; padding: 12px 20px; border-radius: 100px; border: 1px solid #eee; background: #f9f9f9; outline: none; }
+.send { background: none; border: none; font-weight: 800; cursor: pointer; }

@@ -1,60 +1,57 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
-
 .footer {
     background-color: #000000; /* Pure Black */
     color: #ffffff;
-    padding: 60px 20px 30px; /* Top, Side, Bottom padding */
-    font-family: 'Inter', sans-serif;
+    padding: 80px 20px 40px;
     width: 100%;
     box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    width: 100%;
 }
 
-/* --- The Grid Layout (Desktop View) --- */
 .grid {
     display: grid;
-    /* Creates 4 equal columns */
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: 1.5fr 1fr 1fr 1fr;
     gap: 40px;
-    margin-bottom: 60px; /* Space between links and bottom divider */
+    margin-bottom: 60px;
 }
 
-/* --- Typography & Styling --- */
-.col {
+/* --- Brand Section --- */
+.brandWrapper {
     display: flex;
-    flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
 }
 
-/* Brand Column */
 .brandName {
-    font-size: 1.5rem;
-    font-weight: 700;
-    margin-bottom: 16px;
-    color: #fff;
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #ffffff;
+    letter-spacing: -1px;
+    margin: 0;
 }
 
 .tagline {
     font-size: 0.95rem;
-    color: #b0b0b0; /* Light Gray for readability */
-    line-height: 1.5;
-    max-width: 250px;
+    color: #999999; /* Dimmed white for readability */
+    line-height: 1.6;
+    max-width: 280px;
 }
 
-/* Section Headings */
+/* --- Typography --- */
 .heading {
-    font-size: 1.1rem;
+    color: #ffffff;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 25px;
     font-weight: 700;
-    margin-bottom: 20px;
-    color: #fff;
 }
 
-/* Links List */
 .linkList {
     list-style: none;
     padding: 0;
@@ -65,83 +62,70 @@
     margin-bottom: 12px;
 }
 
-.linkList a {
+.linkList a, .contactText {
+    color: #999999;
     text-decoration: none;
-    color: #b0b0b0; /* Light Gray */
     font-size: 0.95rem;
-    transition: color 0.2s ease;
+    transition: all 0.3s ease;
+    display: inline-block;
 }
 
+/* Professional Animation: Link slide and color change */
 .linkList a:hover {
-    color: #ffffff; /* White on hover */
-}
-
-/* Contact Info */
-.contactInfo a, 
-.contactInfo p {
-    display: block;
-    color: #b0b0b0;
-    text-decoration: none;
-    font-size: 0.95rem;
-    margin-bottom: 12px;
-    font-style: normal;
-}
-
-.contactInfo a:hover {
     color: #ffffff;
+    transform: translateX(4px);
 }
 
-/* --- Divider Line --- */
+/* --- Bottom Section --- */
 .divider {
     border: none;
-    border-top: 1px solid #333333; /* Very subtle dark gray line */
-    margin: 0;
-    padding: 0;
-    width: 100%;
+    border-top: 1px solid #222222; /* Very subtle divider */
+    margin-bottom: 30px;
 }
 
-/* --- Copyright Section --- */
+.footerBottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
 .copyright {
-    padding-top: 30px;
-    text-align: center;
-}
-
-.copyright p {
-    color: #888888; /* Darker gray for copyright */
+    color: #555555;
     font-size: 0.85rem;
 }
 
-/* =========================================
-   RESPONSIVE VIEWS
-   ========================================= */
+.legalLinks {
+    display: flex;
+    gap: 25px;
+}
 
-/* Tablet View (Between 600px and 1024px) */
+.legalLinks a {
+    color: #555555;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: color 0.3s;
+}
+
+.legalLinks a:hover {
+    color: #ffffff;
+}
+
+/* --- Responsive --- */
 @media (max-width: 1024px) {
     .grid {
-        /* Switch to 2 columns grid */
         grid-template-columns: repeat(2, 1fr);
-        gap: 50px;
     }
 }
 
-/* Mobile View (Below 600px) */
-@media (max-width: 600px) {
-    .footer {
-        padding: 40px 20px 20px;
-    }
-
+@media (max-width: 650px) {
     .grid {
-        /* Stack everything in 1 column */
         grid-template-columns: 1fr;
         gap: 40px;
-        margin-bottom: 40px;
-    }
-
-    .brandName {
-        font-size: 1.75rem;
     }
     
-    .tagline {
-        max-width: 100%; /* Let text flow on mobile */
+    .footerBottom {
+        flex-direction: column;
+        gap: 20px;
+        text-align: center;
     }
 }

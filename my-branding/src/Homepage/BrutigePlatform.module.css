@@ -1,0 +1,135 @@
+.platformWrapper {
+    display: flex;
+    min-height: 100vh;
+    background: var(--bg-color);
+    font-family: 'Outfit', sans-serif;
+    position: relative;
+    transition: background-color 0.3s ease;
+}
+
+.mainContent {
+    flex: 1;
+    margin-left: 85px;
+    width: calc(100% - 85px);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.viewport {
+    flex: 1;
+    position: relative;
+}
+
+/* Smooth transitions for tab changes */
+.viewport > * {
+    animation: pageTransition 0.4s ease;
+}
+
+@keyframes pageTransition {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Mobile Responsive */
+@media (max-width: 900px) {
+    .mainContent {
+        margin-left: 0;
+        width: 100%;
+        padding-bottom: 100px; /* Space for mobile nav */
+    }
+}
+
+/* Prevent layout shift on scroll */
+.platformWrapper {
+    overflow-x: hidden;
+}
+
+/* Loading State */
+.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+}
+
+.loadingSpinner {
+    width: 40px;
+    height: 40px;
+    border: 3px solid #f0f0f0;
+    border-top-color: #000;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Error State */
+.error {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: 40px;
+    text-align: center;
+}
+
+.error h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.error p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Empty State */
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    padding: 40px;
+    text-align: center;
+}
+
+.emptyState svg {
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+
+.emptyState h3 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+}
+
+.emptyState p {
+    color: #666;
+    margin-bottom: 25px;
+}
+
+/* Placeholder for views */
+.placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #666;
+}

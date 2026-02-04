@@ -1,0 +1,51 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+.section {
+    padding: 150px 5%;
+    background-color: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 80vh;
+}
+
+.container {
+    max-width: 1100px;
+    width: 100%;
+}
+
+.label {
+    display: block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.3em;
+    color: #000;
+    margin-bottom: 40px;
+}
+
+.text {
+    font-family: 'Inter', sans-serif;
+    font-size: clamp(1.8rem, 4vw, 3.5rem);
+    font-weight: 800;
+    line-height: 1.2;
+    color: #000;
+    letter-spacing: -2px;
+}
+
+/* Every word is a span so GSAP can light them up individually */
+.text span {
+    display: inline-block;
+    margin-right: 0.3em;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .section {
+        padding: 100px 5%;
+    }
+    .text {
+        font-size: 1.8rem;
+        letter-spacing: -1px;
+    }
+}

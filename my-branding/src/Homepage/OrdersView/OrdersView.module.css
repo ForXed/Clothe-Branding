@@ -1,0 +1,272 @@
+.container {
+    padding: 40px 5%;
+    max-width: 1200px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+.header {
+    margin-bottom: 40px;
+}
+
+.title {
+    font-size: 2.5rem;
+    font-weight: 900;
+    letter-spacing: -2px;
+    margin-bottom: 25px;
+}
+
+.filters {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.filterBtn {
+    background: #f0f0f0;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Outfit', sans-serif;
+}
+
+.filterBtn:hover {
+    background: #e0e0e0;
+}
+
+.activeFilter {
+    background: #000 !important;
+    color: #fff !important;
+}
+
+.ordersList {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.orderCard {
+    background: #fff;
+    border: 1px solid #e8e8e8;
+    border-radius: 16px;
+    padding: 25px;
+    transition: all 0.3s;
+}
+
+.orderCard:hover {
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+    transform: translateY(-2px);
+}
+
+.orderHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #f0f0f0;
+}
+
+.orderMeta h3 {
+    font-size: 1.2rem;
+    font-weight: 800;
+    margin: 0 0 5px;
+}
+
+.orderDate {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.statusBadge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.statusProcessing {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.statusShipped {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.statusDelivered {
+    background: #d1fae5;
+    color: #065f46;
+}
+
+.orderBody {
+    margin-bottom: 20px;
+}
+
+.orderSummary {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+.summaryItem {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+}
+
+.label {
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    color: #999;
+    letter-spacing: 0.5px;
+}
+
+.value {
+    font-size: 1rem;
+    font-weight: 700;
+}
+
+.orderItems {
+    background: #fafafa;
+    padding: 15px;
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.orderItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.itemName {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+
+.itemDetails {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.orderActions {
+    display: flex;
+    gap: 12px;
+    padding-top: 20px;
+    border-top: 1px solid #f0f0f0;
+}
+
+.btnPrimary {
+    background: #000;
+    color: #fff;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Outfit', sans-serif;
+}
+
+.btnPrimary:hover {
+    background: #333;
+    transform: translateY(-1px);
+}
+
+.btnSecondary {
+    background: #f0f0f0;
+    color: #000;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.btnSecondary:hover {
+    background: #e0e0e0;
+}
+
+.emptyState {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 400px;
+    text-align: center;
+    padding: 40px;
+}
+
+.emptyState h2 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    margin: 20px 0 10px;
+}
+
+.emptyState p {
+    color: #666;
+    font-size: 1rem;
+}
+
+@media (max-width: 768px) {
+    .container {
+        padding: 20px 4%;
+        padding-bottom: 100px;
+    }
+
+    .title {
+        font-size: 2rem;
+    }
+
+    .orderCard {
+        padding: 20px;
+    }
+
+    .orderHeader {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .orderSummary {
+        grid-template-columns: 1fr;
+        gap: 15px;
+    }
+
+    .orderActions {
+        flex-direction: column;
+    }
+
+    .btnPrimary,
+    .btnSecondary {
+        width: 100%;
+        justify-content: center;
+    }
+}

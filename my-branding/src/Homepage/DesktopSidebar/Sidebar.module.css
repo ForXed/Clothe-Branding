@@ -1,0 +1,116 @@
+.sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    width: 85px;
+    background: #ffffff;
+    border-right: 1px solid #e8e8e8;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 30px 0;
+    z-index: 1000;
+    box-shadow: 2px 0 10px rgba(0, 0, 0, 0.02);
+}
+
+.logoContainer {
+    cursor: pointer;
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    margin-bottom: 20px;
+}
+
+.logoContainer:hover {
+    transform: scale(1.05);
+}
+
+.logoContainer:active {
+    transform: scale(0.95);
+}
+
+.navStack {
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    margin-top: 40px;
+    flex: 1;
+}
+
+.navBtn,
+.settingsBtn {
+    background: none;
+    border: none;
+    color: #b0b0b0;
+    cursor: pointer;
+    padding: 12px;
+    border-radius: 12px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.navBtn:hover,
+.settingsBtn:hover {
+    color: #000000;
+    background: #f5f5f5;
+    transform: translateY(-2px);
+}
+
+.navBtn:active,
+.settingsBtn:active {
+    transform: scale(0.95);
+}
+
+.navBtn.active,
+.settingsBtn.active {
+    color: #000000;
+    background: #f0f0f0;
+}
+
+.navBtn.active::before,
+.settingsBtn.active::before {
+    content: '';
+    position: absolute;
+    left: -20px;
+    width: 3px;
+    height: 24px;
+    background: #000000;
+    border-radius: 0 3px 3px 0;
+}
+
+.settingsBtn {
+    margin-top: auto;
+    margin-bottom: 20px;
+}
+
+/* Tooltip on hover */
+.navBtn::after,
+.settingsBtn::after {
+    content: attr(aria-label);
+    position: absolute;
+    left: 75px;
+    background: #000000;
+    color: #ffffff;
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s;
+    z-index: 1001;
+}
+
+.navBtn:hover::after,
+.settingsBtn:hover::after {
+    opacity: 1;
+}
+
+@media (max-width: 900px) {
+    .sidebar {
+        display: none;
+    }
+}

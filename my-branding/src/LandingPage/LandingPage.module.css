@@ -1,10 +1,34 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Playfair+Display:ital,wght@0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
 
-.pageContainer {
+.pageWrapper {
     width: 100%;
     min-height: 100vh;
-    background-color: white;
+    background-color: #ffffff; /* Brutige White */
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+    overflow-x: hidden; /* FIX: Prevents any side-scrolling / side-space */
+    position: relative;
+}
+
+
+/* Ensure all images across the site are grayscale by default for the branding */
+img {
+    filter: grayscale(100%);
+    transition: filter 0.6s cubic-bezier(0.19, 1, 0.22, 1);
+}
+
+img:hover {
+    filter: grayscale(0%);
+}
+
+/* Selection color - Pure black background, white text */
+::selection {
+    background: #000000;
+    color: #ffffff;
+}
+
+/* Global Smoothness */
+html {
+    scroll-behavior: initial; /* Lenis handles this */
 }

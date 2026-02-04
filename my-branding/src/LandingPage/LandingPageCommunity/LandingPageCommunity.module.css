@@ -1,34 +1,37 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,600;1,600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=Playfair+Display:ital,wght@0,700;1,700&display=swap');
 
 .section {
-    background-color: #000; /* Solid Black */
-    color: #fff;
-    padding: 6rem 0;
-    overflow: hidden;
+    background-color: #000000; /* Pure Black */
+    color: #ffffff; /* Pure White */
+    padding: 120px 0;
+    overflow: hidden; /* Fixes side space issues */
     width: 100%;
+    position: relative;
+    z-index: 2;
 }
 
 .container {
-    max-width: 1000px;
+    max-width: 1100px;
     margin: 0 auto;
     text-align: center;
-    padding: 0 2rem;
-    margin-bottom: 4rem;
+    padding: 0 20px;
+    margin-bottom: 100px;
 }
 
 .heading {
     font-family: 'Playfair Display', serif;
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
-    line-height: 1.1;
+    font-size: clamp(2.5rem, 8vw, 5rem);
+    margin-bottom: 2rem;
+    line-height: 1;
+    font-weight: 700;
 }
 
 .subtext {
     font-family: 'Inter', sans-serif;
-    color: #888;
-    font-size: 1.1rem;
-    max-width: 600px;
-    margin: 0 auto 4rem;
+    color: #888; /* Muted white for secondary text */
+    font-size: 1.2rem;
+    max-width: 650px;
+    margin: 0 auto 5rem;
     line-height: 1.6;
 }
 
@@ -36,66 +39,68 @@
 .statsGrid {
     display: flex;
     justify-content: center;
-    gap: 4rem;
-    border-top: 1px solid #333;
-    padding-top: 3rem;
+    gap: 100px;
+    border-top: 1px solid #222; /* Subtle dark divider */
+    padding-top: 4rem;
 }
 
 .statItem {
     display: flex;
     flex-direction: column;
+    min-width: 150px;
 }
 
 .number {
     font-family: 'Inter', sans-serif;
-    font-size: 2.5rem;
+    font-size: 4rem;
     font-weight: 800;
     margin-bottom: 0.5rem;
-    background: -webkit-linear-gradient(#fff, #666);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+    letter-spacing: -2px;
 }
 
 .label {
     font-family: 'Inter', sans-serif;
     color: #666;
     text-transform: uppercase;
-    letter-spacing: 0.1em;
+    letter-spacing: 0.15em;
     font-size: 0.8rem;
+    font-weight: 600;
 }
 
-/* --- Infinite Marquee --- */
+/* --- Infinite Marquee (GSAP could handle this too, but CSS is lighter here) --- */
 .marqueeContainer {
     width: 100%;
     border-top: 1px solid #222;
     border-bottom: 1px solid #222;
-    padding: 1.5rem 0;
-    background: #0a0a0a;
+    padding: 2rem 0;
+    background: #050505;
 }
 
 .marqueeTrack {
     display: flex;
     white-space: nowrap;
-    animation: scrollText 30s linear infinite;
+    width: fit-content;
+    animation: scrollText 40s linear infinite;
 }
 
 .marqueeItem {
     font-family: 'Inter', sans-serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    color: #444; /* Dimmed text */
-    margin-right: 2rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #333; /* Dimmed text for that "background" look */
+    margin-right: 3rem;
     text-transform: uppercase;
-    transition: color 0.3s;
+    transition: color 0.3s ease;
 }
 
 .marqueeItem:hover {
-    color: #fff; /* Light up on hover */
+    color: #ffffff; /* Lights up white on hover */
 }
 
 .dot {
     color: #222;
-    margin-left: 2rem;
+    margin-left: 3rem;
 }
 
 @keyframes scrollText {
@@ -104,14 +109,22 @@
 }
 
 /* --- Responsive --- */
+@media (max-width: 900px) {
+    .statsGrid {
+        gap: 40px;
+    }
+    .number { font-size: 3rem; }
+}
+
 @media (max-width: 768px) {
-    .heading { font-size: 2.5rem; }
+    .section { padding: 80px 0; }
+    .heading { font-size: 3rem; }
     
     .statsGrid {
         flex-direction: column;
-        gap: 2rem;
-        padding-top: 2rem;
+        gap: 50px;
+        padding-top: 3rem;
     }
 
-    .number { font-size: 2rem; }
+    .number { font-size: 3.5rem; }
 }

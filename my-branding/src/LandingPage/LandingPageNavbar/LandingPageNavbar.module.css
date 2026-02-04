@@ -2,12 +2,13 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.2rem 3rem;
+    padding: 1.2rem 5%; /* Increased padding for a more premium feel */
     background-color: white;
     border-bottom: 1px solid #f0f0f0;
     position: sticky;
     top: 0;
     z-index: 1000;
+    width: 100%;
 }
 
 .logoWrapper {
@@ -29,59 +30,76 @@
 .navLinks {
     display: flex;
     list-style: none;
-    gap: 2.5rem;
+    gap: 3rem; /* Slightly wider gap for better readability */
 }
 
 .navLinks a {
     text-decoration: none;
     color: #666;
     font-family: 'Inter', sans-serif;
-    font-size: 0.95rem;
-    font-weight: 500;
-    transition: color 0.2s;
+    font-size: 0.9rem;
+    font-weight: 600; /* Made slightly bolder */
+    text-transform: uppercase; /* Professional branding look */
+    letter-spacing: 0.05em;
+    transition: all 0.3s ease;
 }
 
-.navLinks a:hover { color: black; }
+.navLinks a:hover { 
+    color: black; 
+    opacity: 0.7;
+}
 
 /* Buttons */
 .authButtons {
     display: flex;
-    gap: 1rem;
+    gap: 1.5rem;
     align-items: center;
 }
 
 .loginBtn, .startBtn {
     font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 0.9rem;
+    font-weight: 700;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
     cursor: pointer;
-    transition: all 0.2s;
-    white-space: nowrap; /* Prevents text wrapping */
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    white-space: nowrap;
 }
 
 .loginBtn {
     background: transparent;
     border: none;
     color: black;
-    padding: 10px 16px;
+    padding: 10px;
+}
+
+.loginBtn:hover {
+    opacity: 0.5;
 }
 
 .startBtn {
     background: black;
     color: white;
     border: 1px solid black;
-    border-radius: 4px;
-    padding: 10px 24px;
+    border-radius: 0; /* Changed to 0 for a sharper "Brutal" look */
+    padding: 12px 28px;
 }
 
 .startBtn:hover {
-    background: white;
+    background: transparent;
     color: black;
+    transform: translateY(-2px); /* Premium feel movement */
 }
 
 /* --- RESPONSIVE --- */
 
-/* Tablet & Mobile: Hide text links, adjust padding */
+@media (max-width: 1024px) {
+    .navLinks {
+        gap: 1.5rem;
+    }
+}
+
 @media (max-width: 900px) {
     .navbar {
         padding: 1rem 1.5rem;
@@ -91,18 +109,17 @@
     }
 }
 
-/* Mobile: Compact buttons */
 @media (max-width: 480px) {
     .brandName {
         font-size: 1.25rem;
     }
     .startBtn {
-        padding: 8px 16px;
-        font-size: 0.85rem;
+        padding: 10px 18px;
+        font-size: 0.8rem;
     }
     .loginBtn {
-        padding: 8px 10px;
-        font-size: 0.85rem;
+        padding: 10px;
+        font-size: 0.8rem;
     }
     .authButtons {
         gap: 0.5rem;
