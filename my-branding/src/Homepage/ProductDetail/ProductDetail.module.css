@@ -1,15 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&family=Outfit:wght@400;700;900&family=Cormorant+Garamond:ital,wght@1,700&display=swap');
+
 .container {
     padding: 40px 5%;
     animation: fadeIn 0.5s ease;
+    background-color: var(--brut-bg); /* Use variable */
+    min-height: 100vh;
 }
 
 @keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
+    from { opacity: 0; }
+    to { opacity: 1; }
 }
 
 .backBtn {
@@ -26,10 +26,11 @@
     transition: all 0.3s;
     padding: 10px 15px;
     border-radius: 8px;
+    color: var(--brut-text); /* Use variable */
 }
 
 .backBtn:hover {
-    background: #f7f7f7;
+    background: var(--brut-hover); /* Use variable */
     transform: translateX(-5px);
 }
 
@@ -53,7 +54,8 @@
     aspect-ratio: 3/4;
     border-radius: 30px;
     overflow: hidden;
-    background: #f9f9f9;
+    background: var(--brut-card); /* Use variable */
+    border: 1px solid var(--brut-border);
 }
 
 .mainImage img {
@@ -80,7 +82,8 @@
     display: inline-block;
     font-size: 0.7rem;
     font-weight: 800;
-    color: #666;
+    color: var(--brut-text); /* Use variable */
+    opacity: 0.5; /* Muted text */
     letter-spacing: 2px;
     text-transform: uppercase;
     margin-bottom: 15px;
@@ -92,11 +95,13 @@
     line-height: 1.1;
     letter-spacing: -2px;
     margin: 0;
+    color: var(--brut-text);
 }
 
 .saveBtn {
-    background: #f0f0f0;
-    border: none;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
+    color: var(--brut-text);
     width: 48px;
     height: 48px;
     border-radius: 50%;
@@ -109,13 +114,13 @@
 }
 
 .saveBtn:hover {
-    background: #e0e0e0;
+    background: var(--brut-hover);
     transform: scale(1.05);
 }
 
 .saved {
-    background: #000 !important;
-    color: #fff !important;
+    background: var(--brut-text) !important; /* White in dark mode */
+    color: var(--brut-bg) !important;       /* Black in dark mode */
 }
 
 .productPrice {
@@ -124,15 +129,17 @@
     font-weight: 700;
     font-style: italic;
     margin: 0;
+    color: var(--brut-text);
 }
 
-/* Product Specs */
+/* Product Specs - The dark grey box */
 .productSpecs {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
     gap: 20px;
     padding: 25px;
-    background: #fafafa;
+    background: var(--brut-card); /* Grok Charcoal */
+    border: 1px solid var(--brut-border);
     border-radius: 16px;
 }
 
@@ -146,20 +153,22 @@
     font-size: 0.75rem;
     font-weight: 700;
     text-transform: uppercase;
-    color: #999;
+    color: var(--brut-text);
+    opacity: 0.4;
     letter-spacing: 0.5px;
 }
 
 .specItem strong {
     font-size: 0.95rem;
     font-weight: 700;
+    color: var(--brut-text);
 }
 
 /* Size Section */
 .sizeSection {
     padding: 25px;
-    background: #fff;
-    border: 2px solid #000;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
     border-radius: 16px;
 }
 
@@ -174,6 +183,7 @@
     font-size: 1.1rem;
     font-weight: 800;
     margin: 0;
+    color: var(--brut-text);
 }
 
 .sizeGuideBtn {
@@ -184,11 +194,12 @@
     text-decoration: underline;
     cursor: pointer;
     font-family: 'Outfit', sans-serif;
-    color: #666;
+    color: var(--brut-text);
+    opacity: 0.6;
 }
 
 .sizeGuideBtn:hover {
-    color: #000;
+    opacity: 1;
 }
 
 .sizeGrid {
@@ -198,8 +209,8 @@
 }
 
 .sizeBtn {
-    background: #f7f7f7;
-    border: 2px solid transparent;
+    background: var(--brut-bg);
+    border: 1px solid var(--brut-border);
     padding: 15px;
     border-radius: 12px;
     font-weight: 800;
@@ -207,17 +218,18 @@
     cursor: pointer;
     transition: all 0.3s;
     font-family: 'Outfit', sans-serif;
+    color: var(--brut-text);
 }
 
 .sizeBtn:hover {
-    background: #e8e8e8;
-    border-color: #ccc;
+    background: var(--brut-hover);
+    border-color: var(--brut-text);
 }
 
 .selectedSize {
-    background: #000 !important;
-    color: #fff !important;
-    border-color: #000 !important;
+    background: var(--brut-text) !important;
+    color: var(--brut-bg) !important;
+    border-color: var(--brut-text) !important;
 }
 
 /* Quantity Section */
@@ -225,20 +237,23 @@
     font-size: 1.1rem;
     font-weight: 800;
     margin-bottom: 15px;
+    color: var(--brut-text);
 }
 
 .quantityControl {
     display: inline-flex;
     align-items: center;
     gap: 15px;
-    background: #f7f7f7;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
     border-radius: 12px;
     padding: 8px;
 }
 
 .quantityControl button {
-    background: #fff;
-    border: none;
+    background: var(--brut-bg);
+    color: var(--brut-text);
+    border: 1px solid var(--brut-border);
     width: 40px;
     height: 40px;
     border-radius: 10px;
@@ -250,12 +265,8 @@
 }
 
 .quantityControl button:hover {
-    background: #000;
-    color: #fff;
-}
-
-.quantityControl button:active {
-    transform: scale(0.95);
+    background: var(--brut-text);
+    color: var(--brut-bg);
 }
 
 .quantityControl span {
@@ -263,6 +274,7 @@
     font-size: 1.1rem;
     min-width: 30px;
     text-align: center;
+    color: var(--brut-text);
 }
 
 /* Actions */
@@ -273,8 +285,8 @@
 
 .addToCartBtn {
     flex: 1;
-    background: #000;
-    color: #fff;
+    background: var(--brut-text); /* White in dark mode */
+    color: var(--brut-bg);       /* Black in dark mode */
     border: none;
     padding: 18px;
     border-radius: 12px;
@@ -292,24 +304,21 @@
 }
 
 .addToCartBtn:hover {
-    background: #333;
+    opacity: 0.9;
     transform: translateY(-2px);
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2);
-}
-
-.addToCartBtn:active {
-    transform: translateY(0);
+    box-shadow: 0 6px 20px rgba(255, 255, 255, 0.1);
 }
 
 .added {
     background: #16a34a !important;
+    color: #fff !important;
 }
 
 .brandBtn {
     flex: 0.6;
-    background: #f0f0f0;
-    color: #000;
-    border: 2px solid #000;
+    background: transparent;
+    color: var(--brut-text);
+    border: 2px solid var(--brut-text);
     padding: 18px;
     border-radius: 12px;
     font-weight: 800;
@@ -320,8 +329,8 @@
 }
 
 .brandBtn:hover {
-    background: #000;
-    color: #fff;
+    background: var(--brut-text);
+    color: var(--brut-bg);
 }
 
 /* Features */
@@ -330,7 +339,8 @@
     flex-direction: column;
     gap: 20px;
     padding: 30px;
-    background: #fafafa;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
     border-radius: 16px;
 }
 
@@ -338,6 +348,7 @@
     display: flex;
     align-items: flex-start;
     gap: 15px;
+    color: var(--brut-text);
 }
 
 .feature svg {
@@ -354,57 +365,24 @@
 
 .feature p {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--brut-text);
+    opacity: 0.5;
     margin: 0;
 }
 
-/* Responsive */
+/* Responsive stays identical in logic */
 @media (max-width: 1024px) {
-    .productLayout {
-        grid-template-columns: 1fr;
-        gap: 40px;
-    }
-
-    .imageSection {
-        position: static;
-    }
-
-    .productTitle {
-        font-size: 2.5rem;
-    }
-
-    .actions {
-        flex-direction: column;
-    }
-
-    .brandBtn {
-        flex: 1;
-    }
+    .productLayout { grid-template-columns: 1fr; gap: 40px; }
+    .imageSection { position: static; }
+    .productTitle { font-size: 2.5rem; }
+    .actions { flex-direction: column; }
+    .brandBtn { flex: 1; }
 }
 
 @media (max-width: 768px) {
-    .container {
-        padding: 20px 4%;
-        padding-bottom: 100px;
-    }
-
-    .productTitle {
-        font-size: 2rem;
-    }
-
-    .productPrice {
-        font-size: 1.8rem;
-    }
-
-    .productSpecs {
-        grid-template-columns: 1fr;
-    }
-
-    .sizeGrid {
-        grid-template-columns: repeat(auto-fit, minmax(60px, 1fr));
-    }
-
-    .mainImage {
-        border-radius: 20px;
-    }
+    .container { padding: 20px 4%; padding-bottom: 100px; }
+    .productTitle { font-size: 2rem; }
+    .productPrice { font-size: 1.8rem; }
+    .productSpecs { grid-template-columns: 1fr; }
+    .sizeGrid { grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); }
 }

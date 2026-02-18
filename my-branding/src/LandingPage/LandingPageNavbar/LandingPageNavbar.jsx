@@ -1,9 +1,10 @@
 import React, { useRef } from 'react';
+import { Link, useNavigate } from 'react-router-dom'; // Added routing imports
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import styles from './LandingPageNavbar.module.css';
 
-// The Brand Logo from your image
+// The Brand Logo remains inside the file as requested
 const BrutigeLogo = () => (
   <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="25" cy="25" r="25" fill="black"/>
@@ -14,6 +15,7 @@ const BrutigeLogo = () => (
 
 const LandingPageNavbar = () => {
   const navRef = useRef();
+  const navigate = useNavigate(); // Hook to navigate programmatically
 
   // GSAP Entrance Animation
   useGSAP(() => {
@@ -27,20 +29,33 @@ const LandingPageNavbar = () => {
 
   return (
     <nav ref={navRef} className={styles.navbar}>
-      <div className={styles.logoWrapper}>
+      {/* Clickable Logo leads to Home */}
+      <div 
+        className={styles.logoWrapper} 
+        onClick={() => navigate('/')}
+        style={{ cursor: 'pointer' }}
+      >
           <BrutigeLogo />
           <span className={styles.brandName}>brutige</span>
       </div>
 
       <ul className={styles.navLinks}>
+          {/* These use normal anchor tags because they link to sections on the same page */}
           <li><a href="#how-it-works">How it Works</a></li>
           <li><a href="#designers">For Designers</a></li>
           <li><a href="#pricing">Pricing</a></li>
       </ul>
 
       <div className={styles.authButtons}>
-        <button className={styles.loginBtn}>Log In</button>
-        <button className={styles.startBtn}>Get Started</button>
+        {/* Log In Routes to /login */}
+        <Link to="/login" className={styles.loginBtn}>
+          Log In
+        </Link>
+
+        {/* Get Started Routes to /signup */}
+        <Link to="/signup" className={styles.startBtn}>
+          Get Started
+        </Link>
       </div>
     </nav>
   );

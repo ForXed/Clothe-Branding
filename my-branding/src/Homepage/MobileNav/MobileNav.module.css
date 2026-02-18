@@ -1,159 +1,76 @@
 .wrapper {
-    display: none;
+    position: fixed; bottom: 30px; left: 0; width: 100%;
+    display: flex; justify-content: center; z-index: 2000; pointer-events: none;
 }
 
-@media (max-width: 900px) {
-    .wrapper {
-        display: flex;
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 100%;
-        justify-content: center;
-        padding: 15px 0 25px;
-        z-index: 2000;
-        pointer-events: none;
-        background: linear-gradient(to top, var(--bg-color) 0%, transparent 100%);
-    }
-
-    .pillContainer {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 4px;
-        background: var(--nav-bg);
-        backdrop-filter: blur(20px) saturate(180%);
-        -webkit-backdrop-filter: blur(20px) saturate(180%);
-        padding: 8px 15px;
-        border-radius: 100px;
-        border: 1px solid var(--nav-border);
-        box-shadow: 
-            0 10px 40px var(--nav-shadow-1),
-            0 4px 12px var(--nav-shadow-2),
-            inset 0 1px 0 var(--nav-inset);
-        pointer-events: auto;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        max-width: 95%;
-    }
-
-    .navItem {
-        background: none;
-        border: none;
-        color: var(--nav-icon-color);
-        cursor: pointer;
-        padding: 11px 14px;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-        border-radius: 18px;
-        min-width: 48px;
-    }
-
-    .navItem:active {
-        transform: scale(0.92);
-    }
-
-    .iconWrapper {
-        position: relative;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-    }
-
-    .badge {
-        position: absolute;
-        top: -8px;
-        right: -10px;
-        background: var(--badge-bg);
-        color: var(--badge-color);
-        min-width: 18px;
-        height: 18px;
-        border-radius: 50%;
-        font-size: 0.7rem;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-weight: 700;
-        padding: 0 4px;
-        border: 2px solid var(--nav-bg);
-        animation: badgePop 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-    }
-
-    @keyframes badgePop {
-        0% {
-            transform: scale(0);
-        }
-        50% {
-            transform: scale(1.2);
-        }
-        100% {
-            transform: scale(1);
-        }
-    }
-
-    .active {
-        color: var(--nav-active-color);
-        background: var(--nav-active-bg);
-    }
-
-    .activeDot {
-        position: absolute;
-        bottom: 3px;
-        width: 4px;
-        height: 4px;
-        background: var(--nav-active-color);
-        border-radius: 50%;
-        animation: dotAppear 0.3s ease;
-    }
-
-    @keyframes dotAppear {
-        from {
-            opacity: 0;
-            transform: scale(0);
-        }
-        to {
-            opacity: 1;
-            transform: scale(1);
-        }
-    }
-
-    /* Haptic feedback simulation */
-    @media (hover: none) {
-        .navItem:active {
-            background: var(--nav-active-bg);
-        }
-    }
+.pill {
+    display: flex; align-items: center; gap: 20px;
+    background: var(--brut-card); /* Changes with theme */
+    backdrop-filter: blur(20px);
+    padding: 10px 25px; border-radius: 100px;
+    border: 1px solid var(--brut-border);
+    pointer-events: auto;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.2);
 }
 
-/* Small screens */
-@media (max-width: 400px) {
-    .wrapper .pillContainer {
-        gap: 2px;
-        padding: 6px 12px;
-    }
-
-    .wrapper .navItem {
-        padding: 10px 11px;
-        min-width: 44px;
-    }
+.pill button { 
+    background: none; border: none; 
+    color: var(--brut-text); /* Use variable instead of hardcoded white */
+    opacity: 0.4;
+    cursor: pointer; padding: 10px; transition: 0.3s; 
 }
 
-/* Very small screens */
-@media (max-width: 350px) {
-    .wrapper .pillContainer {
-        gap: 1px;
-        padding: 5px 10px;
-    }
-
-    .wrapper .navItem {
-        padding: 9px 10px;
-        min-width: 42px;
-    }
-    
-    .wrapper .navItem svg {
-        width: 22px;
-        height: 22px;
-    }
+.active { 
+    opacity: 1 !important; 
+    color: var(--brut-text) !important; 
 }
+
+.moreBtn {
+    color: var(--brut-text) !important;
+    opacity: 0.4;
+}
+
+/* BOTTOM SHEET MENU */
+.bottomSheet {
+    position: fixed; bottom: -100%; left: 0; width: 100%;
+    background: var(--brut-card); /* Changes from charcoal to white automatically */
+    border-top: 1px solid var(--brut-border);
+    border-top-left-radius: 30px; border-top-right-radius: 30px;
+    z-index: 3000; transition: bottom 0.4s cubic-bezier(0.165, 0.84, 0.44, 1);
+    padding: 20px 30px 50px;
+}
+
+.showSheet { bottom: 0; }
+
+.dragBar { 
+    width: 40px; height: 5px; 
+    background: var(--brut-border); /* Subtle bar based on theme */
+    border-radius: 10px; margin: 0 auto 30px; cursor: pointer; 
+}
+
+.sheetContent { display: flex; flex-direction: column; gap: 5px; }
+
+.sheetContent button {
+    display: flex; align-items: center; gap: 15px; width: 100%;
+    background: none; border: none; 
+    color: var(--brut-text); /* Text now turns Black in Light Mode */
+    padding: 18px 0; font-size: 1rem; font-weight: 600; text-align: left;
+    border-bottom: 1px solid var(--brut-border);
+}
+
+.themeBtn {
+    color: var(--brut-text) !important;
+    font-weight: 800 !important;
+}
+
+.overlay {
+    position: fixed; inset: 0; 
+    background: rgba(0,0,0,0.5); /* Semi-transparent darken */
+    z-index: 2500;
+    backdrop-filter: blur(4px); 
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+@media (min-width: 901px) { .wrapper, .bottomSheet { display: none; } }

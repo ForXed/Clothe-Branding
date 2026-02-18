@@ -1,6 +1,9 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap');
+
 .container {
     padding: 40px 5%;
     animation: fadeIn 0.5s ease;
+    background-color: var(--brut-bg); /* Pure Black */
 }
 
 @keyframes fadeIn {
@@ -34,6 +37,7 @@
     font-weight: 900;
     letter-spacing: -1.5px;
     margin-bottom: 30px;
+    color: var(--brut-text); /* White */
 }
 
 .navMenu {
@@ -55,18 +59,22 @@
     font-family: 'Outfit', sans-serif;
     font-weight: 600;
     font-size: 0.95rem;
-    color: #666;
+    color: var(--brut-text);
+    opacity: 0.5; /* Inactive look */
     text-align: left;
 }
 
 .navItem:hover {
-    background: #f7f7f7;
-    color: #000;
+    background: var(--brut-hover);
+    opacity: 1;
+    color: var(--brut-text);
 }
 
 .activeNav {
-    background: #000 !important;
-    color: #fff !important;
+    background: var(--brut-card) !important; /* Matte Charcoal */
+    border: 1px solid var(--brut-border) !important;
+    color: var(--brut-text) !important;
+    opacity: 1;
 }
 
 /* Content */
@@ -94,12 +102,13 @@
     font-weight: 800;
     letter-spacing: -1px;
     margin-bottom: 30px;
+    color: var(--brut-text);
 }
 
 /* Profile Card */
 .profileCard {
-    background: #fff;
-    border: 2px solid #000;
+    background: var(--brut-card); /* Grok Matte Black */
+    border: 1px solid var(--brut-border);
     border-radius: 20px;
     padding: 40px;
 }
@@ -110,15 +119,15 @@
     gap: 25px;
     margin-bottom: 40px;
     padding-bottom: 30px;
-    border-bottom: 1px solid #e8e8e8;
+    border-bottom: 1px solid var(--brut-border);
 }
 
 .avatarLarge {
     width: 100px;
     height: 100px;
     border-radius: 50%;
-    background: #000;
-    color: #fff;
+    background: var(--brut-text); /* White Circle */
+    color: var(--brut-bg);         /* Black "B" */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -150,7 +159,8 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-    color: #666;
+    color: var(--brut-text);
+    opacity: 0.4;
     margin-bottom: 10px;
 }
 
@@ -158,34 +168,35 @@
 .formGroup select,
 .formGroup textarea {
     padding: 14px 16px;
-    border: 1.5px solid #e0e0e0;
+    border: 1.5px solid var(--brut-border);
     border-radius: 10px;
     font-family: 'Outfit', sans-serif;
     font-weight: 500;
     font-size: 0.95rem;
     transition: all 0.3s;
-    background: #fafafa;
+    background: var(--brut-bg); /* Pure Black input */
+    color: var(--brut-text);
 }
 
 .formGroup input:focus,
 .formGroup select:focus,
 .formGroup textarea:focus {
     outline: none;
-    border-color: #000;
-    background: #fff;
+    border-color: var(--brut-text); /* White border on focus */
+    background: var(--brut-bg);
 }
 
 .formActions {
     display: flex;
     gap: 15px;
     padding-top: 20px;
-    border-top: 1px solid #e8e8e8;
+    border-top: 1px solid var(--brut-border);
 }
 
 /* Buttons */
 .btnPrimary {
-    background: #000;
-    color: #fff;
+    background: var(--brut-text); /* White Button */
+    color: var(--brut-bg);         /* Black Text */
     border: none;
     padding: 14px 28px;
     border-radius: 10px;
@@ -197,15 +208,14 @@
 }
 
 .btnPrimary:hover {
-    background: #333;
+    opacity: 0.8;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .btnSecondary {
-    background: #f0f0f0;
-    color: #000;
-    border: none;
+    background: var(--brut-hover);
+    color: var(--brut-text);
+    border: 1px solid var(--brut-border);
     padding: 10px 20px;
     border-radius: 8px;
     font-weight: 600;
@@ -216,28 +226,29 @@
 }
 
 .btnSecondary:hover {
-    background: #e0e0e0;
+    background: var(--brut-border);
 }
 
 .btnText {
     background: none;
     border: none;
-    color: #666;
+    color: var(--brut-text);
+    opacity: 0.5;
     font-weight: 600;
     font-size: 0.9rem;
     cursor: pointer;
-    transition: color 0.3s;
+    transition: all 0.3s;
     font-family: 'Outfit', sans-serif;
 }
 
 .btnText:hover {
-    color: #000;
+    opacity: 1;
 }
 
 /* Settings List */
 .settingsList {
-    background: #fff;
-    border: 1px solid #e8e8e8;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
     border-radius: 16px;
     overflow: hidden;
 }
@@ -247,8 +258,9 @@
     align-items: center;
     justify-content: space-between;
     padding: 25px 30px;
-    border-bottom: 1px solid #f0f0f0;
+    border-bottom: 1px solid var(--brut-border);
     transition: background 0.2s;
+    color: var(--brut-text);
 }
 
 .settingItem:last-child {
@@ -256,7 +268,7 @@
 }
 
 .settingItem:hover {
-    background: #fafafa;
+    background: var(--brut-hover);
 }
 
 .settingInfo h4 {
@@ -267,7 +279,8 @@
 
 .settingInfo p {
     font-size: 0.85rem;
-    color: #666;
+    color: var(--brut-text);
+    opacity: 0.5;
     margin: 0;
 }
 
@@ -292,7 +305,7 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background-color: #ccc;
+    background-color: var(--brut-border);
     transition: 0.4s;
     border-radius: 28px;
 }
@@ -304,41 +317,30 @@
     width: 20px;
     left: 4px;
     bottom: 4px;
-    background-color: white;
+    background-color: var(--brut-text);
     transition: 0.4s;
     border-radius: 50%;
 }
 
 .switch input:checked + .slider {
-    background-color: #000;
+    background-color: #ffffff; /* Bright white when ON */
 }
 
 .switch input:checked + .slider:before {
     transform: translateX(22px);
+    background-color: #000000; /* Black knob when ON */
 }
 
 /* Billing */
 .billingCard {
-    background: #fff;
-    border: 1px solid #e8e8e8;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
     border-radius: 16px;
     padding: 30px;
 }
 
-.cardHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 25px;
-}
-
 .cardHeader h4 {
-    font-size: 1.2rem;
-    font-weight: 700;
-}
-
-.paymentList {
-    margin-bottom: 40px;
+    color: var(--brut-text);
 }
 
 .paymentItem {
@@ -346,34 +348,29 @@
     align-items: center;
     gap: 20px;
     padding: 20px;
-    background: #fafafa;
+    background: var(--brut-bg); /* Pure Black box inside charcoal card */
+    border: 1px solid var(--brut-border);
     border-radius: 12px;
     margin-bottom: 15px;
-}
-
-.cardIcon {
-    flex-shrink: 0;
-}
-
-.cardInfo {
-    flex: 1;
 }
 
 .cardInfo h5 {
     font-size: 1rem;
     font-weight: 700;
     margin: 0 0 5px;
+    color: var(--brut-text);
 }
 
 .cardInfo p {
     font-size: 0.8rem;
-    color: #666;
+    color: var(--brut-text);
+    opacity: 0.5;
     margin: 0;
 }
 
 .defaultBadge {
-    background: #000;
-    color: #fff;
+    background: var(--brut-text);
+    color: var(--brut-bg);
     padding: 4px 12px;
     border-radius: 20px;
     font-size: 0.7rem;
@@ -382,15 +379,7 @@
 }
 
 .billingHistory h4 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin-bottom: 20px;
-}
-
-.transactionsList {
-    display: flex;
-    flex-direction: column;
-    gap: 15px;
+    color: var(--brut-text);
 }
 
 .transaction {
@@ -398,20 +387,14 @@
     justify-content: space-between;
     align-items: center;
     padding: 15px;
-    background: #fafafa;
+    background: var(--brut-bg);
+    border: 1px solid var(--brut-border);
     border-radius: 10px;
-}
-
-.transaction h5 {
-    font-size: 0.95rem;
-    font-weight: 600;
-    margin: 0 0 5px;
+    color: var(--brut-text);
 }
 
 .transaction p {
-    font-size: 0.8rem;
-    color: #666;
-    margin: 0;
+    opacity: 0.5;
 }
 
 .amount {
@@ -421,43 +404,10 @@
 
 /* Responsive */
 @media (max-width: 1024px) {
-    .settingsLayout {
-        grid-template-columns: 1fr;
-        gap: 30px;
-    }
-
-    .settingsSidebar {
-        position: static;
-    }
-
-    .navMenu {
-        flex-direction: row;
-        overflow-x: auto;
-        gap: 10px;
-    }
-
-    .navItem {
-        white-space: nowrap;
-    }
-
-    .formGrid {
-        grid-template-columns: 1fr;
-    }
+    .settingsLayout { grid-template-columns: 1fr; }
+    .navMenu { flex-direction: row; }
 }
 
 @media (max-width: 900px) {
-    .container {
-        padding: 20px 4%;
-        padding-bottom: 100px;
-    }
-
-    .profileCard,
-    .billingCard {
-        padding: 25px;
-    }
-
-    .avatarSection {
-        flex-direction: column;
-        align-items: flex-start;
-    }
+    .container { padding-bottom: 120px; }
 }
