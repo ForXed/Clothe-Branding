@@ -37,13 +37,14 @@ const HomeHeader = ({
 
   const ateliers = [
     { id: 1, name: "Admin", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" },
-    { id: 2, name: "Julian", img: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" },
-    { id: 3, name: "Elena", img: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" }
+    { id: 2, name: "Julian", img: " https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" },
+    { id: 3, name: "Elena", img: " https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" }
   ];
 
   const BrutigeLogo = () => (
-    <svg width="28" height="28" viewBox="0 0 100 100" fill="none">
-      <circle cx="50" cy="50" r="50" fill="var(--brut-text)"/>
+    <svg className={styles.logoSvg} viewBox="0 0 100 100" fill="none">
+      {/* Added className to circle for specific dark mode styling */}
+      <circle className={styles.logoCircle} cx="50" cy="50" r="50"/>
       <path d="M48 25L48 65L25 80L48 25Z" fill="var(--brut-bg)"/>
       <path d="M52 25L52 65L75 80L52 25Z" fill="var(--brut-bg)"/>
     </svg>
@@ -72,7 +73,7 @@ const HomeHeader = ({
           {/* MOBILE ONLY: BRANDING */}
           <div className={styles.mobileBrand} onClick={() => setActiveTab('shop')}>
             <BrutigeLogo />
-            <span className={styles.brandName}>brutige</span>
+            {/* <span className={styles.brandName}>brutige</span> */}
           </div>
 
           {/* LAPTOP ONLY: SEARCH */}

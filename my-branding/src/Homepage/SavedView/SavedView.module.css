@@ -138,6 +138,7 @@
     display: flex;
     flex-direction: column;
     animation: cardFadeIn 0.6s var(--spring-default);
+    position: relative; /* Ensure context for absolute children */
 }
 
 @keyframes cardFadeIn {
@@ -230,6 +231,159 @@
 }
 
 .card:hover .quickCartBtn { opacity: 1; transform: translateY(0); }
+
+/* --- NEW: MOVE BUTTON STYLES --- */
+.moveBtn {
+  position: absolute;
+  bottom: 15px;
+  left: 15px;
+  background: rgba(14, 14, 14, 0.6);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.1);
+  width: 42px; height: 42px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  color: #fff; cursor: pointer; transition: 0.3s;
+  z-index: 5;
+  opacity: 0; transform: translateY(10px);
+}
+
+.card:hover .moveBtn { opacity: 1; transform: translateY(0); }
+.moveBtn:hover { background: #474145; border-color: #474145; }
+
+/* --- NEW: MOVE DROPDOWN (Inside Card) --- */
+.moveDropdown {
+  position: absolute;
+  bottom: 70px; /* Above the buttons */
+  left: 15px;
+  width: 160px;
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 12px;
+  padding: 8px;
+  z-index: 20;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  animation: slideUp 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dropdownHeader {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--brut-text);
+  opacity: 0.5;
+  padding: 4px 8px;
+  margin-bottom: 4px;
+}
+
+.dropdownItem {
+  display: block;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: var(--brut-text);
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: 0.2s;
+}
+
+.dropdownItem:hover { background: var(--brut-hover); }
+.dropdownItem.activeItem { color: #474145; font-weight: 800; }
+.dropdownItem:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* --- NEW: MODAL OVERLAY & CONTENT (Create Collection) --- */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  backdrop-filter: blur(5px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.modalContent {
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  padding: 30px;
+  border-radius: 20px;
+  width: 90%;
+  max-width: 400px;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+  animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.modalContent h3 {
+  margin: 0 0 20px 0;
+  font-size: 1.5rem;
+  color: var(--brut-text);
+  text-align: center;
+}
+
+.modalInput {
+  width: 100%;
+  padding: 16px;
+  background: var(--brut-bg);
+  border: 1px solid var(--brut-border);
+  border-radius: 12px;
+  color: var(--brut-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  margin-bottom: 20px;
+  outline: none;
+  box-sizing: border-box; /* Fix padding issue */
+}
+
+.modalInput:focus { border-color: var(--brut-text); }
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.cancelBtn {
+  background: transparent;
+  border: 1px solid var(--brut-border);
+  color: var(--brut-text);
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.cancelBtn:hover { border-color: var(--brut-text); }
+
+.submitBtn {
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  border: none;
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s;
+}
+
+.submitBtn:hover { opacity: 0.9; transform: translateY(-2px); }
+.submitBtn:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+
+@keyframes scaleUp {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
 
 /* --- METADATA & TYPOGRAPHY --- */
 .cardInfo { padding: 0 5px; }
@@ -324,7 +478,10 @@
     .header { flex-direction: column; align-items: flex-start; gap: 25px; }
     .title { font-size: 2.2rem; }
     .grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
-    .quickCartBtn { opacity: 1; transform: none; }
+    .quickCartBtn, .moveBtn { opacity: 1; transform: none; }
+    
+    /* Adjust dropdown position on mobile */
+    .moveDropdown { left: auto; right: 15px; bottom: 70px; }
 }
 
 @media (max-width: 480px) {

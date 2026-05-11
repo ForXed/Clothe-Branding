@@ -1,0 +1,350 @@
+.container {
+  padding: 60px 5%;
+  max-width: 1400px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease;
+  min-height: 100vh;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Header & Toggle --- */
+.header {
+  margin-bottom: 50px;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 30px;
+  border-bottom: 2px solid var(--hub-text);
+  padding-bottom: 30px;
+}
+
+.headerContent {
+  max-width: 600px;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 0 0 16px 0;
+  color: var(--hub-text);
+  letter-spacing: -1.5px;
+  line-height: 1;
+}
+
+.subtitle {
+  font-size: 1.1rem;
+  color: var(--hub-text-muted);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Dual Path Toggle Switch */
+.modeToggle {
+  display: flex;
+  background: var(--hub-hover);
+  padding: 4px;
+  border-radius: 100px;
+  border: 1px solid var(--hub-border);
+}
+
+.toggleBtn {
+  padding: 10px 24px;
+  border-radius: 100px;
+  border: none;
+  background: transparent;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--hub-text-muted);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.toggleBtn.active {
+  background: var(--hub-text);
+  color: var(--hub-sidebar);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+/* --- Filters --- */
+.filterBar {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 40px;
+}
+
+.filterBtn {
+  background: transparent;
+  border: 1px solid var(--hub-border);
+  padding: 10px 24px;
+  border-radius: 4px; /* More brutalist square-ish */
+  font-family: 'Outfit', sans-serif;
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--hub-text);
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.filterBtn:hover {
+  border-color: var(--hub-text);
+  background: var(--hub-hover);
+}
+
+.filterBtn.active {
+  background: var(--hub-text);
+  color: var(--hub-sidebar);
+  border-color: var(--hub-text);
+}
+
+/* --- Grid --- */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 40px;
+}
+
+.card {
+  background: var(--hub-sidebar);
+  border: 1px solid var(--hub-border);
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+  display: flex;
+  flex-direction: column;
+  position: relative;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
+  border-color: var(--hub-text);
+}
+
+.imageWrapper {
+  position: relative;
+  aspect-ratio: 4/5;
+  overflow: hidden;
+  background: #f0f0f0;
+}
+
+.imageWrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.6s cubic-bezier(0.25, 0.8, 0.25, 1);
+  filter: grayscale(20%);
+}
+
+.card:hover .imageWrapper img {
+  transform: scale(1.05);
+  filter: grayscale(0%);
+}
+
+.overlay {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: var(--hub-sidebar);
+  padding: 6px 12px;
+  border: 1px solid var(--hub-text);
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--hub-text);
+}
+
+.info {
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  border-top: 1px solid var(--hub-border);
+  background: var(--hub-sidebar);
+}
+
+.metaRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.cardTitle {
+  font-size: 1.2rem;
+  font-weight: 800;
+  margin: 0;
+  color: var(--hub-text);
+  letter-spacing: -0.5px;
+}
+
+.count {
+  font-size: 0.8rem;
+  color: var(--hub-text-muted);
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.specs {
+  font-size: 0.9rem;
+  color: var(--hub-text-muted);
+  font-family: 'Courier New', monospace;
+  margin: 0;
+  padding: 8px 0;
+  border-bottom: 1px dashed var(--hub-border);
+}
+
+.exploreBtn {
+  margin-top: auto;
+  background: none;
+  border: none;
+  color: var(--hub-text);
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  padding: 12px 0 0 0;
+  text-align: left;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: gap 0.2s;
+}
+
+.exploreBtn:hover {
+  gap: 12px;
+  text-decoration: underline;
+}
+
+/* --- Auth Modal --- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  animation: fadeIn 0.2s ease;
+}
+
+.modalContent {
+  background: var(--hub-sidebar);
+  padding: 40px;
+  border-radius: 4px;
+  border: 1px solid var(--hub-text);
+  max-width: 450px;
+  width: 90%;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  text-align: center;
+}
+
+.closeModal {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--hub-text-muted);
+}
+
+.modalTitle {
+  font-size: 1.8rem;
+  font-weight: 900;
+  margin: 0 0 16px 0;
+  color: var(--hub-text);
+}
+
+.modalText {
+  font-size: 1rem;
+  color: var(--hub-text-muted);
+  line-height: 1.6;
+  margin: 0 0 30px 0;
+}
+
+.modalActions {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.modalBtnPrimary, .modalBtnSecondary {
+  padding: 14px 28px;
+  border-radius: 4px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+}
+
+.modalBtnPrimary {
+  background: var(--hub-text);
+  color: var(--hub-sidebar);
+  border: 1px solid var(--hub-text);
+}
+
+.modalBtnPrimary:hover {
+  background: #000;
+  transform: translateY(-2px);
+}
+
+.modalBtnSecondary {
+  background: transparent;
+  color: var(--hub-text);
+  border: 1px solid var(--hub-border);
+}
+
+.modalBtnSecondary:hover {
+  border-color: var(--hub-text);
+  background: var(--hub-hover);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .modeToggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .toggleBtn {
+    flex: 1;
+    text-align: center;
+    font-size: 0.85rem;
+    padding: 12px 10px;
+  }
+  
+  .title {
+    font-size: 2.2rem;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .modalActions {
+    flex-direction: column;
+  }
+  
+  .modalBtnPrimary, .modalBtnSecondary {
+    width: 100%;
+  }
+}

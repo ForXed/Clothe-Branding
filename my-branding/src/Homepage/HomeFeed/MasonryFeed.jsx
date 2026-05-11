@@ -1,145 +1,53 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import styles from './MasonryFeed.module.css';
 import PromoBanner from '../PromoBanner/PromoBanner';
+import { productAPI } from '../../services/ProductService';
 
 const MasonryFeed = ({ onSelect, savedItems = [], toggleSaved, addToCart }) => {
+  const [products, setProducts] = useState([]);
+  const [categories, setCategories] = useState(['All']);
+  const [activeCategory, setActiveCategory] = useState('All');
+  const [isLoading, setIsLoading] = useState(true);
   const [hoveredCard, setHoveredCard] = useState(null);
 
-  // Expanded Product List with Stock and Maker Metrics
-  const products = [
-    { 
-      id: 1, 
-      title: "Oversized 'Brut' Tee", 
-      price: "$45.00", 
-      category: "Essentials",
-      description: "Heavyweight 300GSM organic cotton with a boxy architectural silhouette.",
-      stock: 12,
-      totalCapacity: 50,
-      brandsBuilt: 124,
-      img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500" 
-    },
-    { 
-      id: 2, 
-      title: "Infrastructure Hoodie", 
-      price: "$85.00", 
-      category: "Layering",
-      description: "450GSM French Terry. Double-stitched seams for maximum structural integrity.",
-      stock: 5,
-      totalCapacity: 20,
-      brandsBuilt: 89,
-      img: " https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500" 
-    },
-    { 
-      id: 3, 
-      title: "Architectural Coat", 
-      price: "$210.00", 
-      category: "Outerwear",
-      description: "Wool-blend minimalist overcoat featuring hidden hardware and sharp lines.",
-      stock: 2,
-      totalCapacity: 10,
-      brandsBuilt: 12,
-      img: " https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=500" 
-    },
-    { 
-      id: 4, 
-      title: "Minimalist Shell", 
-      price: "$120.00", 
-      category: "Layering",
-      description: "Water-resistant technical membrane designed for modular urban environments.",
-      stock: 18,
-      totalCapacity: 40,
-      brandsBuilt: 45,
-      img: " https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=500" 
-    },
-    { 
-      id: 5, 
-      title: "Essential Cargo", 
-      price: "$95.00", 
-      category: "Bottoms",
-      description: "Twill utility pants with articulated knees and discreet branding nodes.",
-      stock: 30,
-      totalCapacity: 100,
-      brandsBuilt: 210,
-      img: " https://images.unsplash.com/photo-1624378439575-d8705ad7ae80?w=500" 
-    },
-    { 
-      id: 6, 
-      title: "Technical Vest", 
-      price: "$135.00", 
-      category: "Layering",
-      description: "Multi-pocket tactical layer with breathable mesh lining and raw edges.",
-      stock: 8,
-      totalCapacity: 15,
-      brandsBuilt: 34,
-      img: " https://images.unsplash.com/photo-1620799140408-edc6dcb6d633?w=500" 
-    },
-    { 
-      id: 7, 
-      title: "Structured Button-Up", 
-      price: "$75.00", 
-      category: "Essentials",
-      description: "Crisp poplin cotton with a reinforced collar and minimalist hidden buttons.",
-      stock: 15,
-      totalCapacity: 60,
-      brandsBuilt: 156,
-      img: " https://images.unsplash.com/photo-1602810318383-e386cc2a3ccf?w=500" 
-    },
-    { 
-      id: 8, 
-      title: "Heavy Sweatpants", 
-      price: "$65.00", 
-      category: "Bottoms",
-      description: "Elastic-free hem and high-density fleece for a drape-heavy finish.",
-      stock: 40,
-      totalCapacity: 200,
-      brandsBuilt: 432,
-      img: " https://images.unsplash.com/photo-1506629082955-511b1aa562c8?w=500" 
-    },
-    { 
-      id: 9, 
-      title: "Raw Denim Blueprint", 
-      price: "$150.00", 
-      category: "Bottoms",
-      description: "14oz selvedge denim. Unwashed, deep indigo, engineered for longevity.",
-      stock: 10,
-      totalCapacity: 30,
-      brandsBuilt: 18,
-      img: " https://images.unsplash.com/photo-1542272604-787c3835535d?w=500" 
-    },
-    { 
-      id: 10, 
-      title: "Modular Tech Jacket", 
-      price: "$280.00", 
-      category: "Outerwear",
-      description: "Removable sleeves and GORE-TEX lining. The peak of infrastructure design.",
-      stock: 3,
-      totalCapacity: 5,
-      brandsBuilt: 7,
-      img: " https://images.unsplash.com/photo-1551028719-00167b16eac5?w=500" 
-    },
-    { 
-      id: 11, 
-      title: "Artisan Linen Shirt", 
-      price: "$90.00", 
-      category: "Essentials",
-      description: "Lightweight breathable linen, garment-dyed for a soft, worn-in prestige feel.",
-      stock: 14,
-      totalCapacity: 25,
-      brandsBuilt: 55,
-      img: " https://images.unsplash.com/photo-1598033129183-c4f50c7176c8?w=500" 
-    },
-    { 
-      id: 12, 
-      title: "Urban Utility Bag", 
-      price: "$55.00", 
-      category: "Accessories",
-      description: "Ballistic nylon construction with weather-proof zippers and logo branding.",
-      stock: 50,
-      totalCapacity: 500,
-      brandsBuilt: 1024,
-      img: " https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=500" 
-    },
-  ];
+  // Load Categories and Products on Mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setIsLoading(true);
+      try {
+        // Fetch categories first to build the filter bar
+        const cats = await productAPI.getCategories();
+        setCategories(cats);
+
+        // Fetch initial products
+        const prods = await productAPI.getAllProducts();
+        setProducts(prods);
+      } catch (error) {
+        console.error("Failed to load catalog:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
+
+  // Handle Category Change
+  useEffect(() => {
+    const loadCategory = async () => {
+      setIsLoading(true);
+      try {
+        const prods = await productAPI.getProductsByCategory(activeCategory);
+        setProducts(prods);
+      } catch (error) {
+        console.error("Failed to filter products:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCategory();
+  }, [activeCategory]);
 
   const handleQuickAdd = (e, product) => {
     e.stopPropagation();
@@ -155,6 +63,17 @@ const MasonryFeed = ({ onSelect, savedItems = [], toggleSaved, addToCart }) => {
     return savedItems?.some(item => item.id === productId);
   };
 
+  if (isLoading && products.length === 0) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Initializing Infrastructure...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={styles.container}>
       <div className={styles.hero}>
@@ -166,78 +85,90 @@ const MasonryFeed = ({ onSelect, savedItems = [], toggleSaved, addToCart }) => {
         </p>
       </div>
 
-      {/* Integrated PromoBanner Component */}
       <PromoBanner />
 
+      {/* Dynamic Filter Bar */}
+      <div className={styles.filterBar}>
+        {categories.map(cat => (
+          <button
+            key={cat}
+            className={`${styles.filterPill} ${activeCategory === cat ? styles.active : ''}`}
+            onClick={() => setActiveCategory(cat)}
+          >
+            {cat}
+          </button>
+        ))}
+      </div>
+
       <div className={styles.masonry}>
-        {products.map(product => {
-          const stockPercentage = (product.stock / product.totalCapacity) * 100;
-          
-          return (
-            <div 
-              key={product.id} 
-              className={styles.card}
-              onMouseEnter={() => setHoveredCard(product.id)}
-              onMouseLeave={() => setHoveredCard(null)}
-              onClick={() => onSelect(product)}
-            >
-              {/* Soft Container for the Image */}
-              <div className={styles.imageContainer}>
-                <div className={styles.imageInner}>
-                  <img src={product.img} alt={product.title} />
-                  
-                  {/* Category Tag */}
-                  <span className={styles.categoryTag}>{product.category}</span>
+        {products.length === 0 ? (
+          <div className={styles.emptyFilterState}>No items found in this sector.</div>
+        ) : (
+          products.map(product => {
+            const stockPercentage = (product.stock / product.totalCapacity) * 100;
+            
+            return (
+              <div 
+                key={product.id} 
+                className={styles.card}
+                onMouseEnter={() => setHoveredCard(product.id)}
+                onMouseLeave={() => setHoveredCard(null)}
+                onClick={() => onSelect(product)}
+              >
+                <div className={styles.imageContainer}>
+                  <div className={styles.imageInner}>
+                    <img src={product.img} alt={product.title} />
+                    
+                    <span className={styles.categoryTag}>{product.category}</span>
 
-                  <div className={`${styles.cardActions} ${hoveredCard === product.id ? styles.visible : ''}`}>
-                    <button 
-                      className={`${styles.actionBtn} ${isSaved(product.id) ? styles.saved : ''}`}
-                      onClick={(e) => handleToggleSaved(e, product)}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill={isSaved(product.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
-                        <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
-                      </svg>
-                    </button>
-                    <button 
-                      className={styles.actionBtn}
-                      onClick={(e) => handleQuickAdd(e, product)}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                        <path d="M12 5v14M5 12h14"/>
-                      </svg>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* Information Container */}
-              <div className={styles.cardDetails}>
-                <div className={styles.productHeader}>
-                  <h4>{product.title}</h4>
-                  <div className={styles.pricePill}>{product.price}</div>
-                </div>
-                
-                <p className={styles.descriptionText}>{product.description}</p>
-
-                {/* Technical Metrics (AliExpress style but refined) */}
-                <div className={styles.metricsArea}>
-                  <div className={styles.stockInfo}>
-                    <span>{product.stock} pieces remaining</span>
-                    <div className={styles.progressBar}>
-                      <div 
-                        className={styles.progressFill} 
-                        style={{ width: `${stockPercentage}%`, backgroundColor: product.stock < 10 ? '#ff4444' : 'var(--brut-text)' }}
-                      />
+                    <div className={`${styles.cardActions} ${hoveredCard === product.id ? styles.visible : ''}`}>
+                      <button 
+                        className={`${styles.actionBtn} ${isSaved(product.id) ? styles.saved : ''}`}
+                        onClick={(e) => handleToggleSaved(e, product)}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill={isSaved(product.id) ? "currentColor" : "none"} stroke="currentColor" strokeWidth="2">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+                        </svg>
+                      </button>
+                      <button 
+                        className={styles.actionBtn}
+                        onClick={(e) => handleQuickAdd(e, product)}
+                      >
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                          <path d="M12 5v14M5 12h14"/>
+                        </svg>
+                      </button>
                     </div>
                   </div>
-                  <div className={styles.socialProof}>
-                    <strong>{product.brandsBuilt}</strong> brands built
+                </div>
+
+                <div className={styles.cardDetails}>
+                  <div className={styles.productHeader}>
+                    <h4>{product.title}</h4>
+                    <div className={styles.pricePill}>{product.price}</div>
+                  </div>
+                  
+                  <p className={styles.descriptionText}>{product.description}</p>
+
+                  <div className={styles.metricsArea}>
+                    <div className={styles.stockInfo}>
+                      <span>{product.stock} pieces remaining</span>
+                      <div className={styles.progressBar}>
+                        <div 
+                          className={styles.progressFill} 
+                          style={{ width: `${stockPercentage}%`, backgroundColor: product.stock < 10 ? '#ff4444' : 'var(--brut-text)' }}
+                        />
+                      </div>
+                    </div>
+                    <div className={styles.socialProof}>
+                      <strong>{product.brandsBuilt}</strong> brands built
+                    </div>
                   </div>
                 </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })
+        )}
       </div>
     </div>
   );

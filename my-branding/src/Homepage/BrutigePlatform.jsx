@@ -9,7 +9,9 @@ import ChatRoom from './ChatRoom/ChatRoom';
 import ProfileView from './ProfileView/ProfileView';
 import ProfileSettings from './ProfileSettings/ProfileSettings';
 import CartView from './CartView/CartView';
+import CheckoutView from './CheckoutView/CheckoutView';
 import OrdersView from './OrdersView/OrdersView';
+import OrderTracker from './OrderTracker/OrderTracker';
 import SavedView from './SavedView/SavedView';
 import SearchView from './SearchView/SearchView';
 import styles from './BrutigePlatform.module.css';
@@ -20,14 +22,6 @@ const ProfileWrapper = ({ userAvatar, setUserAvatar, setActiveTab }) => {
   const navigate = useNavigate();
 
   const handleProductClick = (product) => {
-    // Navigate to product detail within the shop flow
-    // We need to trigger the parent's setSelectedProduct logic ideally, 
-    // but for now we navigate to the shop route with state or just console log
-    console.log("Product clicked from Profile:", product);
-    // Simple way: navigate back to shop and select (requires context lifting, keeping it simple for now)
-    // For this demo, we assume ProductDetail handles its own internal state if passed via link
-    // But to work with current architecture, we navigate to shop and hope user clicks again 
-    // OR we pass a function down. Let's pass a navigate function.
     navigate(`/platform/shop`, { state: { selectedProduct: product } });
   };
 
@@ -57,27 +51,44 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
   const [cartItems, setCartItems] = useState([]);
   const [savedItems, setSavedItems] = useState([]);
   const [userAvatar, setUserAvatar] = useState(null);
+  
+  // --- STATE: Control Mobile Nav Visibility ---
+  // Default to false (visible). ChatRoom will set this to true (hidden) when a chat is open.
+  const [hideMobileNav, setHideMobileNav] = useState(false);
 
-  // Check for product in navigation state (from ProfileView click)
+  // --- COLLECTIONS STATE ---
+  const [collections, setCollections] = useState(['All', 'Streetwear', 'Minimalist', 'Summer Drop', 'Blueprints']);
+
+  // Handle product selection from navigation state
   useEffect(() => {
     if (location.state?.selectedProduct) {
       setSelectedProduct(location.state.selectedProduct);
-      // Clear state so it doesn't persist on back navigation
       navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate]);
 
+  // Load avatar from local storage
   useEffect(() => {
     const savedAvatar = localStorage.getItem('brut_avatar');
     if (savedAvatar) setUserAvatar(savedAvatar);
   }, []);
 
+  // Save avatar to local storage
   useEffect(() => {
     if (userAvatar) localStorage.setItem('brut_avatar', userAvatar);
   }, [userAvatar]);
 
+  // --- SAFEGUARD: Reset Mobile Nav when leaving Chat Tab ---
+  // If the user navigates away from 'chat' entirely, ensure the nav bar comes back.
+  useEffect(() => {
+    if (currentTab !== 'chat') {
+      setHideMobileNav(false);
+    }
+  }, [currentTab]);
+
   const handleTabChange = (tabId) => {
     setSelectedProduct(null);
+    setHideMobileNav(false); // Reset nav visibility on manual tab change
     navigate(`/platform/${tabId}`);
   };
 
@@ -85,9 +96,38 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
     navigate('/studio');
   };
 
+  // --- CART LOGIC ---
   const addToCart = (product, quantity = 1, size = 'M', color = 'Default') => {
-    setCartItems(prev => [...prev, { ...product, quantity, size, color }]);
+    setCartItems(prev => {
+      const existingIndex = prev.findIndex(item => item.id === product.id && item.size === size);
+      
+      if (existingIndex >= 0) {
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...updated[existingIndex],
+          quantity: updated[existingIndex].quantity + quantity
+        };
+        return updated;
+      } else {
+        return [...prev, { ...product, quantity, size, color }];
+      }
+    });
     if (notify) notify('Added to Loop', 'success');
+  };
+
+  const updateQuantity = (id, size, newQuantity) => {
+    if (newQuantity < 1) return;
+    setCartItems(prev => prev.map(item => 
+      (item.id === id && item.size === size) 
+        ? { ...item, quantity: newQuantity } 
+        : item
+    ));
+  };
+
+  const removeItem = (id, size) => {
+    setCartItems(prev => prev.filter(item => 
+      !(item.id === id && item.size === size)
+    ));
   };
 
   const toggleSaved = (product) => {
@@ -98,11 +138,38 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
     });
   };
 
+  const clearCart = () => {
+    setCartItems([]);
+  };
+
+  // --- COLLECTION HANDLERS ---
+  const handleCreateCollection = (newName) => {
+    if (newName && !collections.includes(newName)) {
+      setCollections([...collections, newName]);
+      if (notify) notify(`Collection "${newName}" created`, 'success');
+      return true;
+    }
+    return false;
+  };
+
+  const handleMoveItem = (itemId, targetCollection) => {
+    setSavedItems(prev => prev.map(item => 
+      item.id === itemId 
+        ? { ...item, collection: targetCollection } 
+        : item
+    ));
+    if (notify) notify(`Item moved to ${targetCollection}`, 'success');
+  };
+
   // Determine if we should show header
+  // Hides header for 'chat' because ChatRoom has its own internal header
   const showHeader = !selectedProduct && 
                      currentTab !== 'search' && 
+                     currentTab !== 'chat' &&
                      !location.pathname.includes('/profile') &&
-                     !location.pathname.includes('/settings');
+                     !location.pathname.includes('/settings') &&
+                     !location.pathname.includes('/orders/track') &&
+                     !location.pathname.includes('/checkout');
 
   return (
     <div className={styles.platformWrapper}>
@@ -149,9 +216,18 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
             } />
             
             <Route path="search" element={<SearchView onSelect={setSelectedProduct} />} />
-            <Route path="chat" element={<ChatRoom />} />
             
-            {/* Dynamic Profile Route: /platform/profile/:makerId */}
+            {/* Pass the state setter to ChatRoom */}
+            <Route 
+              path="chat" 
+              element={
+                <ChatRoom 
+                  initialData={location.state} 
+                  onMobileNavChange={setHideMobileNav} 
+                /> 
+              } 
+            />
+            
             <Route 
               path="profile/:makerId" 
               element={
@@ -163,7 +239,6 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
               } 
             />
             
-            {/* Fallback Profile Route: /platform/profile (Current User) */}
             <Route 
               path="profile" 
               element={
@@ -187,11 +262,40 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
               } 
             />
             
-            <Route path="cart" element={<CartView cartItems={cartItems} />} />
+            <Route 
+              path="cart" 
+              element={
+                <CartView 
+                  cartItems={cartItems} 
+                  updateQuantity={updateQuantity}
+                  removeItem={removeItem}
+                  toggleSaved={toggleSaved}
+                /> 
+              } 
+            />
+
+            <Route 
+              path="checkout" 
+              element={
+                <CheckoutView 
+                  cartItems={cartItems}
+                  clearCart={clearCart}
+                  notify={notify}
+                  onComplete={() => navigate('/orders')}
+                /> 
+              } 
+            />
+            
             <Route path="orders" element={<OrdersView />} />
+            
+            <Route path="orders/track/:orderId" element={<OrderTracker notify={notify} />} />
+            
             <Route path="saved" element={
               <SavedView 
                 savedItems={savedItems} 
+                collections={collections}
+                onCreateCollection={handleCreateCollection}
+                onMoveItem={handleMoveItem}
                 onSelect={setSelectedProduct} 
                 toggleSaved={toggleSaved} 
                 addToCart={addToCart}
@@ -201,14 +305,17 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
         </div>
       </main>
 
-      <MobileNav 
-        activeTab={currentTab} 
-        setActiveTab={handleTabChange}
-        goToStudio={goToStudio}
-        cartCount={cartItems.length} 
-        isDarkMode={isDarkMode}
-        toggleTheme={toggleTheme}
-      />
+      {/* Conditionally render MobileNav based on hideMobileNav state */}
+      {!hideMobileNav && (
+        <MobileNav 
+          activeTab={currentTab} 
+          setActiveTab={handleTabChange}
+          goToStudio={goToStudio}
+          cartCount={cartItems.length} 
+          isDarkMode={isDarkMode}
+          toggleTheme={toggleTheme}
+        />
+      )}
     </div>
   );
 };

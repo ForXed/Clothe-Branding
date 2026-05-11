@@ -1,0 +1,294 @@
+.container {
+  padding: 40px 5%;
+  max-width: 900px;
+  margin: 0 auto;
+  min-height: 100vh;
+  background: var(--brut-bg);
+  color: var(--brut-text);
+  font-family: 'Outfit', sans-serif;
+}
+
+.loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--brut-text);
+  opacity: 0.6;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 600;
+  margin-bottom: 20px;
+  transition: opacity 0.2s;
+}
+
+.backBtn:hover { opacity: 1; }
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 40px;
+  border-bottom: 2px solid var(--brut-text);
+  padding-bottom: 20px;
+}
+
+.header h1 {
+  font-size: 2.5rem;
+  margin: 0;
+  letter-spacing: -1px;
+}
+
+.subHeader {
+  margin: 5px 0 0;
+  opacity: 0.6;
+  font-size: 0.9rem;
+}
+
+.statusBadge {
+  padding: 8px 16px;
+  border-radius: 4px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.statusDelivered { background: #d1fae5; color: #064e3b; }
+.statusShipped { background: #dbeafe; color: #1e3a8a; }
+.statusProcessing { background: #fef3c7; color: #78350f; }
+
+/* Timeline */
+.timelineContainer {
+  margin-bottom: 40px;
+  overflow-x: auto;
+  padding-bottom: 20px;
+}
+
+.timeline {
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  min-width: 600px; /* Force scroll on mobile */
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  top: 15px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: var(--brut-border);
+  z-index: 0;
+}
+
+.step {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  width: 100px;
+}
+
+.marker {
+  width: 32px;
+  height: 32px;
+  background: var(--brut-bg);
+  border: 2px solid var(--brut-border);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 0.8rem;
+  margin-bottom: 10px;
+  transition: all 0.3s;
+}
+
+.step.completed .marker {
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  border-color: var(--brut-text);
+}
+
+.stepInfo h4 {
+  font-size: 0.85rem;
+  margin: 0 0 4px;
+  font-weight: 700;
+}
+
+.stepInfo span {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+/* Details Card */
+.detailsCard {
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  padding: 30px;
+  border-radius: 8px;
+  margin-bottom: 30px;
+}
+
+.detailsCard h3 {
+  font-size: 1.2rem;
+  margin: 0 0 15px;
+  border-bottom: 1px solid var(--brut-border);
+  padding-bottom: 10px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  opacity: 0.5;
+  margin-bottom: 5px;
+  font-weight: 700;
+}
+
+.itemList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.itemList li {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--brut-border);
+  font-size: 0.95rem;
+}
+
+.itemList li span {
+  opacity: 0.6;
+  font-size: 0.85rem;
+}
+
+/* Action Area */
+.actionArea {
+  text-align: center;
+  padding: 40px;
+  background: var(--brut-hover);
+  border-radius: 8px;
+  border: 1px dashed var(--brut-text);
+}
+
+.confirmBtn {
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  border: none;
+  padding: 16px 32px;
+  font-size: 1rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  border-radius: 4px;
+  cursor: pointer;
+  margin-top: 15px;
+  transition: transform 0.2s;
+}
+
+.confirmBtn:hover { transform: scale(1.05); }
+
+/* Modal & Signature */
+.modalOverlay {
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(5px);
+}
+
+.modal {
+  background: var(--brut-bg);
+  padding: 40px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 550px;
+  text-align: center;
+  border: 1px solid var(--brut-border);
+}
+
+.modal h2 { margin-top: 0; }
+
+.canvasWrapper {
+  border: 2px solid var(--brut-border);
+  border-radius: 4px;
+  margin: 20px 0;
+  background: #fff;
+  cursor: crosshair;
+}
+
+.signatureCanvas {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
+.modalActions {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.clearBtn {
+  background: transparent;
+  border: 1px solid var(--brut-border);
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.saveBtn {
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  border: none;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.saveBtn.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.closeModal {
+  margin-top: 15px;
+  background: none;
+  border: none;
+  text-decoration: underline;
+  cursor: pointer;
+  color: var(--brut-text);
+  opacity: 0.6;
+}
+
+@media (max-width: 768px) {
+  .header { flex-direction: column; align-items: flex-start; gap: 15px; }
+  .timeline { min-width: 100%; flex-direction: column; gap: 20px; }
+  .timeline::before { display: none; }
+  .step { flex-direction: row; gap: 15px; text-align: left; width: 100%; }
+  .marker { margin-bottom: 0; }
+  .grid { grid-template-columns: 1fr; }
+}

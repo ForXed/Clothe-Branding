@@ -1,16 +1,15 @@
-/* ProModal - Brutige Studio (SaaS Style) */
-
+/* Overlay */
 .overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(8px);
+  backdrop-filter: blur(4px);
+  z-index: 9999;
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 2000;
   padding: 20px;
-  animation: fadeIn 0.3s ease;
+  animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
@@ -18,42 +17,37 @@
   to { opacity: 1; }
 }
 
+/* Modal Container - Constrained Height */
 .modalContainer {
   background: var(--brut-card);
   border: 1px solid var(--brut-border);
-  border-radius: 24px;
   width: 100%;
-  max-width: 1100px;
-  max-height: 90vh;
+  max-width: 460px;
+  /* CRITICAL: Prevents covering full screen */
+  max-height: 85vh; 
   overflow-y: auto;
+  border-radius: 16px;
+  padding: 24px;
+  position: relative;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
   display: flex;
   flex-direction: column;
-  position: relative;
-  box-shadow: 0 25px 80px rgba(0, 0, 0, 0.25);
-  animation: slideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-  
-  /* Custom Scrollbar for Modal Container */
-  scrollbar-width: thin;
-  scrollbar-color: var(--brut-border) transparent;
+  gap: 20px;
 }
 
+/* Custom Scrollbar for small screens */
 .modalContainer::-webkit-scrollbar {
-  width: 8px;
+  width: 6px;
 }
-
-.modalContainer::-webkit-scrollbar-track {
-  background: transparent;
-}
-
 .modalContainer::-webkit-scrollbar-thumb {
-  background-color: var(--brut-border);
-  border-radius: 20px;
-  border: 2px solid var(--brut-card);
+  background: var(--brut-border);
+  border-radius: 3px;
 }
 
 @keyframes slideUp {
-  from { opacity: 0; transform: translateY(40px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { transform: translateY(20px) scale(0.98); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
 }
 
 /* Header */
@@ -61,368 +55,251 @@
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
-  padding: 40px 40px 24px;
-  text-align: center;
-  flex-direction: column;
-  align-items: center;
+  gap: 12px;
 }
 
 .headerContent h2 {
-  font-size: 1.75rem;
-  font-weight: 800;
+  font-size: 1.2rem;
+  font-weight: 900;
   color: var(--brut-text);
-  margin: 0 0 12px;
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
   letter-spacing: -0.5px;
+  line-height: 1.2;
 }
 
 .headerContent p {
-  font-size: 1rem;
-  color: #666; /* Muted text */
+  font-size: 0.85rem;
+  color: #666;
   margin: 0;
-  max-width: 500px;
+  line-height: 1.4;
+}
+
+.headerContent strong {
+  color: var(--brut-text);
 }
 
 .closeBtn {
-  position: absolute;
-  top: 24px;
-  right: 24px;
   background: var(--brut-bg);
   border: 1px solid var(--brut-border);
-  color: var(--brut-text);
-  width: 40px;
-  height: 40px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: all 0.2s ease;
+  color: var(--brut-text);
+  transition: all 0.2s;
+  flex-shrink: 0;
+  padding: 0;
 }
 
 .closeBtn:hover {
-  background: var(--brut-hover);
-  border-color: var(--brut-text);
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  transform: rotate(90deg);
 }
 
-/* Billing Section */
-.billingSection {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 32px;
-}
-
-.toggleWrapper {
-  display: flex;
+/* Plan Card */
+.planFocus {
   background: var(--brut-bg);
-  padding: 4px;
-  border-radius: 100px;
-  border: 1px solid var(--brut-border);
-  position: relative;
-}
-
-.toggleOption {
-  padding: 10px 24px;
-  border: none;
-  background: transparent;
-  color: #666;
-  font-size: 0.9rem;
-  font-weight: 600;
-  border-radius: 100px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  position: relative;
-  z-index: 1;
-}
-
-.toggleOption.active {
-  background: var(--brut-card);
-  color: var(--brut-text);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  font-weight: 700;
-}
-
-.saveBadge {
-  font-size: 0.65rem;
-  padding: 2px 8px;
-  background: var(--brut-success);
-  color: white;
-  border-radius: 100px;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.billingNote {
-  font-size: 0.8rem;
-  color: #666;
-  margin: 0;
-}
-
-/* Plans Grid */
-.plansGrid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 24px;
-  padding: 0 40px 40px;
-  align-items: start;
-}
-
-.planCard {
-  background: var(--brut-bg);
-  border: 1px solid var(--brut-border);
-  border-radius: 20px;
-  padding: 32px 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 24px;
-  position: relative;
-  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
-  height: 100%;
-}
-
-.planCard:hover {
-  transform: translateY(-4px);
-  border-color: #666;
-}
-
-.planCard.highlighted {
-  background: var(--brut-card);
   border: 2px solid var(--brut-text);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-  transform: scale(1.02);
-  z-index: 2;
-}
-
-.planCard.highlighted:hover {
-  transform: scale(1.02) translateY(-4px);
+  border-radius: 12px;
+  padding: 20px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .popularBadge {
   position: absolute;
-  top: -14px;
+  top: -10px;
   left: 50%;
   transform: translateX(-50%);
   background: var(--brut-text);
   color: var(--brut-bg);
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 800;
   text-transform: uppercase;
-  padding: 6px 16px;
+  padding: 4px 12px;
   border-radius: 100px;
+  white-space: nowrap;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.planTop {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  letter-spacing: 0.5px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  margin-top: 4px;
+  border-bottom: 1px solid var(--brut-border);
+  padding-bottom: 12px;
 }
 
-.planHeader {
-  text-align: center;
-}
-
-.planHeader h3 {
-  font-size: 1.25rem;
+.planInfo h3 {
+  font-size: 1rem;
   font-weight: 800;
   color: var(--brut-text);
-  margin: 0 0 8px;
+  margin: 0 0 2px 0;
   text-transform: uppercase;
-  letter-spacing: -0.5px;
 }
 
-.planDesc {
-  font-size: 0.85rem;
+.planInfo .planDesc {
+  font-size: 0.75rem;
   color: #666;
   margin: 0;
-  line-height: 1.5;
 }
 
-.priceSection {
+.priceBlock {
+  text-align: right;
   display: flex;
   align-items: baseline;
-  justify-content: center;
-  gap: 4px;
+  gap: 2px;
 }
 
 .currency {
-  font-size: 1.5rem;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--brut-text);
 }
 
 .amount {
-  font-size: 3.5rem;
+  font-size: 1.8rem;
   font-weight: 900;
   color: var(--brut-text);
   line-height: 1;
-  letter-spacing: -1.5px;
 }
 
 .period {
-  font-size: 0.9rem;
-  color: #666;
-  font-weight: 600;
-}
-
-.billedYearly {
-  text-align: center;
   font-size: 0.75rem;
   color: #666;
-  margin-top: -12px;
   font-weight: 600;
 }
 
-.featuresList {
+/* 2-Column Grid for Features */
+.featuresGrid {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  flex: 1;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* Saves vertical space */
+  gap: 12px 16px;
 }
 
 .featureItem {
   display: flex;
-  align-items: flex-start;
-  gap: 12px;
-  font-size: 0.9rem;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
   color: var(--brut-text);
-  line-height: 1.4;
+  font-weight: 600;
+  line-height: 1.2;
 }
 
 .checkIcon {
-  color: var(--brut-success);
+  color: var(--brut-text);
   flex-shrink: 0;
-  margin-top: 2px;
+}
+
+/* Actions */
+.actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 4px;
 }
 
 .ctaBtn {
   width: 100%;
-  padding: 16px;
-  border-radius: 12px;
+  padding: 12px;
+  border-radius: 8px;
   font-weight: 700;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
+  font-size: 0.85rem;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  cursor: pointer;
+  transition: all 0.2s;
   border: none;
+  letter-spacing: 0.5px;
 }
 
 .primaryBtn {
   background: var(--brut-text);
   color: var(--brut-bg);
-  border: 1px solid var(--brut-text);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
 
 .primaryBtn:hover {
-  opacity: 0.9;
   transform: translateY(-2px);
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  opacity: 0.95;
 }
 
 .secondaryBtn {
-  background: var(--brut-card);
-  color: var(--brut-text);
-  border: 1px solid var(--brut-border);
+  background: transparent;
+  color: #666;
+  font-size: 0.8rem;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+  padding: 8px;
 }
 
 .secondaryBtn:hover {
-  border-color: var(--brut-text);
-  background: var(--brut-hover);
-}
-
-.ctaBtn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
+  color: var(--brut-text);
+  background: transparent;
 }
 
 /* Footer */
 .footer {
+  border-top: 1px solid var(--brut-border);
+  padding-top: 16px;
   display: flex;
   justify-content: center;
-  gap: 32px;
-  padding: 24px 40px 40px;
-  border-top: 1px solid var(--brut-border);
-  background: var(--brut-bg);
+  align-items: center;
+  gap: 12px;
   flex-wrap: wrap;
 }
 
 .trustItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 0.8rem;
+  gap: 6px;
+  font-size: 0.65rem;
+  color: #888;
   font-weight: 600;
-  color: #666;
+  text-transform: uppercase;
 }
 
 .trustItem svg {
   color: var(--brut-text);
-  opacity: 0.7;
+  opacity: 0.5;
 }
 
-/* Responsive */
-@media (max-width: 900px) {
-  .plansGrid {
-    grid-template-columns: 1fr;
-    padding: 0 24px 24px;
-    gap: 20px;
-  }
-
-  .planCard.highlighted {
-    transform: none;
-    order: -1; /* Move Pro to top on mobile */
-  }
-  
-  .planCard.highlighted:hover {
-    transform: translateY(-4px);
-  }
-
-  .header {
-    padding: 32px 24px 16px;
-  }
-
-  .headerContent h2 {
-    font-size: 1.5rem;
-  }
-
-  .billingSection {
-    padding: 0 24px;
-  }
-
-  .footer {
-    flex-direction: column;
-    align-items: center;
-    gap: 16px;
-    padding: 24px;
-  }
-  
-  .modalContainer {
-    max-height: 95vh;
-    border-radius: 16px;
-  }
+.trustDivider {
+  color: var(--brut-border);
+  font-size: 0.8rem;
 }
 
+/* Mobile Adjustments */
 @media (max-width: 480px) {
-  .amount {
-    font-size: 2.5rem;
+  .modalContainer {
+    padding: 20px 16px;
+    max-height: 90vh;
   }
   
-  .toggleOption {
-    padding: 8px 16px;
-    font-size: 0.8rem;
+  .featuresGrid {
+    grid-template-columns: 1fr; /* Stack on very small screens if needed */
+    gap: 10px;
   }
   
-  .saveBadge {
-    display: none; /* Hide save badge on very small screens if needed */
+  .planTop {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+  }
+  
+  .priceBlock {
+    align-self: flex-end;
   }
 }

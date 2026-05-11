@@ -2,7 +2,7 @@
 
 .mainWrapper {
     display: flex;
-    min-height: 100vh; /* Changed to min-height to allow scrolling */
+    min-height: 100vh;
     width: 100%;
     background: #fff;
     font-family: 'Inter', sans-serif;
@@ -21,45 +21,201 @@
 .formWrapper {
     width: 100%;
     max-width: 420px;
-    margin: auto; /* Keeps form centered vertically if screen is tall */
+    margin: auto;
 }
 
-.logoHeader { display: flex; align-items: center; gap: 15px; margin-bottom: 40px; }
-.brandName { font-size: 1.6rem; font-weight: 900; color: #000; letter-spacing: -1px; }
+.logoHeader { 
+    display: flex; 
+    align-items: center; 
+    gap: 15px; 
+    margin-bottom: 40px; 
+    cursor: pointer;
+}
 
-.title { font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 10px; }
-.subtitle { color: #666; margin-bottom: 30px; font-size: 1rem; }
+.brandName { 
+    font-size: 1.6rem; 
+    font-weight: 900; 
+    color: #000;
+    letter-spacing: -1px; 
+}
+
+.title { 
+    font-size: clamp(2.2rem, 5vw, 3rem); 
+    font-weight: 900; 
+    letter-spacing: -2px; 
+    line-height: 1; 
+    margin-bottom: 10px; 
+}
+
+.subtitle { 
+    color: #666; 
+    margin-bottom: 30px; 
+    font-size: 1rem; 
+}
 
 /* SOCIALS */
-.socialGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-.socialBtn {
-    background: #fff; border: 1.5px solid #000; padding: 12px;
-    display: flex; align-items: center; justify-content: center; gap: 10px;
-    font-weight: 800; text-transform: uppercase; font-size: 0.75rem; cursor: pointer;
-    transition: 0.3s ease;
+.socialGrid { 
+    display: grid; 
+    grid-template-columns: 1fr 1fr; 
+    gap: 15px; 
 }
-.socialBtn img { width: 16px; filter: grayscale(100%); }
-.socialBtn:hover { background: #000; color: #fff; }
 
-.divider { display: flex; align-items: center; gap: 20px; margin: 30px 0; }
-.dividerLine { flex: 1; height: 1px; background: #eee; }
-.dividerText { font-size: 0.7rem; font-weight: 900; color: #ccc; }
+.socialBtn {
+    background: #fff; 
+    border: 1.5px solid #000; 
+    padding: 12px;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    gap: 10px;
+    font-weight: 800; 
+    text-transform: uppercase; 
+    font-size: 0.75rem; 
+    cursor: pointer;
+    transition: all 0.3s ease;
+    color: #000;
+}
+
+.socialBtn img { 
+    width: 16px; 
+    filter: grayscale(100%) brightness(0); 
+    transition: filter 0.3s ease;
+    display: block;
+}
+
+/* HOVER STATE: Background Black, Text White */
+.socialBtn:hover { 
+    background: #000; 
+    color: #fff; 
+    border-color: #000;
+}
+
+/* FIX: Force icon to pure white on hover */
+.socialBtn:hover img { 
+    filter: brightness(0) invert(1); 
+    -webkit-filter: brightness(0) invert(1);
+}
+
+/* Specific fix for Apple Icon */
+.socialBtn:hover .appleIcon {
+    filter: brightness(0) invert(1) !important;
+    -webkit-filter: brightness(0) invert(1) !important;
+}
+
+.divider { 
+    display: flex; 
+    align-items: center; 
+    gap: 20px; 
+    margin: 30px 0; 
+}
+
+.dividerLine { 
+    flex: 1; 
+    height: 1px; 
+    background: #eee; 
+}
+
+.dividerText { 
+    font-size: 0.7rem; 
+    font-weight: 900; 
+    color: #ccc; 
+}
 
 /* FORM */
-.form { display: flex; flex-direction: column; gap: 20px; }
-.inputGroup { display: flex; flex-direction: column; gap: 8px; }
-.inputGroup label { font-size: 0.75rem; font-weight: 900; color: #000; text-transform: uppercase; }
-.inputGroup input { padding: 16px; border: 1.5px solid #000; font-size: 1rem; outline: none; border-radius: 0; }
+.form { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+}
+
+.inputGroup { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+}
+
+.inputGroup label { 
+    font-size: 0.75rem; 
+    font-weight: 900; 
+    color: #000; 
+    text-transform: uppercase; 
+}
+
+.inputGroup input { 
+    padding: 16px; 
+    border: 1.5px solid #000; 
+    font-size: 1rem; 
+    outline: none; 
+    border-radius: 0; 
+    font-family: 'Inter', sans-serif;
+}
+
+.inputGroup input:focus {
+    background: #f9f9f9;
+}
+
+/* PASSWORD TOGGLE STYLES */
+.passwordWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.passwordInput {
+    width: 100%;
+    padding-right: 50px; /* Space for the eye icon */
+}
+
+.togglePassword {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.togglePassword:hover {
+    color: #000;
+}
 
 .submitBtn {
-    background: #000; color: #fff; padding: 18px; border: none;
-    font-weight: 900; text-transform: uppercase; letter-spacing: 0.1em; cursor: pointer;
+    background: #000; 
+    color: #fff; 
+    padding: 18px; 
+    border: none;
+    font-weight: 900; 
+    text-transform: uppercase; 
+    letter-spacing: 0.1em; 
+    cursor: pointer;
     transition: 0.3s ease;
+    font-family: 'Inter', sans-serif;
 }
-.submitBtn:hover { background: #333; }
 
-.footerLink { margin-top: 30px; font-size: 0.9rem; color: #888; text-align: center; padding-bottom: 20px; }
-.footerLink a { color: #000; font-weight: 900; text-decoration: underline; }
+.submitBtn:hover { 
+    background: #333; 
+}
+
+.footerLink { 
+    margin-top: 30px; 
+    font-size: 0.9rem; 
+    color: #888; 
+    text-align: center; 
+    padding-bottom: 20px; 
+}
+
+.footerLink a { 
+    color: #000; 
+    font-weight: 900; 
+    text-decoration: underline; 
+}
 
 /* --- BRAND SECTION --- */
 .brandSection {
@@ -70,20 +226,54 @@
     align-items: center;
     justify-content: center;
     padding: 60px;
+    overflow: hidden;
 }
 
-.line { position: absolute; height: 1px; background: rgba(255, 255, 255, 0.1); }
-.typewriterText { font-size: 2.8rem; font-weight: 900; color: #fff; line-height: 1.2; letter-spacing: -2px; min-height: 120px; }
+.line { 
+    position: absolute; 
+    height: 1px; 
+    background: rgba(255, 255, 255, 0.1); 
+}
+
+.typewriterText { 
+    font-size: 2.8rem; 
+    font-weight: 900; 
+    color: #fff; 
+    line-height: 1.2; 
+    letter-spacing: -2px; 
+    min-height: 120px; 
+}
+
+.cursor {
+    color: #fff;
+}
 
 /* --- RESPONSIVE LOGIC --- */
 @media (max-width: 900px) {
-    .brandSection { display: none; } /* Hidden on mobile/tablets */
-    .mainWrapper { display: block; overflow-y: auto; }
-    .formSection { padding: 40px 20px; min-height: 100vh; }
-    .formWrapper { margin: 0 auto; }
+    .brandSection { 
+        display: none; 
+    }
+    .mainWrapper { 
+        display: block; 
+        overflow-y: auto; 
+    }
+    .formSection { 
+        padding: 40px 20px; 
+        min-height: 100vh; 
+    }
+    .formWrapper { 
+        margin: 0 auto; 
+    }
 }
 
 @media (max-width: 480px) {
-    .socialGrid { grid-template-columns: 1fr; }
-    .title { font-size: 2.2rem; }
+    .socialGrid { 
+        grid-template-columns: 1fr; 
+    }
+    .title { 
+        font-size: 2.2rem; 
+    }
+    .socialBtn {
+        padding: 14px;
+    }
 }

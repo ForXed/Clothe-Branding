@@ -1,7 +1,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './Messages.module.css';
 
-const Messages = () => {
+// Added onMobileNavChange to props to control the parent's MobileNav visibility
+const Messages = ({ onMobileNavChange }) => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [showOptions, setShowOptions] = useState(false);
   const [showTagDropdown, setShowTagDropdown] = useState(false);
@@ -13,7 +14,7 @@ const Messages = () => {
   const [showLabelModal, setShowLabelModal] = useState(false);
   const [newLabelName, setNewLabelName] = useState('');
   
-  // Mobile State: Only affects view below 900px
+  // Mobile State
   const [showMobileList, setShowMobileList] = useState(true);
 
   const [labels, setLabels] = useState(['All', 'Priority', 'In-Production', 'New Inquiry']);
@@ -29,13 +30,21 @@ const Messages = () => {
     { id: 3, name: 'Mike Johnson', label: 'New Inquiry', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100', lastMessage: 'Do you have this in XL?', time: '3h ago', unread: 1 },
   ]);
 
-  // Auto-resize textarea
+  // --- Sync Mobile Nav Visibility ---
+  // Tell parent to hide the bottom pill when inside a chat on mobile
+  useEffect(() => {
+    if (onMobileNavChange) {
+      onMobileNavChange(!showMobileList);
+    }
+  }, [showMobileList, onMobileNavChange]);
+
+  // Auto-resize textarea (Only on text change)
   useEffect(() => {
     if (textareaRef.current) {
       textareaRef.current.style.height = 'auto';
       textareaRef.current.style.height = Math.min(textareaRef.current.scrollHeight, 120) + 'px';
     }
-  }, [attachment, selectedChat]);
+  }, [selectedChat]); // Reset height when switching chats
 
   // Close dropdowns
   useEffect(() => {
@@ -85,11 +94,12 @@ const Messages = () => {
 
   const handleChatSelect = (id) => {
     setSelectedChat(id);
-    setShowMobileList(false); // Slide to chat on mobile ONLY
+    setShowMobileList(false);
   };
 
   const handleBackToList = () => {
-    setShowMobileList(true); // Slide back on mobile ONLY
+    setShowMobileList(true);
+    setSelectedChat(null);
   };
 
   const filteredChats = activeLabel === 'All' 
@@ -110,7 +120,6 @@ const Messages = () => {
       )}
 
       {/* LEFT SIDEBAR */}
-      {/* On Desktop: Always visible via Grid. On Mobile: Toggles via Transform */}
       <div className={`${styles.chatList} ${!showMobileList ? styles.chatListHidden : ''}`}>
         <div className={styles.listHeader}>
           <h3>Messages</h3>
@@ -166,13 +175,11 @@ const Messages = () => {
       </div>
 
       {/* RIGHT MAIN AREA */}
-      {/* On Desktop: Always visible via Grid. On Mobile: Slides in from right */}
       <div className={`${styles.msgMain} ${!showMobileList ? styles.msgMainVisible : ''}`}>
         {selectedChat ? (
           <>
             <div className={styles.mainHeader}>
               <div className={styles.headerUser}>
-                {/* Mobile Back Button - Hidden on Desktop via CSS */}
                 <button className={styles.mobileBackBtn} onClick={handleBackToList}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
@@ -266,7 +273,6 @@ const Messages = () => {
               </div>
             </div>
 
-            {/* Attachment Preview - OUTSIDE Flex Input Zone to prevent pushing */}
             {attachment && (
               <div className={styles.attachmentPreview}>
                 <div className={styles.previewImageWrapper}>
@@ -280,7 +286,6 @@ const Messages = () => {
               </div>
             )}
 
-            {/* Input Zone - Strict Flex Row */}
             <div className={styles.inputZone}>
               <div className={styles.attachWrapper} ref={attachmentBtnRef}>
                 <button className={styles.btnAttach} onClick={() => setAttachmentMenuOpen(!attachmentMenuOpen)}>
@@ -317,7 +322,6 @@ const Messages = () => {
             </div>
           </>
         ) : (
-          /* EMPTY STATE - Visible when no chat selected */
           <div className={styles.emptyState}>
             <div className={styles.emptyIcon}>
               <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">

@@ -3,11 +3,11 @@
 /* --- MAIN LAYOUT --- */
 .mainWrapper {
     display: flex;
-    min-height: 100vh; /* Changed from height to min-height for scrolling */
+    min-height: 100vh;
     width: 100%;
     background: #fff;
     font-family: 'Inter', sans-serif;
-    overflow-x: hidden; /* Prevent side-to-side wobble */
+    overflow-x: hidden;
 }
 
 /* --- FORM SECTION (WHITE) --- */
@@ -22,7 +22,7 @@
 .formWrapper {
     width: 100%;
     max-width: 400px;
-    margin: auto; /* Vertically centers when content is short */
+    margin: auto;
     display: flex;
     flex-direction: column;
 }
@@ -32,6 +32,7 @@
     align-items: center;
     gap: 12px;
     margin-bottom: 50px;
+    cursor: pointer;
 }
 
 .brandName {
@@ -74,12 +75,31 @@
     text-transform: uppercase;
     font-size: 0.75rem;
     cursor: pointer;
-    transition: 0.3s ease;
+    transition: all 0.3s ease;
+    color: #000;
 }
 
-.socialBtn img { width: 16px; filter: grayscale(100%); }
-.socialBtn:hover { background: #000; color: #fff; }
-.socialBtn:hover img { filter: grayscale(0%); }
+.socialBtn img { 
+    width: 16px; 
+    filter: grayscale(100%); 
+    transition: filter 0.3s ease;
+}
+
+/* FIX: Turn background black, text white */
+.socialBtn:hover { 
+    background: #000; 
+    color: #fff; 
+    border-color: #000;
+}
+
+/* FIX: Apple turns white, Google stays colored (grayscale removed on hover) */
+.socialBtn:hover img:not(.appleIcon) { 
+    filter: grayscale(0%); 
+}
+
+.socialBtn:hover .appleIcon { 
+    filter: grayscale(100%) invert(1) !important; 
+}
 
 /* --- DIVIDER --- */
 .divider {
@@ -105,9 +125,25 @@
 }
 
 /* --- INPUTS --- */
-.form { display: flex; flex-direction: column; gap: 20px; }
-.inputGroup { display: flex; flex-direction: column; gap: 8px; }
-.inputGroup label { font-size: 0.75rem; font-weight: 900; color: #000; text-transform: uppercase; }
+.form { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px; 
+}
+
+.inputGroup { 
+    display: flex; 
+    flex-direction: column; 
+    gap: 8px; 
+    position: relative; /* Needed for absolute positioning of eye icon */
+}
+
+.inputGroup label { 
+    font-size: 0.75rem; 
+    font-weight: 900; 
+    color: #000; 
+    text-transform: uppercase; 
+}
 
 .inputGroup input {
     padding: 16px;
@@ -115,6 +151,50 @@
     font-size: 1rem;
     outline: none;
     border-radius: 0;
+    font-family: 'Inter', sans-serif;
+    width: 100%;
+}
+
+/* Password Wrapper to hold input + eye icon */
+.passwordWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.passwordWrapper input {
+    padding-right: 50px; /* Make space for the eye icon */
+}
+
+/* The Eye Icon Button */
+.togglePassword {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #666;
+    transition: color 0.2s;
+}
+
+.togglePassword:hover {
+    color: #000;
+}
+
+.togglePassword svg {
+    width: 20px;
+    height: 20px;
+    stroke-width: 2;
+}
+
+.inputGroup input:focus {
+    background: #f9f9f9;
 }
 
 .submitBtn {
@@ -127,12 +207,26 @@
     letter-spacing: 0.1em;
     cursor: pointer;
     transition: all 0.3s ease;
+    font-family: 'Inter', sans-serif;
 }
 
-.submitBtn:hover { background: #333; }
+.submitBtn:hover { 
+    background: #333; 
+}
 
-.footerLink { margin-top: 30px; text-align: center; color: #888; font-size: 0.9rem; padding-bottom: 20px; }
-.footerLink a { color: #000; font-weight: 900; text-decoration: underline; }
+.footerLink { 
+    margin-top: 30px; 
+    text-align: center; 
+    color: #888; 
+    font-size: 0.9rem; 
+    padding-bottom: 20px; 
+}
+
+.footerLink a { 
+    color: #000; 
+    font-weight: 900; 
+    text-decoration: underline; 
+}
 
 /* --- BRAND SECTION (BLACK - HIDDEN ON MOBILE) --- */
 .brandSection {
@@ -143,6 +237,7 @@
     align-items: center;
     justify-content: center;
     padding: 60px;
+    overflow: hidden;
 }
 
 .line {
@@ -160,7 +255,11 @@
     min-height: 120px;
 }
 
-.cursor { color: #fff; margin-left: 4px; font-weight: 200; }
+.cursor { 
+    color: #fff; 
+    margin-left: 4px; 
+    font-weight: 200; 
+}
 
 /* ============================================================
    RESPONSIVE LOGIC
@@ -168,7 +267,6 @@
 
 /* TABLETS & MOBILE (900px and below) */
 @media (max-width: 900px) {
-    /* Hide the entire branding section as requested */
     .brandSection {
         display: none;
     }
@@ -176,18 +274,18 @@
     .mainWrapper {
         display: flex;
         flex-direction: column;
-        overflow-y: auto; /* ENABLE VERTICAL SCROLLING */
+        overflow-y: auto;
         height: auto;
     }
 
     .formSection {
         padding: 40px 20px;
-        min-height: 100vh; /* Ensures white space covers the whole screen */
+        min-height: 100vh;
     }
 
     .formWrapper {
         max-width: 380px;
-        margin: auto; /* Keep it centered, but allow it to grow */
+        margin: auto;
     }
 
     .title {
@@ -206,6 +304,10 @@
     }
 
     .formSection {
-        padding: 20px 15px; /* Tighter padding for small screens */
+        padding: 20px 15px;
+    }
+
+    .socialBtn {
+        padding: 14px;
     }
 }

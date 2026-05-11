@@ -14,6 +14,20 @@
   color: #666;
 }
 
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid var(--brut-border);
+  border-top-color: var(--brut-text);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 16px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* Header */
 .header {
   display: flex;
@@ -45,42 +59,71 @@
   gap: 16px;
 }
 
+/* --- UPDATED PROFILE SECTION --- */
 .profileSection {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 8px 16px 8px 8px;
+  padding: 6px 6px 6px 12px;
   background: var(--brut-card);
   border: 1px solid var(--brut-border);
   border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-align: left;
+  border: none; /* Reset button default */
+  font-family: inherit;
+}
+
+.profileSection:hover {
+  border-color: var(--brut-text);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
 }
 
 .profileInfo {
   display: flex;
   flex-direction: column;
-  text-align: right;
 }
 
 .profileName {
   font-size: 0.9rem;
   font-weight: 700;
   color: var(--brut-text);
+  line-height: 1.2;
 }
 
 .profileEmail {
   font-size: 0.75rem;
   color: #666;
+  margin-top: 2px;
 }
 
 .profileAvatar {
+  position: relative;
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: var(--brut-text);
-  color: var(--brut-bg);
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--brut-bg);
+}
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.statusDot {
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  width: 10px;
+  height: 10px;
+  background: #22c55e; /* Green online dot */
+  border: 2px solid var(--brut-card);
+  border-radius: 50%;
 }
 
 /* Stats Grid */
@@ -131,12 +174,12 @@
 
 .change.positive {
   background: rgba(34, 197, 94, 0.1);
-  color: var(--brut-success);
+  color: var(--brut-success, #22c55e);
 }
 
 .change.negative {
   background: rgba(239, 68, 68, 0.1);
-  color: var(--brut-danger);
+  color: var(--brut-danger, #ef4444);
 }
 
 .statValue {
@@ -185,6 +228,13 @@
   margin: 0;
 }
 
+.chartActions {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
 .periodToggle {
   display: flex;
   background: var(--brut-bg);
@@ -208,6 +258,28 @@
   background: var(--brut-card);
   color: var(--brut-text);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.fullReportBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: transparent;
+  border: 1px solid var(--brut-border);
+  border-radius: 8px;
+  color: var(--brut-text);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.fullReportBtn:hover {
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  border-color: var(--brut-text);
 }
 
 .chart {
@@ -351,9 +423,25 @@
   color: #666;
 }
 
-.product {
+/* Dynamic Product Cell */
+.productCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.orderProductImg {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  object-fit: cover;
+  background: var(--brut-bg);
+}
+
+.productName {
   color: var(--brut-text);
   font-size: 0.9rem;
+  font-weight: 500;
 }
 
 .amount {
@@ -374,12 +462,12 @@
 
 .orderStatus.pending {
   background: rgba(245, 158, 11, 0.1);
-  color: var(--brut-warning);
+  color: var(--brut-warning, #f59e0b);
 }
 
 .orderStatus.processing {
   background: rgba(59, 130, 246, 0.1);
-  color: var(--brut-info);
+  color: var(--brut-info, #3b82f6);
 }
 
 .orderStatus.shipped {
@@ -389,7 +477,15 @@
 
 .orderStatus.completed {
   background: rgba(34, 197, 94, 0.1);
-  color: var(--brut-success);
+  color: var(--brut-success, #22c55e);
+}
+
+.emptyState {
+  padding: 40px;
+  text-align: center;
+  color: #666;
+  font-style: italic;
+  font-size: 0.9rem;
 }
 
 /* Quick Actions */
@@ -413,6 +509,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  text-align: left;
 }
 
 .quickBtn:hover {
@@ -437,7 +534,7 @@
   right: 10px;
   min-width: 20px;
   height: 20px;
-  background: var(--brut-danger);
+  background: var(--brut-danger, #ef4444);
   color: white;
   font-size: 0.7rem;
   font-weight: 800;
@@ -470,6 +567,20 @@
   .profileSection {
     width: 100%;
     justify-content: space-between;
+  }
+  
+  .chartActions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  
+  .periodToggle {
+    justify-content: center;
+  }
+  
+  .fullReportBtn {
+    justify-content: center;
   }
   
   .statsGrid {
@@ -506,6 +617,12 @@
     gap: 12px;
   }
   
+  .productCell {
+    grid-column: 1 / -1;
+    order: -1;
+    margin-bottom: 8px;
+  }
+  
   .quickActions {
     grid-template-columns: 1fr;
   }
@@ -518,6 +635,12 @@
   
   .orderRow {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  
+  .productCell {
+    grid-column: auto;
+    order: 0;
   }
   
   .orderStatus {

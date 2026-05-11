@@ -1,30 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './OverView.module.css';
 
-const OverView = ({ overview, products, orders, loading }) => {
+const OverView = ({ overview, products, orders, user, loading }) => {
   const navigate = useNavigate();
   const [activePeriod, setActivePeriod] = useState('7d');
 
-  if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.loading}>Loading...</div>
-      </div>
-    );
-  }
+  // Mock chart data generator (In real app, this fetches based on activePeriod)
+  const getChartData = (period) => {
+    // This is mock logic. In real app, you'd filter data here.
+    return [
+      { day: 'Mon', value: 4200 },
+      { day: 'Tue', value: 3800 },
+      { day: 'Wed', value: 5100 },
+      { day: 'Thu', value: 4700 },
+      { day: 'Fri', value: 6200 },
+      { day: 'Sat', value: 7800 },
+      { day: 'Sun', value: 5400 },
+    ];
+  };
 
-  // Mock data for the chart
-  const chartData = [
-    { day: 'Mon', value: 4200 },
-    { day: 'Tue', value: 3800 },
-    { day: 'Wed', value: 5100 },
-    { day: 'Thu', value: 4700 },
-    { day: 'Fri', value: 6200 },
-    { day: 'Sat', value: 7800 },
-    { day: 'Sun', value: 5400 },
-  ];
-
+  const chartData = getChartData(activePeriod);
   const maxValue = Math.max(...chartData.map(d => d.value));
 
   const stats = [
@@ -78,7 +74,25 @@ const OverView = ({ overview, products, orders, loading }) => {
     },
   ];
 
-  const recentOrders = overview?.recentOrders || [];
+  const recentOrders = orders?.slice(0, 5) || []; // Take first 5 orders
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loading}>
+          <div className={styles.spinner}></div>
+          <p>Loading Infrastructure...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Default user data if not provided
+  const currentUser = user || {
+    name: 'Aura Studio',
+    email: 'hello@aurastudio.com',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100'
+  };
 
   return (
     <div className={styles.container}>
@@ -88,20 +102,23 @@ const OverView = ({ overview, products, orders, loading }) => {
           <h2>Dashboard</h2>
           <p>Welcome back! Here's what's happening with your store.</p>
         </div>
-        <div className={styles.headerRight}>
-          <div className={styles.profileSection}>
-            <div className={styles.profileInfo}>
-              <span className={styles.profileName}>Aura Studio</span>
-              <span className={styles.profileEmail}>hello@aurastudio.com</span>
-            </div>
-            <div className={styles.profileAvatar}>
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-            </div>
+        
+        {/* UPDATED DYNAMIC PROFILE SECTION */}
+        <button className={styles.profileSection} onClick={() => navigate('/studio/settings')}>
+          <div className={styles.profileInfo}>
+            <span className={styles.profileName}>{currentUser.name}</span>
+            <span className={styles.profileEmail}>{currentUser.email}</span>
           </div>
-        </div>
+          <div className={styles.profileAvatar}>
+            <img 
+              src={currentUser.avatar} 
+              alt="Profile" 
+              className={styles.avatarImg}
+              onError={(e) => { e.target.src = 'https://via.placeholder.com/100'; }} // Fallback image
+            />
+            <div className={styles.statusDot} title="Online"></div>
+          </div>
+        </button>
       </div>
 
       {/* Stats Grid */}
@@ -125,20 +142,29 @@ const OverView = ({ overview, products, orders, loading }) => {
         <div className={styles.chartHeader}>
           <div>
             <h3>Revenue Overview</h3>
-            <p>Your revenue for the past 7 days</p>
+            <p>Your revenue for the selected period</p>
           </div>
-          <div className={styles.periodToggle}>
-            {['24h', '7d', '30d', '90d'].map(period => (
-              <button
-                key={period}
-                className={`${styles.periodBtn} ${activePeriod === period ? styles.active : ''}`}
-                onClick={() => setActivePeriod(period)}
-              >
-                {period}
-              </button>
-            ))}
+          <div className={styles.chartActions}>
+            <div className={styles.periodToggle}>
+              {['24h', '7d', '30d', '90d'].map(period => (
+                <button
+                  key={period}
+                  className={`${styles.periodBtn} ${activePeriod === period ? styles.active : ''}`}
+                  onClick={() => setActivePeriod(period)}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+            <button className={styles.fullReportBtn} onClick={() => navigate('/studio/analytics')}>
+              View Full Report
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
           </div>
         </div>
+        
         <div className={styles.chart}>
           <div className={styles.chartBars}>
             {chartData.map((item, idx) => (
@@ -158,7 +184,7 @@ const OverView = ({ overview, products, orders, loading }) => {
 
       {/* Two Column Layout */}
       <div className={styles.twoColumn}>
-        {/* Recent Orders */}
+        {/* Recent Orders - DYNAMIC */}
         <div className={styles.section}>
           <div className={styles.sectionHeader}>
             <h3>Recent Orders</h3>
@@ -170,19 +196,29 @@ const OverView = ({ overview, products, orders, loading }) => {
             </button>
           </div>
           <div className={styles.ordersList}>
-            {recentOrders.map(order => (
+            {recentOrders.length > 0 ? recentOrders.map(order => (
               <div key={order.id} className={styles.orderRow}>
                 <div className={styles.orderInfo}>
-                  <span className={styles.orderId}>{order.id}</span>
+                  <span className={styles.orderId}>#{order.id}</span>
                   <span className={styles.customer}>{order.customer}</span>
                 </div>
-                <span className={styles.product}>{order.product}</span>
+                
+                {/* Dynamic Product Display */}
+                <div className={styles.productCell}>
+                  {order.productImage && (
+                    <img src={order.productImage} alt={order.productName} className={styles.orderProductImg} />
+                  )}
+                  <span className={styles.productName}>{order.productName}</span>
+                </div>
+
                 <span className={styles.amount}>${order.amount}</span>
                 <span className={`${styles.orderStatus} ${styles[order.status]}`}>
                   {order.status}
                 </span>
               </div>
-            ))}
+            )) : (
+              <div className={styles.emptyState}>No recent orders found.</div>
+            )}
           </div>
         </div>
 

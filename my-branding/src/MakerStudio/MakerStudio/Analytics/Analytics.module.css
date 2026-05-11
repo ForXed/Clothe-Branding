@@ -1,0 +1,654 @@
+/* src/MakerStudio/Analytics/Analytics.module.css */
+
+:root {
+  /* Vibrant Analytics Colors */
+  --analytics-primary: #3b82f6; /* Electric Blue */
+  --analytics-success: #10b981; /* Neon Green */
+  --analytics-danger: #ef4444;  /* Signal Red */
+  --analytics-warning: #f59e0b; /* Amber */
+  --analytics-purple: #8b5cf6;  /* Violet */
+  --analytics-orange: #f97316;  /* Orange */
+}
+
+.container {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 24px;
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* --- Header --- */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+
+.headerLeft h1 {
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--brut-text);
+  margin: 0 0 4px 0;
+  text-transform: uppercase;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  /* Subtle gradient text */
+  background: linear-gradient(45deg, var(--brut-text), #444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.headerLeft p {
+  font-size: 0.9rem;
+  color: #666;
+  margin: 0;
+}
+
+.headerControls {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.exportBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 16px;
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 8px;
+  color: var(--brut-text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.exportBtn:hover {
+  border-color: var(--analytics-primary);
+  color: var(--analytics-primary);
+  transform: translateY(-2px);
+}
+
+.periodToggle {
+  display: flex;
+  background: var(--brut-bg);
+  border: 1px solid var(--brut-border);
+  border-radius: 8px;
+  padding: 4px;
+}
+
+.toggleBtn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  color: #666;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.toggleBtn.active {
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+}
+
+/* --- Alert Banner --- */
+.alertBanner {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(245, 158, 11, 0.08);
+  border: 2px solid var(--analytics-warning);
+  border-left: 8px solid var(--analytics-warning);
+  padding: 16px;
+  border-radius: 8px;
+  margin-bottom: 24px;
+}
+
+.alertIcon {
+  color: var(--analytics-warning);
+  flex-shrink: 0;
+}
+
+.alertContent {
+  flex: 1;
+  font-size: 0.9rem;
+  color: var(--brut-text);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.alertContent strong {
+  font-weight: 800;
+  color: var(--analytics-warning);
+}
+
+.alertAction {
+  padding: 8px 16px;
+  background: var(--analytics-warning);
+  color: white;
+  border: none;
+  border-radius: 6px;
+  font-weight: 700;
+  font-size: 0.8rem;
+  cursor: pointer;
+  text-transform: uppercase;
+  white-space: nowrap;
+  transition: opacity 0.2s;
+}
+
+.alertAction:hover {
+  opacity: 0.9;
+}
+
+/* --- KPI Grid --- */
+.kpiGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.kpiCard {
+  background: var(--brut-card);
+  border: 2px solid var(--brut-border);
+  border-radius: 12px;
+  padding: 20px;
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.kpiCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.08);
+  border-color: var(--brut-text);
+}
+
+.kpiHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.kpiIcon {
+  width: 36px;
+  height: 36px;
+  background: var(--brut-bg);
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brut-text);
+  border: 1px solid var(--brut-border);
+}
+
+.trend {
+  font-size: 0.75rem;
+  font-weight: 800;
+  padding: 4px 8px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  border: 1px solid transparent;
+}
+
+.trend.positive { 
+  background: rgba(16, 185, 129, 0.15); 
+  color: var(--analytics-success);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.trend.negative { 
+  background: rgba(239, 68, 68, 0.15); 
+  color: var(--analytics-danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.kpiValue {
+  font-size: 1.8rem;
+  font-weight: 900;
+  color: var(--brut-text);
+  margin-bottom: 4px;
+  line-height: 1;
+}
+
+.kpiLabel {
+  font-size: 0.8rem;
+  color: #666;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+/* --- Chart Section --- */
+.chartSection {
+  background: var(--brut-card);
+  border: 2px solid var(--brut-border);
+  border-radius: 16px;
+  padding: 24px;
+  margin-bottom: 24px;
+}
+
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.sectionHeader h3 {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--brut-text);
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.viewToggle {
+  display: flex;
+  background: var(--brut-bg);
+  border: 1px solid var(--brut-border);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.viewBtn {
+  padding: 6px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 4px;
+  color: #666;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.viewBtn.active {
+  background: var(--analytics-primary);
+  color: white;
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.4);
+}
+
+/* --- Responsive Line Chart --- */
+.chartContainer {
+  position: relative;
+  width: 100%;
+  height: 300px;
+}
+
+.lineChartWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+.svgChart {
+  width: 100%;
+  height: 85%;
+  overflow: visible;
+}
+
+/* Force chart line color via CSS if not passed inline */
+.svgChart polyline {
+  stroke: var(--analytics-primary);
+}
+
+.hitSpot {
+  cursor: pointer;
+  transition: r 0.2s;
+}
+
+.hitSpot:hover {
+  r: 6;
+  fill: rgba(59, 130, 246, 0.1);
+}
+
+/* Tooltip */
+.tooltip {
+  position: absolute;
+  top: 10%;
+  transform: translateX(-50%);
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  padding: 8px 12px;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  pointer-events: none;
+  z-index: 10;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  animation: slideUp 0.2s ease;
+}
+
+.tooltipValue { font-size: 1rem; }
+.tooltipLabel { font-size: 0.7rem; opacity: 0.9; text-transform: uppercase; }
+
+@keyframes slideUp {
+  from { opacity: 0; transform: translateX(-50%) translateY(5px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+.xLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--brut-border);
+  height: 15%;
+}
+
+.xLabel {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  text-align: center;
+  flex: 1;
+}
+
+.hideMobile {
+  display: none;
+}
+
+/* --- Two Column Layout --- */
+.twoColumn {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 24px;
+}
+
+.section {
+  background: var(--brut-card);
+  border: 2px solid var(--brut-border);
+  border-radius: 16px;
+  padding: 24px;
+}
+
+.viewAll {
+  background: transparent;
+  border: 1px solid var(--brut-border);
+  color: var(--brut-text);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s;
+  text-transform: uppercase;
+}
+
+.viewAll:hover {
+  border-color: var(--analytics-primary);
+  color: var(--analytics-primary);
+}
+
+/* Table */
+.tableWrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  min-width: 400px;
+}
+
+.table th {
+  text-align: left;
+  padding: 12px;
+  font-size: 0.75rem;
+  font-weight: 800;
+  color: #666;
+  text-transform: uppercase;
+  border-bottom: 2px solid var(--brut-border);
+}
+
+.table td {
+  padding: 16px 12px;
+  border-bottom: 1px solid var(--brut-border);
+  color: var(--brut-text);
+  font-weight: 500;
+}
+
+.productCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-weight: 700;
+}
+
+.thumb {
+  width: 32px;
+  height: 32px;
+  background: var(--brut-bg);
+  border: 1px solid var(--brut-border);
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+
+.growth {
+  font-size: 0.85rem;
+  font-weight: 700;
+  padding: 4px 8px;
+  border-radius: 6px;
+  display: inline-block;
+  border: 1px solid transparent;
+}
+
+.growth.positive {
+  background: rgba(16, 185, 129, 0.15);
+  color: var(--analytics-success);
+  border-color: rgba(16, 185, 129, 0.3);
+}
+
+.growth.negative {
+  background: rgba(239, 68, 68, 0.15);
+  color: var(--analytics-danger);
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+/* Donut Chart */
+.donutContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.donutChart {
+  position: relative;
+  width: 180px;
+  height: 180px;
+  margin-bottom: 20px;
+}
+
+.svgDonut {
+  width: 100%;
+  height: 100%;
+  transform: rotate(-90deg);
+}
+
+/* Updated Colors: Keep Grey Background, Add Vibrant Segments */
+.svgDonut path:first-child {
+  stroke: #eee; /* Grey Background */
+}
+
+.svgDonut path:nth-child(2) {
+  stroke: var(--analytics-primary); /* Blue for Direct */
+}
+
+.svgDonut path:nth-child(3) {
+  stroke: var(--analytics-purple); /* Purple for Social */
+}
+
+/* If you add a 3rd segment in JSX, use this for Search */
+.svgDonut path:nth-child(4) {
+  stroke: var(--analytics-orange); /* Orange for Search */
+}
+
+.donutCenter {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  font-weight: 900;
+  font-size: 1.2rem;
+  color: var(--brut-text);
+}
+
+.donutLegend {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--brut-text);
+}
+
+.colorDot {
+  width: 12px;
+  height: 12px;
+  border-radius: 4px;
+  border: 2px solid rgba(0,0,0,0.05);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Override inline styles for dots to match new theme */
+.legendRow .colorDot[style*="#1a1a1a"] { background: var(--analytics-primary) !important; }
+.legendRow .colorDot[style*="#666"] { background: var(--analytics-purple) !important; }
+.legendRow .colorDot[style*="#999"] { background: var(--analytics-orange) !important; }
+
+/* --- Responsive Breakpoints --- */
+
+/* Tablet & Mobile */
+@media (max-width: 900px) {
+  .twoColumn {
+    grid-template-columns: 1fr; /* Stack vertically */
+  }
+  
+  .chartContainer {
+    height: 250px;
+  }
+}
+
+/* Mobile Only */
+@media (max-width: 600px) {
+  .container {
+    padding: 16px;
+  }
+  
+  .header {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .headerControls {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .exportBtn span {
+    display: none; /* Hide text, keep icon */
+  }
+  
+  .periodToggle {
+    flex: 1;
+    justify-content: space-between;
+  }
+  
+  .toggleBtn {
+    flex: 1;
+    text-align: center;
+    padding: 6px 4px;
+    font-size: 0.7rem;
+  }
+  
+  .kpiGrid {
+    grid-template-columns: 1fr 1fr; /* 2 columns on mobile */
+  }
+  
+  .kpiValue {
+    font-size: 1.4rem;
+  }
+  
+  .alertBanner {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  
+  .alertAction {
+    width: 100%;
+    text-align: center;
+  }
+  
+  /* Chart Optimizations */
+  .chartContainer {
+    height: 220px;
+  }
+  
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .viewToggle {
+    width: 100%;
+    justify-content: space-between;
+  }
+  
+  .viewBtn {
+    flex: 1;
+    text-align: center;
+  }
+  
+  /* Table Optimization for Mobile */
+  .hideMobile {
+    display: none;
+  }
+  
+  .thumb {
+    display: none; /* Save horizontal space */
+  }
+  
+  .table {
+    min-width: 100%; /* Allow full width scroll if needed */
+  }
+  
+  .table th, .table td {
+    padding: 12px 8px;
+    font-size: 0.85rem;
+  }
+}

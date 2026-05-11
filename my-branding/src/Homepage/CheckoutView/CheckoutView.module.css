@@ -1,0 +1,425 @@
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;900&display=swap');
+
+.container {
+  padding: 40px 5%;
+  background-color: var(--brut-bg);
+  min-height: 100vh;
+  color: var(--brut-text);
+}
+
+/* PROGRESS TRACK */
+.progressTrack {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  margin-bottom: 60px;
+  border-bottom: 1px solid var(--brut-border);
+  padding-bottom: 20px;
+}
+
+.trackStep {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--brut-text);
+  opacity: 0.3;
+  position: relative;
+}
+
+.trackStep.active {
+  opacity: 1;
+  font-weight: 900;
+}
+
+.trackStep.active::after {
+  content: '';
+  position: absolute;
+  bottom: -21px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: var(--brut-text);
+}
+
+/* LAYOUT */
+.contentWrapper {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 60px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* FORM SECTION */
+.formSection h2 {
+  font-size: 2rem;
+  font-weight: 900;
+  margin-bottom: 10px;
+  letter-spacing: -1px;
+}
+
+.subText {
+  color: var(--brut-text);
+  opacity: 0.6;
+  margin-bottom: 30px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.inputGroup {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.inputGroup label {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.inputGroup input, .inputGroup select {
+  padding: 16px;
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 8px;
+  color: var(--brut-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 1rem;
+  outline: none;
+}
+
+.inputGroup input:focus, .inputGroup select:focus {
+  border-color: var(--brut-text);
+}
+
+.continueBtn, .payBtn {
+  width: 100%;
+  padding: 18px;
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  border: none;
+  border-radius: 100px;
+  font-weight: 900;
+  text-transform: uppercase;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: transform 0.2s;
+}
+
+.continueBtn:hover, .payBtn:hover {
+  transform: translateY(-2px);
+}
+
+.continueBtn:disabled, .payBtn:disabled {
+  background: #333;
+  color: #666;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* SHIPPING OPTIONS */
+.loadingRates {
+  text-align: center;
+  padding: 40px;
+  background: var(--brut-card);
+  border-radius: 12px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255,255,255,0.1);
+  border-top-color: var(--brut-text);
+  border-radius: 50%;
+  margin: 0 auto 20px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.shippingOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 30px;
+}
+
+.shippingCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.shippingCard:hover {
+  border-color: var(--brut-text);
+}
+
+.shippingCard.selected {
+  border-color: var(--brut-text);
+  background: rgba(255,255,255,0.05);
+}
+
+.radioCircle {
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--brut-text);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.radioDot {
+  width: 10px;
+  height: 10px;
+  background: var(--brut-text);
+  border-radius: 50%;
+}
+
+.shippingInfo {
+  flex: 1;
+}
+
+.shippingInfo h4 {
+  margin: 0 0 5px 0;
+  font-size: 1rem;
+}
+
+.carrier {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  margin: 0 0 5px 0;
+}
+
+.deliveryTime {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #2dd4bf; /* Success Green */
+  margin: 0;
+}
+
+.shippingPrice {
+  font-weight: 900;
+  font-size: 1.2rem;
+}
+
+/* ACTION ROW */
+.actionRow {
+  display: flex;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.backBtn {
+  padding: 18px 30px;
+  background: transparent;
+  border: 1px solid var(--brut-border);
+  color: var(--brut-text);
+  border-radius: 100px;
+  font-weight: 700;
+  cursor: pointer;
+  text-transform: uppercase;
+}
+
+.backBtn:hover {
+  border-color: var(--brut-text);
+}
+
+/* WAYBILL PREVIEW */
+.waybillPreview {
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 12px;
+  padding: 20px;
+  margin: 30px 0;
+}
+
+.waybillHeader {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid var(--brut-border);
+  padding-bottom: 10px;
+}
+
+.waybillHeader h4 {
+  margin: 0;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+}
+
+.hsCodes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.codeRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.85rem;
+}
+
+.codeLabel {
+  opacity: 0.6;
+}
+
+.codeValue {
+  font-weight: 700;
+  font-family: monospace;
+}
+
+.statusGreen {
+  color: #2dd4bf;
+  font-weight: 700;
+}
+
+/* ESCROW CHECK */
+.escrowCheck {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(45, 212, 191, 0.05);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  border-radius: 8px;
+}
+
+.checkboxContainer {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+
+.checkboxContainer input { display: none; }
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #2dd4bf;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.checkboxContainer input:checked + .checkmark {
+  background: #2dd4bf;
+}
+
+.checkboxContainer input:checked + .checkmark::after {
+  content: '✓';
+  color: #000;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.checkboxContainer span {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  font-weight: 600;
+}
+
+/* SIDEBAR SUMMARY */
+.summarySidebar {
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 16px;
+  padding: 30px;
+  height: fit-content;
+  position: sticky;
+  top: 100px;
+}
+
+.summarySidebar h3 {
+  margin-top: 0;
+  text-transform: uppercase;
+  font-size: 1.1rem;
+  border-bottom: 1px solid var(--brut-border);
+  padding-bottom: 15px;
+  margin-bottom: 20px;
+}
+
+.summaryItems {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+
+.miniItem {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+}
+
+.miniImg {
+  width: 50px;
+  height: 60px;
+  background: #333;
+  border-radius: 6px;
+}
+
+.miniItem p {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.miniItem span {
+  font-size: 0.8rem;
+  opacity: 0.6;
+}
+
+.totals {
+  border-top: 1px solid var(--brut-border);
+  padding-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.row, .rowTotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.95rem;
+}
+
+.rowTotal {
+  font-size: 1.2rem;
+  font-weight: 900;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--brut-border);
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+  .contentWrapper {
+    grid-template-columns: 1fr;
+  }
+  .summarySidebar {
+    position: static;
+    order: -1; /* Show summary first on mobile? Or keep last. Let's keep last by removing order */
+    order: unset;
+  }
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

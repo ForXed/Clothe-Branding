@@ -57,7 +57,7 @@
 .title { font-size: 3rem; font-weight: 900; letter-spacing: -2px; line-height: 1; margin-bottom: 10px; }
 .subtitle { color: #666; margin-bottom: 40px; font-size: 1rem; }
 
-/* SOCIAL BUTTONS & APPLE HOVER FIX */
+/* SOCIAL BUTTONS */
 .socialGrid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
 
 .socialBtn {
@@ -71,11 +71,16 @@
 
 .socialBtn img { width: 18px; transition: filter 0.3s; }
 
+/* Hover State: Black BG, White Text */
 .socialBtn:hover { background: #000; color: #fff; }
 
-/* THE SPECIFIC APPLE FIX: Invert black icon to white on hover */
+/* Google: Keep Grayscale normally, remove on hover (optional, or keep grayscale) */
+.socialBtn:hover img:not(.appleIcon) { filter: grayscale(100%); }
+
+/* APPLE FIX: Force White on Hover */
+/* 1. Grayscale removes color -> 2. Brightness 0 makes it black -> 3. Invert 1 makes it white */
 .socialBtn:hover .appleIcon {
-    filter: invert(1);
+    filter: grayscale(100%) brightness(0) invert(1) !important;
 }
 
 /* DIVIDER */
@@ -85,9 +90,49 @@
 
 /* FORM ELEMENTS */
 .form { display: flex; flex-direction: column; gap: 25px; }
-.inputGroup { display: flex; flex-direction: column; gap: 8px; }
+.inputGroup { display: flex; flex-direction: column; gap: 8px; position: relative; }
 .inputGroup label { font-size: 0.75rem; font-weight: 900; text-transform: uppercase; color: #000; }
-.inputGroup input { padding: 18px; border: 1.5px solid #000; font-size: 1rem; outline: none; background: transparent; }
+
+.inputGroup input { 
+    padding: 18px; 
+    border: 1.5px solid #000; 
+    font-size: 1rem; 
+    outline: none; 
+    background: transparent; 
+    width: 100%;
+    font-family: 'Outfit', sans-serif;
+}
+
+/* Password Wrapper for Eye Icon */
+.passwordWrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.passwordWrapper input {
+    padding-right: 50px; /* Space for the icon */
+}
+
+.passwordToggle {
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    transition: color 0.2s;
+}
+
+.passwordToggle:hover {
+    color: #000;
+}
 
 .submitBtn {
     background: #000; color: #fff; padding: 20px;
@@ -102,7 +147,7 @@
 /* --- BRAND SECTION --- */
 .brandSection {
     flex: 1.2;
-    background: #0F0F0F; /* Inkwell */
+    background: #0F0F0F;
     position: relative;
     display: flex; align-items: center; justify-content: center;
     overflow: hidden;
@@ -121,7 +166,7 @@
 
 @media (max-width: 900px) {
     .mainWrapper { flex-direction: column; overflow-y: auto; }
-    .brandSection { display: none; } /* Hide typewriter on mobile for focus */
+    .brandSection { display: none; }
     .formSection { width: 100%; padding: 40px 20px; height: auto; }
     .formWrapper { margin: 0 auto; max-width: 100%; }
     .floatingError { width: 90%; font-size: 0.8rem; bottom: 20px; }

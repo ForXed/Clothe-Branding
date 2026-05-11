@@ -1,0 +1,594 @@
+/* =========================================
+   1. MAIN LAYOUT & CONTAINER
+   ========================================= */
+.articleContainer {
+  padding: 60px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  animation: fadeIn 0.5s ease;
+  box-sizing: border-box;
+  width: 100%;
+  /* CRITICAL: Prevents the whole page from scrolling horizontally */
+  overflow-x: hidden; 
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* =========================================
+   2. ARTICLE HEADER
+   ========================================= */
+.articleHeader {
+  margin-bottom: 60px;
+  border-bottom: 2px solid var(--hub-text);
+  padding-bottom: 40px;
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--hub-text-muted);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  margin-bottom: 24px;
+  transition: color 0.2s;
+  font-family: 'Outfit', sans-serif;
+}
+
+.backButton:hover {
+  color: var(--hub-text);
+}
+
+.headerMeta {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+  flex-wrap: wrap; /* Prevents overflow on small headers */
+}
+
+.categoryBadge, .levelBadge {
+  font-size: 0.75rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  padding: 4px 12px;
+  border-radius: 100px;
+  border: 1px solid var(--hub-text);
+  background: #fff;
+  color: var(--hub-text);
+  white-space: nowrap;
+}
+
+.levelBadge {
+  background: var(--hub-text);
+  color: #fff;
+}
+
+.articleTitle {
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 0 0 24px 0;
+  color: var(--hub-text);
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+  /* CRITICAL: Breaks long titles */
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.articleMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+  margin-bottom: 30px;
+  font-size: 0.9rem;
+  color: var(--hub-text-muted);
+  font-weight: 500;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.downloadHeaderBtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--hub-bg);
+  color: var(--hub-text);
+  border: 1px solid var(--hub-border);
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+  white-space: nowrap;
+}
+
+.downloadHeaderBtn:hover {
+  background: var(--hub-text);
+  color: #fff;
+  border-color: var(--hub-text);
+  transform: translateY(-2px);
+}
+
+/* =========================================
+   3. CONTENT LAYOUT (Sidebar + Main)
+   ========================================= */
+.contentLayout {
+  display: flex;
+  /* gap: 60px; */
+  position: relative;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Sticky Sidebar (TOC) */
+.tocSidebar {
+  width: 260px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+  border-right: 1px solid var(--hub-border);
+  padding-right: 30px;
+  align-self: flex-start;
+  box-sizing: border-box;
+  /* Prevent TOC from overflowing */
+  max-width: 100%; 
+  word-wrap: break-word;
+}
+
+.tocTitle {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 800;
+  color: var(--hub-text-muted);
+  margin-bottom: 20px;
+  word-wrap: break-word;
+}
+
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.tocLink {
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--hub-text-muted);
+  cursor: pointer;
+  padding: 8px 0;
+  transition: all 0.2s;
+  position: relative;
+  line-height: 1.4;
+  word-wrap: break-word;
+}
+
+.tocLink:hover {
+  color: var(--hub-text);
+  transform: translateX(4px);
+}
+
+.tocLink.active {
+  color: var(--hub-text);
+  font-weight: 700;
+}
+
+.tocLink.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: var(--hub-text);
+  border-radius: 50%;
+}
+
+/* Main Content Area */
+.mainContent {
+  flex: 1;
+  /* CRITICAL: Allows flex item to shrink below content size to prevent overflow */
+  min-width: 0; 
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* =========================================
+   4. TYPOGRAPHY & SECTIONS (FIXED OVERFLOW)
+   ========================================= */
+.section {
+  margin-bottom: 60px;
+  scroll-margin-top: 120px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 24px 0;
+  color: var(--hub-text);
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--hub-border);
+  letter-spacing: -0.5px;
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.section h3 {
+  font-size: 1.35rem;
+  font-weight: 700;
+  margin: 32px 0 16px 0;
+  color: var(--hub-text);
+  word-wrap: break-word;
+  hyphens: auto;
+}
+
+.section p {
+  font-size: 1.05rem;
+  line-height: 1.8;
+  color: #333;
+  margin-bottom: 20px;
+  /* CRITICAL: Breaks long words in paragraphs */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.section strong {
+  font-weight: 700;
+  color: var(--hub-text);
+  word-break: break-word;
+}
+
+.section ul, .section ol {
+  margin-bottom: 24px;
+  padding-left: 24px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.section li {
+  margin-bottom: 12px;
+  line-height: 1.7;
+  color: #333;
+  font-size: 1.05rem;
+  /* CRITICAL: Breaks long words in lists */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+
+.section code {
+  background: var(--hub-hover);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9em;
+  border: 1px solid var(--hub-border);
+  color: #d63384;
+  /* CRITICAL: Breaks long code strings */
+  word-break: break-all;
+  white-space: normal;
+}
+
+/* =========================================
+   5. SPECIAL BOXES (Info, Warning, Code)
+   ========================================= */
+.infoBox, .warningBox {
+  padding: 24px;
+  border-radius: 8px;
+  margin: 30px 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  border-left: 4px solid;
+  width: 100%;
+  box-sizing: border-box;
+  word-wrap: break-word;
+}
+
+.infoBox {
+  background: #f0f9ff;
+  border-color: #0ea5e9;
+  color: #0c4a6e;
+}
+
+.warningBox {
+  background: #fef2f2;
+  border-color: #ef4444;
+  color: #991b1b;
+}
+
+.codeBlock {
+  background: #1e1e1e;
+  color: #d4d4d4;
+  padding: 24px;
+  border-radius: 8px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  overflow-x: auto; /* Only scroll horizontally if needed */
+  margin: 24px 0;
+  border: 1px solid #333;
+  width: 100%;
+  box-sizing: border-box;
+  word-break: break-all;
+  white-space: pre-wrap; /* Wraps long lines instead of overflowing */
+}
+
+/* =========================================
+   6. TABLES (Fixed Overflow)
+   ========================================= */
+.tableWrapper {
+  width: 100%;
+  overflow-x: auto;
+  margin: 30px 0;
+  border: 1px solid var(--hub-border);
+  border-radius: 8px;
+  background: #fff;
+  -webkit-overflow-scrolling: touch;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  box-sizing: border-box;
+  display: block; /* Ensures wrapper respects width */
+}
+
+.dataTable {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 600px; /* Forces scroll on small screens, but wrapper handles it */
+  text-align: left;
+  table-layout: auto; /* Allows columns to shrink/grow naturally */
+}
+
+.dataTable th {
+  background: var(--hub-hover);
+  padding: 16px;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  font-weight: 800;
+  color: var(--hub-text);
+  border-bottom: 2px solid var(--hub-text);
+  white-space: nowrap;
+  word-wrap: break-word;
+}
+
+.dataTable td {
+  padding: 16px;
+  border-bottom: 1px solid var(--hub-border);
+  font-size: 0.95rem;
+  color: #444;
+  vertical-align: top;
+  line-height: 1.5;
+  word-wrap: break-word;
+  max-width: 300px; /* Prevents single cell from growing too wide */
+}
+
+.dataTable tr:last-child td {
+  border-bottom: none;
+}
+
+/* =========================================
+   7. FOOTER ACTIONS
+   ========================================= */
+.articleFooter {
+  margin-top: 80px;
+  padding-top: 40px;
+  border-top: 2px solid var(--hub-border);
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.feedbackSection {
+  text-align: center;
+  width: 100%;
+}
+
+.feedbackSection h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--hub-text);
+  word-wrap: break-word;
+}
+
+.feedbackButtons {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.feedbackBtn {
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  padding: 10px 32px;
+  border-radius: 100px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+  white-space: nowrap;
+}
+
+.feedbackBtn:hover {
+  border-color: var(--hub-text);
+  background: var(--hub-hover);
+}
+
+.navButtons {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  width: 100%;
+}
+
+.secondaryBtn, .primaryBtn {
+  padding: 14px 32px;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+  flex: 1;
+  min-width: 200px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.secondaryBtn {
+  background: transparent;
+  color: var(--hub-text);
+  border: 2px solid var(--hub-border);
+}
+
+.secondaryBtn:hover {
+  border-color: var(--hub-text);
+  background: var(--hub-hover);
+}
+
+.primaryBtn {
+  background: var(--hub-text);
+  color: #fff;
+  border: 2px solid var(--hub-text);
+}
+
+.primaryBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+}
+
+/* Error State */
+.errorState {
+  text-align: center;
+  padding: 100px 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.errorState h2 {
+  font-size: 2rem;
+  margin-bottom: 16px;
+  word-wrap: break-word;
+}
+
+.errorState p {
+  color: var(--hub-text-muted);
+  margin-bottom: 30px;
+  word-wrap: break-word;
+}
+
+.backBtn {
+  background: var(--hub-text);
+  color: #fff;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* =========================================
+   8. RESPONSIVE DESIGN
+   ========================================= */
+@media (max-width: 1024px) {
+  .articleContainer {
+    padding: 40px 20px;
+  }
+
+  .contentLayout {
+    flex-direction: column;
+    gap: 40px;
+  }
+
+  .tocSidebar {
+    width: 100%;
+    position: relative;
+    top: 0;
+    border-right: none;
+    border-bottom: 1px solid var(--hub-border);
+    padding-right: 0;
+    padding-bottom: 20px;
+    
+    /* Enable horizontal scroll for TOC on tablet/mobile */
+    overflow-x: auto;
+    white-space: nowrap;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .tocSidebar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tocList {
+    flex-direction: row;
+    gap: 20px;
+  }
+
+  .tocLink {
+    white-space: nowrap;
+  }
+
+  .tocLink.active::before {
+    left: 0;
+    top: auto;
+    bottom: -8px;
+    transform: none;
+  }
+
+  .articleTitle {
+    font-size: 2.2rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .articleTitle {
+    font-size: 1.8rem;
+  }
+
+  .section h2 {
+    font-size: 1.5rem;
+  }
+
+  .navButtons {
+    flex-direction: column;
+  }
+
+  .secondaryBtn, .primaryBtn {
+    width: 100%;
+    min-width: 100%;
+  }
+
+  .headerMeta {
+    flex-wrap: wrap;
+  }
+}

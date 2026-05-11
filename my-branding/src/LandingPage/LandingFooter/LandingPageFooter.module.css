@@ -1,5 +1,5 @@
 .footer {
-    background-color: #000000; /* Pure Black */
+    background-color: #000000;
     color: #ffffff;
     padding: 80px 20px 40px;
     width: 100%;
@@ -37,7 +37,7 @@
 
 .tagline {
     font-size: 0.95rem;
-    color: #999999; /* Dimmed white for readability */
+    color: #999999;
     line-height: 1.6;
     max-width: 280px;
 }
@@ -70,21 +70,19 @@
     display: inline-block;
 }
 
-/* Professional Animation: Link slide and color change */
 .linkList a:hover {
     color: #ffffff;
     transform: translateX(4px);
 }
 
-/* --- Social Icons Section --- */
-.socialContainer {
+/* --- Social Grid --- */
+.socialGrid {
     display: flex;
     gap: 12px;
-    margin-bottom: 24px;
     flex-wrap: wrap;
 }
 
-.socialIcon {
+.socialLink {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -93,19 +91,20 @@
     border: 1px solid #333;
     border-radius: 50%;
     color: #999;
-    text-decoration: none;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
     background: transparent;
+    text-decoration: none;
 }
 
-.socialIcon svg {
+.socialLink svg {
     width: 20px;
     height: 20px;
     fill: currentColor;
+    stroke: currentColor;
     transition: transform 0.3s ease;
 }
 
-.socialIcon:hover {
+.socialLink:hover {
     border-color: #ffffff;
     color: #000000;
     background-color: #ffffff;
@@ -113,21 +112,19 @@
     box-shadow: 0 4px 12px rgba(255, 255, 255, 0.1);
 }
 
-.socialIcon:hover svg {
+.socialLink:hover svg {
     transform: scale(1.1);
 }
 
-.contactDetails li {
-    margin-bottom: 8px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.contactText {
+    margin: 0;
+    line-height: 1.5;
 }
 
 /* --- Bottom Section --- */
 .divider {
     border: none;
-    border-top: 1px solid #222222; /* Very subtle divider */
+    border-top: 1px solid #222222;
     margin-bottom: 30px;
 }
 
@@ -135,11 +132,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: wrap;
+    gap: 20px;
 }
 
 .copyright {
     color: #555555;
     font-size: 0.85rem;
+    margin: 0;
 }
 
 .legalLinks {
@@ -173,17 +173,15 @@
     
     .footerBottom {
         flex-direction: column;
-        gap: 20px;
         text-align: center;
     }
 
-    .socialContainer {
+    .socialGrid {
         justify-content: center;
     }
     
-    .contactDetails {
-        text-align: center;
-        align-items: center;
+    .legalLinks {
         justify-content: center;
+        width: 100%;
     }
 }

@@ -2,8 +2,9 @@
 
 .container {
     padding: 20px 0;
-    background-color: var(--brut-bg); /* Uses theme background */
+    background-color: var(--brut-bg);
     color: var(--brut-text);
+    min-height: 100vh;
 }
 
 .title {
@@ -11,19 +12,94 @@
     font-weight: 900;
     letter-spacing: -2px;
     color: var(--brut-text);
-    margin-bottom: 30px;
+    margin: 0;
+    line-height: 1.1;
 }
 
-/* --- ADAPTIVE FILTERS --- */
+/* --- HEADER & CONTROLS --- */
 .header {
     margin-bottom: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
+.headerTop {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.printBtn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
+    color: var(--brut-text);
+    padding: 10px 16px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+}
+
+.printBtn:hover {
+    border-color: var(--brut-text);
+    background: var(--brut-hover);
+    transform: translateY(-2px);
+}
+
+.controlsRow {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+/* Search Box */
+.searchBox {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.searchBox svg {
+    position: absolute;
+    left: 14px;
+    color: #666;
+    pointer-events: none;
+}
+
+.searchBox input {
+    width: 100%;
+    padding: 12px 12px 12px 45px;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
+    border-radius: 10px;
+    color: var(--brut-text);
+    font-family: inherit;
+    font-size: 0.9rem;
+    font-weight: 500;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+.searchBox input:focus {
+    border-color: var(--brut-text);
+}
+
+.searchBox input::placeholder {
+    color: #888;
+}
+
+/* Filters */
 .filterWrapper {
     display: flex;
     gap: 10px;
     overflow-x: auto;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
     scrollbar-width: none;
 }
 .filterWrapper::-webkit-scrollbar { display: none; }
@@ -52,12 +128,13 @@
     border-color: var(--brut-text) !important;
 }
 
-/* --- RESPONSIVE TABLE --- */
+/* --- TABLE SECTION --- */
 .tableWrapper {
     background: var(--brut-card);
     border: 1px solid var(--brut-border);
     border-radius: 20px;
     overflow: hidden;
+    margin-bottom: 40px;
 }
 
 .scrollArea {
@@ -68,7 +145,7 @@
 .table {
     width: 100%;
     border-collapse: collapse;
-    min-width: 800px;
+    min-width: 900px; /* Ensures scroll on small screens */
 }
 
 .table th {
@@ -77,21 +154,51 @@
     font-size: 0.7rem;
     font-weight: 900;
     color: var(--brut-text);
-    opacity: 0.4; /* Dimmed header text */
+    opacity: 0.4;
     border-bottom: 1px solid var(--brut-border);
+    text-transform: uppercase;
 }
 
 .table td {
     padding: 20px;
     border-bottom: 1px solid var(--brut-border);
     color: var(--brut-text);
+    vertical-align: middle;
 }
 
 .bold { font-weight: 900; }
 
-.customerBox { display: flex; flex-direction: column; }
-.name { font-weight: 700; }
+.customerBox { display: flex; flex-direction: column; gap: 4px; }
+.name { font-weight: 700; font-size: 0.95rem; }
 .email { font-size: 0.8rem; opacity: 0.5; color: var(--brut-text); }
+
+/* Items Preview in Table */
+.itemsPreview {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.qtyBadge {
+    background: var(--brut-bg);
+    border: 1px solid var(--brut-border);
+    color: var(--brut-text);
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 4px 8px;
+    border-radius: 6px;
+    min-width: 20px;
+    text-align: center;
+}
+
+.itemsText {
+    font-size: 0.85rem;
+    font-weight: 500;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 
 .statusBadge {
     padding: 6px 14px;
@@ -99,10 +206,10 @@
     font-size: 0.65rem;
     font-weight: 900;
     text-transform: uppercase;
-    color: white; /* Always white text for badges */
+    color: white;
+    display: inline-block;
 }
 
-/* Badge Colors - Using Brutige Variables where possible, or specific hex for clarity */
 .pending { background: #f59e0b; }
 .processing { background: #3b82f6; }
 .shipped { background: #8b5cf6; }
@@ -118,6 +225,8 @@
     font-weight: 800;
     cursor: pointer;
     transition: all 0.2s ease;
+    text-transform: uppercase;
+    font-size: 0.75rem;
 }
 
 .viewBtn:hover {
@@ -125,11 +234,18 @@
     background: var(--brut-hover);
 }
 
-/* --- RESPONSIVE MODAL --- */
+.emptyState {
+    text-align: center;
+    padding: 40px !important;
+    opacity: 0.5;
+    font-style: italic;
+}
+
+/* --- MODAL --- */
 .modalOverlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.85); /* Dark overlay always */
+    background: rgba(0,0,0,0.85);
     backdrop-filter: blur(10px);
     z-index: 5000;
     display: flex;
@@ -141,19 +257,26 @@
 .modal {
     background: var(--brut-card);
     width: 100%;
-    max-width: 700px;
+    max-width: 750px;
     border-radius: 30px;
     border: 1px solid var(--brut-border);
     max-height: 90vh;
     overflow-y: auto;
     box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+    display: flex;
+    flex-direction: column;
 }
 
 .modalHeader {
     display: flex;
     justify-content: space-between;
+    align-items: flex-start;
     padding: 30px;
     border-bottom: 1px solid var(--brut-border);
+    position: sticky;
+    top: 0;
+    background: var(--brut-card);
+    z-index: 10;
 }
 
 .modalTitle h2 { 
@@ -161,13 +284,38 @@
     font-weight: 900; 
     margin: 0; 
     color: var(--brut-text); 
+    line-height: 1;
 }
 
 .modalTitle p { 
     opacity: 0.5; 
     font-size: 0.8rem; 
-    margin-top: 5px; 
+    margin-top: 8px; 
     color: var(--brut-text);
+}
+
+.modalActions {
+    display: flex;
+    gap: 10px;
+}
+
+.printBtnSmall {
+    background: var(--brut-bg);
+    border: 1px solid var(--brut-border);
+    color: var(--brut-text);
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.printBtnSmall:hover {
+    border-color: var(--brut-text);
+    background: var(--brut-hover);
 }
 
 .closeBtn { 
@@ -178,26 +326,39 @@
     cursor: pointer; 
     opacity: 0.7;
     transition: opacity 0.2s;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .closeBtn:hover { opacity: 1; }
 
-/* TIMELINE */
+.modalBody {
+    padding: 30px;
+    display: flex;
+    flex-direction: column;
+    gap: 30px;
+}
+
+/* Timeline */
 .timelineBox {
-    padding: 40px 30px;
+    padding: 20px 0;
     position: relative;
 }
 
 .lineTrack {
     position: absolute;
-    top: 51px; left: 50px; right: 50px;
+    top: 11px; left: 40px; right: 40px;
     height: 2px; 
-    background: var(--brut-border); /* Dynamic line color */
+    background: var(--brut-border);
+    z-index: 0;
 }
 
 .lineFill {
     height: 100%;
-    background: var(--brut-success); /* Dynamic success color */
+    background: var(--brut-success);
     transition: width 0.6s ease;
     box-shadow: 0 0 15px rgba(34, 197, 94, 0.4);
 }
@@ -212,7 +373,7 @@
 .step { display: flex; flex-direction: column; align-items: center; gap: 10px; }
 
 .dot { 
-    width: 22px; height: 22px; border-radius: 50%; 
+    width: 24px; height: 24px; border-radius: 50%; 
     background: var(--brut-card); 
     border: 4px solid var(--brut-border); 
     transition: 0.4s;
@@ -234,45 +395,105 @@
 
 .activeStep .stepLabel { opacity: 1; }
 
-/* DATA GRID */
+/* Info Grid */
 .infoGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 30px;
-    padding: 0 30px 30px;
+    background: var(--brut-bg);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--brut-border);
 }
 
 .capsLabel {
     font-size: 0.7rem; 
     font-weight: 900; 
     opacity: 0.4; 
-    letter-spacing: 2px; 
+    letter-spacing: 1px; 
     text-transform: uppercase; 
     display: block; 
-    margin-bottom: 15px;
+    margin-bottom: 12px;
     color: var(--brut-text);
 }
 
 .infoSection p { 
     margin: 8px 0; 
-    font-size: 0.95rem; 
+    font-size: 0.9rem; 
     color: var(--brut-text); 
+    line-height: 1.5;
 }
 
 .infoSection strong {
     opacity: 0.7;
+    font-weight: 700;
 }
 
-.greenText { 
-    color: var(--brut-success); 
-    font-weight: 900; 
-    font-size: 1.2rem; 
+.greenText { color: var(--brut-success); font-weight: 900; }
+.trackingText { color: var(--brut-text); font-family: monospace; background: var(--brut-card); padding: 2px 6px; border-radius: 4px; border: 1px solid var(--brut-border); }
+
+/* Items List Section */
+.itemsListSection {
+    background: var(--brut-bg);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--brut-border);
 }
 
-/* UPDATE SECTION */
-.updateArea { 
-    padding: 30px; 
-    border-top: 1px solid var(--brut-border); 
+.itemsList {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.itemRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px;
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
+    border-radius: 8px;
+}
+
+.itemInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.itemName {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--brut-text);
+}
+
+.itemVariant {
+    font-size: 0.8rem;
+    color: #666;
+}
+
+.itemMeta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--brut-text);
+}
+
+/* Update Area */
+.updateArea {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.updateRow, .trackingRow {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
 }
 
 .statusGrid { 
@@ -304,12 +525,98 @@
     border-color: var(--brut-text) !important;
 }
 
-/* --- MOBILE RESPONSIVE LOGIC --- */
+/* Tracking Input */
+.trackingInputWrapper {
+    display: flex;
+    gap: 10px;
+}
+
+.trackingInputWrapper input {
+    flex: 1;
+    padding: 12px 16px;
+    background: var(--brut-bg);
+    border: 1px solid var(--brut-border);
+    border-radius: 8px;
+    color: var(--brut-text);
+    font-family: monospace;
+    font-size: 0.9rem;
+    outline: none;
+}
+
+.trackingInputWrapper input:focus {
+    border-color: var(--brut-text);
+}
+
+.saveTrackBtn {
+    padding: 12px 24px;
+    background: var(--brut-text);
+    color: var(--brut-bg);
+    border: none;
+    border-radius: 8px;
+    font-weight: 800;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: opacity 0.2s;
+}
+
+.saveTrackBtn:hover {
+    opacity: 0.9;
+}
+
+/* --- PRINT STYLES --- */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    .modal, .modal * {
+        visibility: visible;
+    }
+    .modal {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        max-width: none;
+        border: none;
+        box-shadow: none;
+        color: black;
+    }
+    .modalHeader, .updateArea, .closeBtn, .printBtnSmall {
+        display: none !important;
+    }
+    .modalBody {
+        padding: 0;
+    }
+    .itemsListSection, .infoGrid, .timelineBox {
+        border: 1px solid #ccc;
+        margin-bottom: 20px;
+    }
+    /* Force black text for print */
+    * {
+        color: black !important;
+        background: white !important;
+    }
+}
+
+/* --- RESPONSIVE --- */
 @media (max-width: 768px) {
     .container { padding: 10px 4% 120px; }
+    
+    .headerTop {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+    }
+    
+    .printBtn {
+        width: 100%;
+        justify-content: center;
+    }
+
     .infoGrid { grid-template-columns: 1fr; }
     .statusGrid { grid-template-columns: 1fr; }
-    .lineTrack { left: 30px; right: 30px; }
+    
+    .lineTrack { left: 20px; right: 20px; }
     .stepLabel { font-size: 0.5rem; }
     
     .modal {
@@ -321,7 +628,31 @@
         padding: 20px;
     }
     
-    .timelineBox {
-        padding: 30px 20px;
+    .modalBody {
+        padding: 20px;
+    }
+
+    .itemRow {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .itemMeta {
+        flex-direction: row;
+        gap: 15px;
+        width: 100%;
+        justify-content: space-between;
+        border-top: 1px solid var(--brut-border);
+        padding-top: 8px;
+        margin-top: 4px;
+    }
+    
+    .trackingInputWrapper {
+        flex-direction: column;
+    }
+    
+    .saveTrackBtn {
+        width: 100%;
     }
 }

@@ -11,9 +11,10 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
+/* --- HERO SECTION --- */
 .hero {
     max-width: 800px;
-    margin: 80px 0 60px;
+    margin: 80px 0 40px; /* Reduced bottom margin slightly for filter bar spacing */
 }
 
 .heroText {
@@ -32,6 +33,61 @@
     opacity: 0.5;
     text-transform: uppercase;
     letter-spacing: 2px;
+}
+
+/* --- NEW: CATEGORY FILTER BAR --- */
+.filterBar {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 50px;
+    overflow-x: auto;
+    padding-bottom: 10px;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE/Edge */
+}
+
+.filterBar::-webkit-scrollbar {
+    display: none; /* Chrome/Safari */
+}
+
+.filterPill {
+    background: var(--brut-card);
+    border: 1px solid var(--brut-border);
+    color: var(--brut-text);
+    padding: 10px 24px;
+    border-radius: 100px;
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.3s cubic-bezier(0.165, 0.84, 0.44, 1);
+    font-family: 'Outfit', sans-serif;
+}
+
+.filterPill:hover {
+    border-color: var(--brut-text);
+    background: var(--brut-hover);
+    transform: translateY(-2px);
+}
+
+.filterPill.active {
+    background: var(--brut-text);
+    color: var(--brut-bg);
+    border-color: var(--brut-text);
+    box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+}
+
+/* Empty State for Filters */
+.emptyFilterState {
+    grid-column: 1 / -1;
+    text-align: center;
+    padding: 80px 20px;
+    color: var(--brut-text);
+    opacity: 0.5;
+    font-size: 1.2rem;
+    font-weight: 600;
 }
 
 /* --- 4 COLUMN GRID --- */
@@ -116,6 +172,11 @@
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.actionBtn:hover {
+    transform: scale(1.1);
 }
 
 .saved { background: #ff4444 !important; color: #fff !important; }
@@ -209,6 +270,41 @@
     opacity: 1;
 }
 
+/* Add to MasonryFeed.module.css */
+
+.loadingState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 60vh;
+  color: var(--brut-text);
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(255, 255, 255, 0.1);
+  border-top-color: var(--brut-text);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin-bottom: 20px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.emptyFilterState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 80px 20px;
+  color: var(--brut-text);
+  opacity: 0.5;
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
 /* --- RESPONSIVE --- */
 @media (max-width: 1400px) {
     .masonry { grid-template-columns: repeat(3, 1fr); }
@@ -219,9 +315,23 @@
     .heroText { font-size: 2.5rem; }
     .imageContainer { padding: 8px; border-radius: 20px; }
     .cardActions { opacity: 1; transform: none; }
+    
+    .filterBar {
+        gap: 8px;
+        margin-bottom: 30px;
+    }
+    
+    .filterPill {
+        padding: 8px 16px;
+        font-size: 0.75rem;
+    }
 }
 
 @media (max-width: 480px) {
     .heroText { font-size: 2rem; }
     .masonry { gap: 12px; }
+    
+    .filterBar {
+        padding-bottom: 15px; /* More space for touch scrolling */
+    }
 }

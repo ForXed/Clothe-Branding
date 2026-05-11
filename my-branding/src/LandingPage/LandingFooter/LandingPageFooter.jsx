@@ -1,10 +1,10 @@
 import React from 'react';
+import { Link } from 'react-router-dom'; // Using Link for internal navigation
 import styles from './LandingPageFooter.module.css';
 
 const BrutigeLogo = () => (
   <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="25" cy="25" r="25" fill="white"/>
-    {/* The Tiny Gap Arrow - Inverted for dark mode if needed, or keep black */}
     <path d="M24.6 13L24.6 30.5L14 36.5L24.6 13Z" fill="black"/>
     <path d="M25.4 13L25.4 30.5L36 36.5L25.4 13Z" fill="black"/>
   </svg>
@@ -41,25 +41,25 @@ const LandingPageFooter = () => {
             </p>
           </div>
 
-          {/* Column 2: Platform */}
+          {/* Column 2: Platform (Linked to Hub) */}
           <div className={styles.col}>
             <h4 className={styles.heading}>Platform</h4>
             <ul className={styles.linkList}>
-              <li><a href="/platform/shop">Collections</a></li>
-              <li><a href="#how-it-works">How it Works</a></li>
+              <li><Link to="/hub/collections">Collections</Link></li>
+              <li><Link to="/hub/process">How it Works</Link></li>
               <li><a href="#pricing">Pricing</a></li>
-              <li><a href="#showcase">Showcase</a></li>
+              <li><Link to="/hub/showcase">Showcase</Link></li>
             </ul>
           </div>
 
-          {/* Column 3: Resources */}
+          {/* Column 3: Resources (Linked to Hub) */}
           <div className={styles.col}>
             <h4 className={styles.heading}>Resources</h4>
             <ul className={styles.linkList}>
-              <li><a href="#faq">FAQ</a></li>
-              <li><a href="#blog">Blog</a></li>
-              <li><a href="#guides">Design Guides</a></li>
-              <li><a href="#support">Support</a></li>
+              <li><Link to="/hub/faq">FAQ</Link></li>
+              <li><Link to="/hub/blog">Blog</Link></li>
+              <li><Link to="/hub/guides">Design Guides</Link></li>
+              <li><Link to="/hub/support">Support</Link></li>
             </ul>
           </div>
 
@@ -96,9 +96,9 @@ const LandingPageFooter = () => {
         <div className={styles.footerBottom}>
           <p className={styles.copyright}>&copy; 2024 Brutige. All rights reserved.</p>
           <div className={styles.legalLinks}>
-            <a href="#privacy">Privacy</a>
-            <a href="#terms">Terms</a>
-            <a href="#cookies">Cookies</a>
+            <Link to="/hub/privacy">Privacy</Link>
+            <Link to="/hub/terms">Terms</Link>
+            <Link to="/hub/cookies">Cookies</Link>
           </div>
         </div>
       </div>
