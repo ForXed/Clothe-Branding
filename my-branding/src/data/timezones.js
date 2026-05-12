@@ -1,5 +1,4 @@
-// Timezones for Profile Settings
-// Format: { value: "Europe/London", label: "London (GMT+0)", offset: "+00:00" }
+// src/data/timezones.js
 
 export const timezones = [
   // UTC
@@ -85,8 +84,6 @@ export const timezones = [
   { value: "Asia/Riyadh", label: "Riyadh (GMT+3)", offset: "+03:00" },
   { value: "Asia/Tehran", label: "Tehran (GMT+3:30)", offset: "+03:30" },
   { value: "Asia/Karachi", label: "Karachi (GMT+5)", offset: "+05:00" },
-  { value: "Asia/Mumbai", label: "Mumbai (GMT+5:30)", offset: "+05:30" },
-  { value: "Asia/Delhi", label: "New Delhi (GMT+5:30)", offset: "+05:30" },
   { value: "Asia/Kolkata", label: "Kolkata (GMT+5:30)", offset: "+05:30" },
   { value: "Asia/Dhaka", label: "Dhaka (GMT+6)", offset: "+06:00" },
   { value: "Asia/Colombo", label: "Colombo (GMT+5:30)", offset: "+05:30" },
@@ -113,7 +110,6 @@ export const timezones = [
   { value: "Asia/Bishkek", label: "Bishkek (GMT+6)", offset: "+06:00" },
   { value: "Asia/Ulaanbaatar", label: "Ulaanbaatar (GMT+8)", offset: "+08:00" },
   { value: "Asia/Pyongyang", label: "Pyongyang (GMT+9)", offset: "+09:00" },
-  { value: "Asia/Seoul", label: "Seoul (GMT+9)", offset: "+09:00" },
   { value: "Asia/Osaka", label: "Osaka (GMT+9)", offset: "+09:00" },
   { value: "Asia/Sapporo", label: "Sapporo (GMT+9)", offset: "+09:00" },
   
@@ -130,7 +126,6 @@ export const timezones = [
   { value: "Pacific/Wellington", label: "Wellington (GMT+12/+13)", offset: "+12:00" },
   { value: "Pacific/Fiji", label: "Fiji (GMT+12/+13)", offset: "+12:00" },
   { value: "Pacific/Guam", label: "Guam (GMT+10)", offset: "+10:00" },
-  { value: "Pacific/Honolulu", label: "Honolulu (GMT-10)", offset: "-10:00" },
   { value: "Pacific/Tahiti", label: "Tahiti (GMT-10)", offset: "-10:00" },
   { value: "Pacific/Noumea", label: "Nouméa (GMT+11)", offset: "+11:00" },
   { value: "Pacific/Port_Moresby", label: "Port Moresby (GMT+10)", offset: "+10:00" },
@@ -158,7 +153,6 @@ export const timezones = [
   { value: "Africa/Maseru", label: "Maseru (GMT+2)", offset: "+02:00" },
   { value: "Africa/Mbabane", label: "Mbabane (GMT+2)", offset: "+02:00" },
   { value: "Africa/Accra", label: "Accra (GMT+0)", offset: "+00:00" },
-  { value: "Africa/Lagos", label: "Lagos (GMT+1)", offset: "+01:00" },
   { value: "Africa/Dakar", label: "Dakar (GMT+0)", offset: "+00:00" },
   { value: "Africa/Abidjan", label: "Abidjan (GMT+0)", offset: "+00:00" },
   { value: "Africa/Luanda", label: "Luanda (GMT+1)", offset: "+01:00" },

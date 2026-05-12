@@ -1,5 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom'; // Import navigate
 import styles from './HomeHeader.module.css';
 
 const HomeHeader = ({ 
@@ -12,38 +12,22 @@ const HomeHeader = ({
   userName = 'User'
 }) => {
   const navigate = useNavigate();
-  const [searchFocused, setSearchFocused] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  
   const searchInputRef = useRef(null);
 
-  // Keyboard Shortcut (⌘ + K)
+  // Keyboard Shortcut (⌘ + K) - Now navigates to search page
   useEffect(() => {
     const handleKeyDown = (e) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
-        searchInputRef.current?.focus();
+        navigate('/platform/search');
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, []);
-
-  const studioUpdates = [
-    "Julian V. just started a 50pc production for 'Aura Studio'",
-    "New 450GSM Heavyweight Fleece templates added to catalog",
-    "Infrastructure update: Global shipping now active for 52 countries"
-  ];
-
-  const ateliers = [
-    { id: 1, name: "Admin", img: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100" },
-    { id: 2, name: "Julian", img: " https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100" },
-    { id: 3, name: "Elena", img: " https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=100" }
-  ];
+  }, [navigate]);
 
   const BrutigeLogo = () => (
     <svg className={styles.logoSvg} viewBox="0 0 100 100" fill="none">
-      {/* Added className to circle for specific dark mode styling */}
       <circle className={styles.logoCircle} cx="50" cy="50" r="50"/>
       <path d="M48 25L48 65L25 80L48 25Z" fill="var(--brut-bg)"/>
       <path d="M52 25L52 65L75 80L52 25Z" fill="var(--brut-bg)"/>
@@ -54,16 +38,24 @@ const HomeHeader = ({
     navigate('/platform/settings');
   };
 
+  // New handler to redirect to SearchView
+  const handleSearchClick = () => {
+    navigate('/platform/search');
+  };
+
   return (
     <div className={styles.headerWrapper}>
       {/* 1. STUDIO TICKER */}
       <div className={styles.ticker}>
         <div className={styles.tickerTrack}>
-          {studioUpdates.concat(studioUpdates).map((update, i) => (
-            <span key={i} className={styles.tickerItem}>
-              <span className={styles.tickerDot}>•</span> {update}
-            </span>
-          ))}
+          {/* Ticker content remains the same */}
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
+          {/* Duplicate for infinite scroll effect */}
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
         </div>
       </div>
 
@@ -73,11 +65,14 @@ const HomeHeader = ({
           {/* MOBILE ONLY: BRANDING */}
           <div className={styles.mobileBrand} onClick={() => setActiveTab('shop')}>
             <BrutigeLogo />
-            {/* <span className={styles.brandName}>brutige</span> */}
           </div>
 
-          {/* LAPTOP ONLY: SEARCH */}
-          <div className={`${styles.searchContainer} ${searchFocused ? styles.expanded : ''}`}>
+          {/* LAPTOP ONLY: SEARCH - Now acts as a button/link to SearchView */}
+          <div 
+            className={styles.searchContainer} 
+            onClick={handleSearchClick}
+            style={{ cursor: 'pointer' }}
+          >
             <div className={styles.searchBar}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={styles.searchIcon}>
                 <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
@@ -86,35 +81,13 @@ const HomeHeader = ({
                 ref={searchInputRef}
                 type="text" 
                 placeholder="Search aesthetics, infrastructure..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setSearchFocused(true)}
-                onBlur={() => setTimeout(() => setSearchFocused(false), 250)}
+                readOnly // Prevents typing here since it redirects
+                onFocus={handleSearchClick} // Also triggers on focus
               />
-              {!searchFocused && (
-                <div className={styles.kbdShortcut}>
-                  <kbd>⌘</kbd><kbd>K</kbd>
-                </div>
-              )}
-            </div>
-
-            {searchFocused && (
-              <div className={styles.searchDropdown}>
-                <div className={styles.dropdownSection}>
-                  <div className={styles.searchMeta}>124 results found in 0.04s</div>
-                  
-                  <h4>Atelier Profiles</h4>
-                  <div className={styles.atelierRow}>
-                    {ateliers.map(a => (
-                      <div key={a.id} className={styles.atelierStory} onClick={() => setActiveTab('profile')}>
-                        <div className={styles.ring}><img src={a.img} alt="" /></div>
-                        <span>{a.name}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+              <div className={styles.kbdShortcut}>
+                <kbd>⌘</kbd><kbd>K</kbd>
               </div>
-            )}
+            </div>
           </div>
 
           {/* ACTIONS WITH LABELS */}

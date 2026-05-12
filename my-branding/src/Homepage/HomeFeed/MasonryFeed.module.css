@@ -335,3 +335,107 @@
         padding-bottom: 15px; /* More space for touch scrolling */
     }
 }
+
+/* --- EXTREME MOBILE OPTIMIZATION (<= 344px) --- */
+@media (max-width: 344px) {
+    .container {
+        padding: 0 3%; /* Reduce side padding to gain width */
+    }
+
+    .hero {
+        margin: 60px 0 30px; /* Reduce top margin */
+    }
+
+    .heroText {
+        font-size: 1.75rem; /* Significantly smaller for narrow screens */
+        letter-spacing: -1px;
+        margin-bottom: 12px;
+    }
+
+    .heroSubtext {
+        font-size: 0.7rem;
+        letter-spacing: 1px;
+    }
+
+    .filterBar {
+        gap: 6px;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+    }
+
+    .filterPill {
+        padding: 6px 14px;
+        font-size: 0.65rem; /* Smaller text */
+        border-radius: 50px;
+    }
+
+    .masonry {
+        grid-template-columns: repeat(2, 1fr); /* Keep 2 columns but tighten */
+        gap: 10px; /* Minimal gap */
+        padding-bottom: 100px;
+    }
+
+    .imageContainer {
+        padding: 6px; /* Thinner border frame */
+        border-radius: 16px;
+    }
+
+    .imageInner {
+        border-radius: 12px;
+    }
+
+    .categoryTag {
+        top: 8px;
+        left: 8px;
+        padding: 3px 8px;
+        font-size: 0.5rem;
+    }
+
+    .cardActions {
+        bottom: 8px;
+        right: 8px;
+        gap: 6px;
+    }
+
+    .actionBtn {
+        width: 32px;
+        height: 32px;
+    }
+
+    .actionBtn svg {
+        width: 14px;
+        height: 14px;
+    }
+
+    .cardDetails {
+        padding: 12px 2px;
+        gap: 8px;
+    }
+
+    .productHeader h4 {
+        font-size: 0.85rem;
+    }
+
+    .pricePill {
+        font-size: 0.75rem;
+        padding: 3px 8px;
+    }
+
+    .descriptionText {
+        font-size: 0.7rem;
+        -webkit-line-clamp: 2;
+    }
+
+    .stockInfo span {
+        font-size: 0.6rem;
+    }
+
+    .socialProof {
+        font-size: 0.65rem;
+    }
+    
+    .emptyFilterState {
+        font-size: 0.9rem;
+        padding: 40px 10px;
+    }
+}

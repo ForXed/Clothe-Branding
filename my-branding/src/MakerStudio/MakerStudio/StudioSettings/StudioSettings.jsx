@@ -12,6 +12,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
   // Mock Profile Image State
   const [profileImage, setProfileImage] = useState('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200');
 
+  // Complete State Object matching all form fields
   const [settings, setSettings] = useState({
     // Profile
     businessName: 'Aura Studio',
@@ -19,6 +20,10 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
     contactEmail: 'hello@aurastudio.com',
     bio: 'Premium heavyweight streetwear manufactured with precision.',
     
+    // Branding (Colors only - Socials removed)
+    brandColor: '#1a1a1a',
+    accentColor: '#3b82f6',
+
     // General
     currency: 'USD',
     timezone: 'America/New_York',
@@ -27,15 +32,23 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
     lowStockThreshold: '5',
     defaultStatus: 'draft',
     
-    // Payments
-    notifications: true,
-    autoFulfill: false,
-    taxRate: '8.5',
-    
     // Shipping
     shippingOrigin: 'New York, USA',
     freeShippingThreshold: '150',
-    flatRate: '9.99'
+    flatRate: '9.99',
+    
+    // Payments
+    autoFulfill: false,
+    taxRate: '8.5',
+    
+    // Policies
+    returnPolicy: 'Items must be returned within 30 days in original condition.',
+    shippingPolicy: 'Orders are processed within 2-3 business days.',
+    termsOfService: 'By using this service, you agree to our terms...',
+
+    // Notifications
+    newOrderAlerts: true,
+    weeklyReports: true,
   });
 
   const handleChange = (e) => {
@@ -47,13 +60,15 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
   };
 
   const handleImageChange = (e) => {
-    if (e.target.files[0]) {
+    if (e.target.files && e.target.files[0]) {
       setProfileImage(URL.createObjectURL(e.target.files[0]));
     }
   };
 
   const handleSave = (e) => {
     e.preventDefault();
+    // Simulate API call
+    console.log('Saving settings:', settings);
     setSaved(true);
     setTimeout(() => setSaved(false), 3000);
   };
@@ -64,11 +79,13 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
   };
 
   const tabs = [
-    { id: 'profile', label: 'Profile & Identity', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+    { id: 'profile', label: 'Profile', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
+    { id: 'branding', label: 'Branding', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/></svg> },
     { id: 'general', label: 'General', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg> },
     { id: 'products', label: 'Products', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg> },
-    { id: 'payments', label: 'Payments', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> },
     { id: 'shipping', label: 'Shipping', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg> },
+    { id: 'payments', label: 'Payments', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> },
+    { id: 'policies', label: 'Policies', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg> },
     { id: 'notifications', label: 'Notifications', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg> },
     { id: 'security', label: 'Security', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> },
   ];
@@ -93,6 +110,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
               key={tab.id}
               className={`${styles.tabBtn} ${activeTab === tab.id ? styles.active : ''}`}
               onClick={() => setActiveTab(tab.id)}
+              type="button"
             >
               <span className={styles.tabIcon}>{tab.icon}</span>
               <span>{tab.label}</span>
@@ -125,8 +143,8 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                     <button type="button" className={styles.uploadBtn} onClick={() => fileInputRef.current.click()}>
                       Change Logo
                     </button>
-                    <button type="button" className={styles.removeBtn} onClick={() => setProfileImage('')}>
-                      Remove
+                    <button type="button" className={styles.removeBtn} onClick={() => setProfileImage('https://via.placeholder.com/200?text=Logo')}>
+                      Reset
                     </button>
                   </div>
                   <input 
@@ -147,6 +165,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                       name="businessName"
                       value={settings.businessName}
                       onChange={handleChange}
+                      required
                     />
                   </div>
 
@@ -158,6 +177,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                       value={settings.handle}
                       onChange={handleChange}
                       placeholder="@yourstore"
+                      required
                     />
                   </div>
                 </div>
@@ -169,6 +189,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                     name="contactEmail"
                     value={settings.contactEmail}
                     onChange={handleChange}
+                    required
                   />
                 </div>
 
@@ -181,6 +202,56 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                     rows={4}
                     placeholder="Tell customers about your brand..."
                   />
+                </div>
+              </div>
+            )}
+
+            {/* BRANDING TAB */}
+            {activeTab === 'branding' && (
+              <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3>Brand Appearance</h3>
+                  <p>Customize your store colors</p>
+                </div>
+                
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <label>Primary Brand Color</label>
+                    <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                      <input 
+                        type="color"
+                        name="brandColor"
+                        value={settings.brandColor}
+                        onChange={handleChange}
+                        style={{width: '50px', padding: '0', border: 'none', height: '44px', cursor: 'pointer'}}
+                      />
+                      <input 
+                        type="text"
+                        value={settings.brandColor}
+                        readOnly
+                        style={{flex: 1, padding: '14px', background: 'var(--brut-card)', border: '1px solid var(--brut-border)', borderRadius: '12px'}}
+                      />
+                    </div>
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <label>Accent Color</label>
+                    <div style={{display: 'flex', gap: '10px', alignItems: 'center'}}>
+                      <input 
+                        type="color"
+                        name="accentColor"
+                        value={settings.accentColor}
+                        onChange={handleChange}
+                        style={{width: '50px', padding: '0', border: 'none', height: '44px', cursor: 'pointer'}}
+                      />
+                      <input 
+                        type="text"
+                        value={settings.accentColor}
+                        readOnly
+                        style={{flex: 1, padding: '14px', background: 'var(--brut-card)', border: '1px solid var(--brut-border)', borderRadius: '12px'}}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -209,6 +280,8 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                       <option value="America/New_York">Eastern Time (ET)</option>
                       <option value="America/Los_Angeles">Pacific Time (PT)</option>
                       <option value="Europe/London">London (GMT)</option>
+                      <option value="Europe/Paris">Central European (CET)</option>
+                      <option value="Asia/Tokyo">Japan Standard (JST)</option>
                     </select>
                   </div>
                 </div>
@@ -226,7 +299,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                 <div className={styles.formGrid}>
                   <div className={styles.inputGroup}>
                     <label>Low Stock Threshold</label>
-                    <input type="number" name="lowStockThreshold" value={settings.lowStockThreshold} onChange={handleChange} />
+                    <input type="number" name="lowStockThreshold" value={settings.lowStockThreshold} onChange={handleChange} min="0" />
                   </div>
 
                   <div className={styles.inputGroup}>
@@ -235,6 +308,33 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                       <option value="draft">Draft (Hidden)</option>
                       <option value="active">Active (Visible)</option>
                     </select>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* SHIPPING TAB */}
+            {activeTab === 'shipping' && (
+              <div className={styles.section}>
+                <div className={styles.sectionHeader}>
+                  <h3>Shipping & Delivery</h3>
+                  <p>Define your shipping rules</p>
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label>Shipping Origin</label>
+                  <input type="text" name="shippingOrigin" value={settings.shippingOrigin} onChange={handleChange} />
+                </div>
+
+                <div className={styles.formGrid}>
+                  <div className={styles.inputGroup}>
+                    <label>Free Shipping Threshold ($)</label>
+                    <input type="number" name="freeShippingThreshold" value={settings.freeShippingThreshold} onChange={handleChange} min="0" step="0.01" />
+                  </div>
+
+                  <div className={styles.inputGroup}>
+                    <label>Flat Rate ($)</label>
+                    <input type="number" name="flatRate" value={settings.flatRate} onChange={handleChange} min="0" step="0.01" />
                   </div>
                 </div>
               </div>
@@ -261,7 +361,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
 
                 <div className={styles.inputGroup} style={{ marginTop: '20px' }}>
                   <label>Sales Tax Rate (%)</label>
-                  <input type="number" name="taxRate" value={settings.taxRate} onChange={handleChange} step="0.1" />
+                  <input type="number" name="taxRate" value={settings.taxRate} onChange={handleChange} step="0.1" min="0" max="100" />
                 </div>
 
                 {!isPro && (
@@ -281,29 +381,45 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
               </div>
             )}
 
-            {/* SHIPPING TAB */}
-            {activeTab === 'shipping' && (
+            {/* POLICIES TAB */}
+            {activeTab === 'policies' && (
               <div className={styles.section}>
                 <div className={styles.sectionHeader}>
-                  <h3>Shipping & Delivery</h3>
-                  <p>Define your shipping rules</p>
+                  <h3>Store Policies</h3>
+                  <p>Legal text displayed at checkout</p>
                 </div>
                 
                 <div className={styles.inputGroup}>
-                  <label>Shipping Origin</label>
-                  <input type="text" name="shippingOrigin" value={settings.shippingOrigin} onChange={handleChange} />
+                  <label>Return Policy</label>
+                  <textarea 
+                    name="returnPolicy"
+                    value={settings.returnPolicy}
+                    onChange={handleChange}
+                    rows={5}
+                    placeholder="Explain your return process..."
+                  />
                 </div>
 
-                <div className={styles.formGrid}>
-                  <div className={styles.inputGroup}>
-                    <label>Free Shipping Threshold ($)</label>
-                    <input type="number" name="freeShippingThreshold" value={settings.freeShippingThreshold} onChange={handleChange} />
-                  </div>
+                <div className={styles.inputGroup}>
+                  <label>Shipping Policy</label>
+                  <textarea 
+                    name="shippingPolicy"
+                    value={settings.shippingPolicy}
+                    onChange={handleChange}
+                    rows={5}
+                    placeholder="Explain shipping times and costs..."
+                  />
+                </div>
 
-                  <div className={styles.inputGroup}>
-                    <label>Flat Rate ($)</label>
-                    <input type="number" name="flatRate" value={settings.flatRate} onChange={handleChange} step="0.01" />
-                  </div>
+                <div className={styles.inputGroup}>
+                  <label>Terms of Service</label>
+                  <textarea 
+                    name="termsOfService"
+                    value={settings.termsOfService}
+                    onChange={handleChange}
+                    rows={5}
+                    placeholder="Your legal terms..."
+                  />
                 </div>
               </div>
             )}
@@ -322,7 +438,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                     <p>Get emailed instantly when an order is placed</p>
                   </div>
                   <label className={styles.toggle}>
-                    <input type="checkbox" name="notifications" checked={settings.notifications} onChange={handleChange} />
+                    <input type="checkbox" name="newOrderAlerts" checked={settings.newOrderAlerts} onChange={handleChange} />
                     <span className={styles.toggleSlider}></span>
                   </label>
                 </div>
@@ -333,7 +449,7 @@ const StudioSettings = ({ isPro, onUpgradeClick }) => {
                     <p>Receive a summary of sales every Monday</p>
                   </div>
                   <label className={styles.toggle}>
-                    <input type="checkbox" defaultChecked />
+                    <input type="checkbox" name="weeklyReports" checked={settings.weeklyReports} onChange={handleChange} />
                     <span className={styles.toggleSlider}></span>
                   </label>
                 </div>

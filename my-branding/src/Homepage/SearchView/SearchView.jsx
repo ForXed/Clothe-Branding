@@ -1,8 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import styles from './SearchView.module.css';
 
 const SearchView = ({ onSelect }) => {
+  const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
+  const inputRef = useRef(null);
+
+  // Auto-focus the input when the component mounts (after navigation)
+  useEffect(() => {
+    if (inputRef.current) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   const recentSearches = [
     'Oversized Hoodie', 
@@ -42,7 +52,16 @@ const SearchView = ({ onSelect }) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       console.log('Searching for:', searchQuery);
-      // Implement actual search here
+      // Future: Implement actual search filtering here
+    }
+  };
+
+  const handleProductClick = (product) => {
+    if (onSelect) {
+      onSelect(product);
+    } else {
+      // Fallback if onSelect isn't provided by parent
+      navigate(`/platform/shop`, { state: { selectedProduct: product } });
     }
   };
 
@@ -56,17 +75,21 @@ const SearchView = ({ onSelect }) => {
             <path d="m21 21-4.3-4.3"/>
           </svg>
           <input 
+            ref={inputRef}
             type="text" 
             placeholder="Search for styles, aesthetics..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            autoFocus
+            autoComplete="off"
           />
           {searchQuery && (
             <button 
               type="button" 
               className={styles.clearBtn}
-              onClick={() => setSearchQuery('')}
+              onClick={() => {
+                setSearchQuery('');
+                inputRef.current?.focus();
+              }}
             >
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <line x1="18" y1="6" x2="6" y2="18"/>
@@ -105,6 +128,7 @@ const SearchView = ({ onSelect }) => {
             <button 
               key={idx} 
               className={styles.categoryCard}
+              // Optional: Navigate to a filtered view here in the future
             >
               <div className={styles.categoryImage}>
                 <img src={category.image} alt={category.name} />
@@ -126,7 +150,7 @@ const SearchView = ({ onSelect }) => {
             <div 
               key={product.id} 
               className={styles.productCard}
-              onClick={() => onSelect && onSelect(product)}
+              onClick={() => handleProductClick(product)}
             >
               <div className={styles.productImage}>
                 <img src={product.img} alt={product.title} />

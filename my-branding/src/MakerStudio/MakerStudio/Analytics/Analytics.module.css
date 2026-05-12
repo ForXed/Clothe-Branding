@@ -652,3 +652,176 @@
     font-size: 0.85rem;
   }
 }
+
+/* --- EXTREME MOBILE OPTIMIZATION (<= 344px) --- */
+@media (max-width: 344px) {
+  .container {
+    padding: 12px;
+  }
+
+  /* Header */
+  .headerLeft h1 {
+    font-size: 1.4rem;
+    letter-spacing: -0.5px;
+  }
+
+  .headerLeft p {
+    font-size: 0.8rem;
+  }
+
+  .headerControls {
+    gap: 8px;
+    width: 100%;
+  }
+
+  .exportBtn {
+    padding: 8px 10px;
+  }
+
+  .exportBtn span {
+    display: none; /* Hide text, show only icon */
+  }
+
+  .periodToggle {
+    padding: 3px;
+  }
+
+  .toggleBtn {
+    padding: 5px 6px;
+    font-size: 0.65rem;
+  }
+
+  /* Alert Banner */
+  .alertBanner {
+    padding: 12px;
+    gap: 12px;
+    border-left-width: 4px;
+  }
+
+  .alertIcon svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .alertContent strong {
+    font-size: 0.85rem;
+  }
+
+  .alertContent p {
+    font-size: 0.75rem;
+  }
+
+  .alertAction {
+    padding: 6px 12px;
+    font-size: 0.7rem;
+  }
+
+  /* KPI Grid - Force single column for readability on tiny screens */
+  .kpiGrid {
+    grid-template-columns: 1fr; 
+    gap: 12px;
+  }
+
+  .kpiCard {
+    padding: 16px;
+  }
+
+  .kpiValue {
+    font-size: 1.5rem;
+  }
+
+  .kpiLabel {
+    font-size: 0.7rem;
+  }
+
+  .kpiIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .trend {
+    font-size: 0.65rem;
+    padding: 3px 6px;
+  }
+
+  /* Chart Section */
+  .chartSection {
+    padding: 16px;
+  }
+
+  .sectionHeader h3 {
+    font-size: 0.95rem;
+  }
+
+  .viewBtn {
+    font-size: 0.7rem;
+    padding: 5px 8px;
+  }
+
+  .chartContainer {
+    height: 200px; /* Reduce chart height */
+  }
+
+  .xLabel {
+    font-size: 0.65rem;
+  }
+
+  .tooltip {
+    font-size: 0.75rem;
+    padding: 6px 10px;
+  }
+
+  /* Two Column Layout */
+  .twoColumn {
+    gap: 16px;
+  }
+
+  .section {
+    padding: 16px;
+  }
+
+  /* Table Optimization */
+  .table th {
+    font-size: 0.65rem;
+    padding: 10px 6px;
+  }
+
+  .table td {
+    font-size: 0.8rem;
+    padding: 12px 6px;
+  }
+
+  .productCell {
+    gap: 8px;
+  }
+
+  .thumb {
+    width: 28px;
+    height: 28px;
+  }
+
+  .growth {
+    font-size: 0.7rem;
+    padding: 3px 6px;
+  }
+
+  /* Donut Chart */
+  .donutChart {
+    width: 140px;
+    height: 140px;
+  }
+
+  .donutCenter {
+    font-size: 1rem;
+  }
+
+  .legendRow {
+    font-size: 0.75rem;
+    gap: 8px;
+  }
+
+  .colorDot {
+    width: 10px;
+    height: 10px;
+  }
+}

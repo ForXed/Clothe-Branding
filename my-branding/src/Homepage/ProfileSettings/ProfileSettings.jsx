@@ -24,10 +24,19 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [show2FAModal, setShow2FAModal] = useState(false);
   
-  // Country code search state
+  // --- DROPDOWN STATES ---
+  // Country
   const [countrySearch, setCountrySearch] = useState('');
   const [showCountryDropdown, setShowCountryDropdown] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
+  
+  // Language
+  const [showLangDropdown, setShowLangDropdown] = useState(false);
+  const [langSearch, setLangSearch] = useState('');
+  
+  // Timezone
+  const [showTzDropdown, setShowTzDropdown] = useState(false);
+  const [tzSearch, setTzSearch] = useState('');
   
   // Location state
   const [isGettingLocation, setIsGettingLocation] = useState(false);
@@ -73,12 +82,25 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
       { id: 1, type: 'card', last4: '4242', brand: 'Visa', expiry: '12/25', default: true },
       { id: 2, type: 'paypal', email: 'user@example.com', default: false }
     ],
-    billingHistory: [
-      { id: 1, date: 'Oct 24, 2024', description: 'Pro Plan - Monthly', amount: 29.00, status: 'paid', invoice: 'INV-001' }
+    history: userType === 'customer' ? [
+      { id: 1, date: 'Oct 24, 2024', description: 'Order #BRU-9921 (Oversized Hoodie)', amount: 85.00, status: 'paid', invoice: 'ORD-9921' },
+      { id: 2, date: 'Sep 12, 2024', description: 'Order #BRU-8832 (Techwear Cargo)', amount: 120.00, status: 'paid', invoice: 'ORD-8832' }
+    ] : [
+      { id: 1, date: 'Oct 01, 2024', description: 'Pro Plan - Monthly Subscription', amount: 29.00, status: 'paid', invoice: 'INV-001' },
+      { id: 2, date: 'Sep 01, 2024', description: 'Pro Plan - Monthly Subscription', amount: 29.00, status: 'paid', invoice: 'INV-002' }
     ]
   });
 
   const filteredCountries = countrySearch ? searchCountryCodes(countrySearch) : countryCodes;
+  
+  // Filter helpers for Lang and TZ
+  const filteredLanguages = langSearch 
+    ? languages.filter(l => l.name.toLowerCase().includes(langSearch.toLowerCase()) || l.nativeName.toLowerCase().includes(langSearch.toLowerCase()))
+    : languages;
+
+  const filteredTimezones = tzSearch
+    ? timezones.filter(t => t.label.toLowerCase().includes(tzSearch.toLowerCase()) || t.value.toLowerCase().includes(tzSearch.toLowerCase()))
+    : timezones;
 
   // --- SECTIONS CONFIGURATION ---
   const getSections = () => {
@@ -86,29 +108,16 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
       { id: 'account', label: 'Account', icon: <UserIcon /> },
       { id: 'security', label: 'Security', icon: <ShieldIcon /> },
       { id: 'notifications', label: 'Notifications', icon: <BellIcon /> },
-      { id: 'billing', label: 'Billing & Payments', icon: <CreditCardIcon /> },
+      { id: 'billing', label: userType === 'customer' ? 'Order History' : 'Billing & Plans', icon: <CreditCardIcon /> },
       { id: 'support', label: 'Support', icon: <HelpIcon /> }
     ];
 
-    // 1. Add Brand Vault ONLY for Customers
     if (userType === 'customer') {
-      // Insert it before Support, or wherever you prefer
-      baseSections.splice(4, 0, {
-        id: 'brand-vault', 
-        label: 'Brand Vault', 
-        icon: <BoxIcon /> 
-      });
+      baseSections.splice(4, 0, { id: 'brand-vault', label: 'Brand Vault', icon: <BoxIcon /> });
     }
-
-    // 2. Add Business Studio ONLY for Makers
     if (userType === 'maker') {
-      baseSections.splice(1, 0, {
-        id: 'business', 
-        label: 'Business Studio', 
-        icon: <BriefcaseIcon />
-      });
+      baseSections.splice(1, 0, { id: 'business', label: 'Business Studio', icon: <BriefcaseIcon /> });
     }
-
     return baseSections;
   };
 
@@ -120,6 +129,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
   const HelpIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>;
   const BriefcaseIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>;
   const BoxIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+  const ChevronDown = () => <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>;
 
   // --- Handlers ---
   const getExactLocation = () => {
@@ -200,10 +210,15 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
     }
   };
 
+  // Close dropdowns when clicking outside
   useEffect(() => {
     const handleClickOutside = (e) => {
       if (!e.target.closest(`.${styles.phoneInputWrapper}`)) {
         setShowCountryDropdown(false);
+      }
+      if (!e.target.closest(`.${styles.customSelectWrapper}`)) {
+        setShowLangDropdown(false);
+        setShowTzDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
@@ -214,7 +229,6 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
 
   return (
     <div className={styles.container}>
-      {/* Success Toast */}
       {saveSuccess && (
         <div className={styles.successToast}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
@@ -222,7 +236,6 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
         </div>
       )}
 
-      {/* Modals */}
       {showPasswordModal && (
         <ChangePasswordForm 
           onClose={() => setShowPasswordModal(false)} 
@@ -247,7 +260,6 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
       )}
 
       <div className={styles.settingsLayout}>
-        {/* Sidebar */}
         <aside className={styles.settingsSidebar}>
           <h2 className={styles.mainTitle}>Settings</h2>
           <nav className={styles.navMenu}>
@@ -262,7 +274,6 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
               </button>
             ))}
             
-            {/* Explicit Upgrade Button for Customers if not using the tab */}
             {userType === 'customer' && !sections.some(s => s.id === 'business') && (
               <button
                 className={`${styles.navItem} ${styles.upgradeNav}`}
@@ -275,10 +286,8 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
           </nav>
         </aside>
 
-        {/* Content */}
         <main className={styles.settingsContent}>
           
-          {/* ACCOUNT SECTION */}
           {activeSection === 'account' && (
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
@@ -336,21 +345,21 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                       <button className={styles.countryCodeBtn} onClick={() => setShowCountryDropdown(!showCountryDropdown)} type="button">
                         <span>{selectedCountry.flag}</span>
                         <span>{selectedCountry.code}</span>
-                        <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 1.5L6 6.5L11 1.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                        <ChevronDown />
                       </button>
                       
                       {showCountryDropdown && (
-                        <div className={styles.countryDropdown}>
-                          <div className={styles.countrySearch}>
+                        <div className={`${styles.customDropdown} ${styles.countryDropdown}`}>
+                          <div className={styles.dropdownSearch}>
                             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
-                            <input type="text" placeholder="Search..." value={countrySearch} onChange={(e) => setCountrySearch(e.target.value)} autoFocus />
+                            <input type="text" placeholder="Search country..." value={countrySearch} onChange={(e) => setCountrySearch(e.target.value)} autoFocus />
                           </div>
-                          <div className={styles.countryList}>
+                          <div className={styles.dropdownList}>
                             {filteredCountries.map((country, idx) => (
-                              <button key={`${country.code}-${idx}`} className={styles.countryOption} onClick={() => handleCountrySelect(country)} type="button">
+                              <button key={`${country.code}-${idx}`} className={styles.dropdownOption} onClick={() => handleCountrySelect(country)} type="button">
                                 <span className={styles.countryFlag}>{country.flag}</span>
-                                <span className={styles.countryName}>{country.country}</span>
-                                <span className={styles.countryCode}>{country.code}</span>
+                                <span className={styles.optionText}>{country.country}</span>
+                                <span className={styles.optionCode}>{country.code}</span>
                               </button>
                             ))}
                           </div>
@@ -372,18 +381,96 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                     {locationError && <span className={styles.errorText}>{locationError}</span>}
                   </div>
 
+                  {/* LANGUAGE DROPDOWN */}
                   <div className={styles.formGroup}>
                     <label>Language</label>
-                    <select value={accountData.language} onChange={(e) => handleInputChange('language', e.target.value)} className={styles.select}>
-                      {languages.map(lang => (<option key={lang.code} value={lang.code}>{lang.nativeName} ({lang.name})</option>))}
-                    </select>
+                    <div className={styles.customSelectWrapper}>
+                      <button 
+                        className={styles.customSelectTrigger} 
+                        type="button"
+                        onClick={() => {
+                          setShowLangDropdown(!showLangDropdown);
+                          setShowTzDropdown(false);
+                        }}
+                      >
+                        <span className={styles.selectedValue}>
+                          {languages.find(l => l.code === accountData.language)?.nativeName || 'Select Language'}
+                        </span>
+                        <ChevronDown />
+                      </button>
+
+                      {showLangDropdown && (
+                        <div className={`${styles.customDropdown} ${styles.langDropdown}`}>
+                          <div className={styles.dropdownSearch}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <input type="text" placeholder="Search language..." value={langSearch} onChange={(e) => setLangSearch(e.target.value)} autoFocus />
+                          </div>
+                          <div className={styles.dropdownList}>
+                            {filteredLanguages.map((lang) => (
+                              <button 
+                                key={lang.code} 
+                                className={`${styles.dropdownOption} ${accountData.language === lang.code ? styles.activeOption : ''}`} 
+                                onClick={() => {
+                                  handleInputChange('language', lang.code);
+                                  setShowLangDropdown(false);
+                                  setLangSearch('');
+                                }} 
+                                type="button"
+                              >
+                                <span className={styles.optionText}>{lang.nativeName}</span>
+                                <span className={styles.optionSub}>{lang.name}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
+                  {/* TIMEZONE DROPDOWN */}
                   <div className={styles.formGroup}>
                     <label>Timezone</label>
-                    <select value={accountData.timezone} onChange={(e) => handleInputChange('timezone', e.target.value)} className={styles.select}>
-                      {timezones.map(tz => (<option key={tz.value} value={tz.value}>{tz.label}</option>))}
-                    </select>
+                    <div className={styles.customSelectWrapper}>
+                      <button 
+                        className={styles.customSelectTrigger} 
+                        type="button"
+                        onClick={() => {
+                          setShowTzDropdown(!showTzDropdown);
+                          setShowLangDropdown(false);
+                        }}
+                      >
+                        <span className={styles.selectedValue}>
+                          {timezones.find(t => t.value === accountData.timezone)?.label || 'Select Timezone'}
+                        </span>
+                        <ChevronDown />
+                      </button>
+
+                      {showTzDropdown && (
+                        <div className={`${styles.customDropdown} ${styles.tzDropdown}`}>
+                          <div className={styles.dropdownSearch}>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                            <input type="text" placeholder="Search city or zone..." value={tzSearch} onChange={(e) => setTzSearch(e.target.value)} autoFocus />
+                          </div>
+                          <div className={styles.dropdownList}>
+                            {filteredTimezones.map((tz, index) => (
+                              <button 
+                                key={`${tz.value}-${index}`} 
+                                className={`${styles.dropdownOption} ${accountData.timezone === tz.value ? styles.activeOption : ''}`} 
+                                onClick={() => {
+                                  handleInputChange('timezone', tz.value);
+                                  setShowTzDropdown(false);
+                                  setTzSearch('');
+                                }} 
+                                type="button"
+                              >
+                                <span className={styles.optionText}>{tz.label}</span>
+                                <span className={styles.optionCode}>{tz.offset}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   <div className={styles.formGroupFull}>
@@ -400,9 +487,13 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
             </div>
           )}
 
-          {/* BRAND VAULT SECTION (CUSTOMERS ONLY) */}
+          {/* BRAND VAULT SECTION */}
           {activeSection === 'brand-vault' && userType === 'customer' && (
             <div className={styles.section}>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>Brand Vault</h3>
+                <span className={styles.sectionDesc}>Your saved aesthetics and inspiration</span>
+              </div>
               <BrandVault />
             </div>
           )}
@@ -555,46 +646,48 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
             </div>
           )}
 
-          {/* BILLING SECTION */}
+          {/* BILLING / ORDER HISTORY SECTION */}
           {activeSection === 'billing' && (
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
-                <h3 className={styles.sectionTitle}>Billing & Payments</h3>
-                <span className={styles.sectionDesc}>Manage payment methods and invoices</span>
+                <h3 className={styles.sectionTitle}>{userType === 'customer' ? 'Order History' : 'Billing & Plans'}</h3>
+                <span className={styles.sectionDesc}>{userType === 'customer' ? 'Track your past purchases' : 'Manage payment methods and invoices'}</span>
               </div>
 
-              <div className={styles.card}>
-                <div className={styles.cardHeaderRow}>
-                  <h4 className={styles.subSectionTitle}>Payment Methods</h4>
-                  <button className={styles.btnSecondary}>Add Payment Method</button>
-                </div>
-                <div className={styles.paymentList}>
-                  {billingData.paymentMethods.map(method => (
-                    <div key={method.id} className={styles.paymentItem}>
-                      <div className={styles.paymentIcon}>
-                        {method.type === 'card' ? (
-                          <svg width="32" height="24" viewBox="0 0 32 24" fill="none"><rect width="32" height="24" rx="4" fill="currentColor"/><rect x="2" y="4" width="28" height="4" fill="var(--brut-bg)" opacity="0.3"/></svg>
-                        ) : (
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 11v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3a4 4 0 0 1 4 4v5"/><circle cx="17.5" cy="7.5" r="2.5"/></svg>
-                        )}
+              {(userType === 'maker' || billingData.paymentMethods.length > 0) && (
+                <div className={styles.card}>
+                  <div className={styles.cardHeaderRow}>
+                    <h4 className={styles.subSectionTitle}>Payment Methods</h4>
+                    <button className={styles.btnSecondary}>Add Payment Method</button>
+                  </div>
+                  <div className={styles.paymentList}>
+                    {billingData.paymentMethods.map(method => (
+                      <div key={method.id} className={styles.paymentItem}>
+                        <div className={styles.paymentIcon}>
+                          {method.type === 'card' ? (
+                            <svg width="32" height="24" viewBox="0 0 32 24" fill="none"><rect width="32" height="24" rx="4" fill="currentColor"/><rect x="2" y="4" width="28" height="4" fill="var(--brut-bg)" opacity="0.3"/></svg>
+                          ) : (
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M7 11v8a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-7a1 1 0 0 1 1-1h3a4 4 0 0 1 4 4v5"/><circle cx="17.5" cy="7.5" r="2.5"/></svg>
+                          )}
+                        </div>
+                        <div className={styles.paymentDetails}>
+                          <h5>{method.type === 'card' ? `•••• ${method.last4}` : method.email} {method.default && <span className={styles.defaultBadge}>Default</span>}</h5>
+                          <p>{method.type === 'card' ? `Expires ${method.expiry}` : 'PayPal Account'}</p>
+                        </div>
+                        <button className={styles.btnText}>{method.default ? 'Edit' : 'Set Default'}</button>
                       </div>
-                      <div className={styles.paymentDetails}>
-                        <h5>{method.type === 'card' ? `•••• ${method.last4}` : method.email} {method.default && <span className={styles.defaultBadge}>Default</span>}</h5>
-                        <p>{method.type === 'card' ? `Expires ${method.expiry}` : 'PayPal Account'}</p>
-                      </div>
-                      <button className={styles.btnText}>{method.default ? 'Edit' : 'Set Default'}</button>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className={styles.card} style={{ marginTop: '24px' }}>
                 <div className={styles.cardHeaderRow}>
-                  <h4 className={styles.subSectionTitle}>Billing History</h4>
+                  <h4 className={styles.subSectionTitle}>{userType === 'customer' ? 'Past Orders' : 'Billing History'}</h4>
                   <button className={styles.btnText}>Download All</button>
                 </div>
                 <div className={styles.billingList}>
-                  {billingData.billingHistory.map(item => (
+                  {billingData.history.map(item => (
                     <div key={item.id} className={styles.billingItem}>
                       <div className={styles.billingInfo}>
                         <div className={styles.billingDesc}>{item.description}</div>
@@ -603,7 +696,9 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                       <div className={styles.billingAmount}>
                         <span>${item.amount.toFixed(2)}</span>
                         <span className={`${styles.statusBadge} ${styles[item.status]}`}>{item.status}</span>
-                        <button className={styles.btnText} style={{fontSize: '0.75rem', marginLeft: '10px'}}>Invoice</button>
+                        <button className={styles.btnText} style={{fontSize: '0.75rem', marginLeft: '10px'}}>
+                          {userType === 'customer' ? 'View' : 'Invoice'}
+                        </button>
                       </div>
                     </div>
                   ))}
