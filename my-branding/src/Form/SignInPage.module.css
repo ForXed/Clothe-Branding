@@ -79,26 +79,26 @@
     color: #000;
 }
 
-.socialBtn img { 
-    width: 16px; 
-    filter: grayscale(100%); 
+.socialBtn img {
+    width: 16px;
+    filter: grayscale(100%);
     transition: filter 0.3s ease;
 }
 
 /* FIX: Turn background black, text white */
-.socialBtn:hover { 
-    background: #000; 
-    color: #fff; 
+.socialBtn:hover {
+    background: #000;
+    color: #fff;
     border-color: #000;
 }
 
 /* FIX: Apple turns white, Google stays colored (grayscale removed on hover) */
-.socialBtn:hover img:not(.appleIcon) { 
-    filter: grayscale(0%); 
+.socialBtn:hover img:not(.appleIcon) {
+    filter: grayscale(0%);
 }
 
-.socialBtn:hover .appleIcon { 
-    filter: grayscale(100%) invert(1) !important; 
+.socialBtn:hover .appleIcon {
+    filter: grayscale(100%) invert(1) !important;
 }
 
 /* --- DIVIDER --- */
@@ -111,8 +111,11 @@
 .divider::before {
     content: "";
     position: absolute;
-    top: 50%; left: 0; width: 100%;
-    height: 1px; background: #eee;
+    top: 50%;
+    left: 0;
+    width: 100%;
+    height: 1px;
+    background: #eee;
 }
 
 .dividerText {
@@ -125,24 +128,25 @@
 }
 
 /* --- INPUTS --- */
-.form { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 20px; 
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
 }
 
-.inputGroup { 
-    display: flex; 
-    flex-direction: column; 
-    gap: 8px; 
-    position: relative; /* Needed for absolute positioning of eye icon */
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    /* Needed for absolute positioning of eye icon */
 }
 
-.inputGroup label { 
-    font-size: 0.75rem; 
-    font-weight: 900; 
-    color: #000; 
-    text-transform: uppercase; 
+.inputGroup label {
+    font-size: 0.75rem;
+    font-weight: 900;
+    color: #000;
+    text-transform: uppercase;
 }
 
 .inputGroup input {
@@ -163,7 +167,8 @@
 }
 
 .passwordWrapper input {
-    padding-right: 50px; /* Make space for the eye icon */
+    padding-right: 50px;
+    /* Make space for the eye icon */
 }
 
 /* The Eye Icon Button */
@@ -210,22 +215,22 @@
     font-family: 'Inter', sans-serif;
 }
 
-.submitBtn:hover { 
-    background: #333; 
+.submitBtn:hover {
+    background: #333;
 }
 
-.footerLink { 
-    margin-top: 30px; 
-    text-align: center; 
-    color: #888; 
-    font-size: 0.9rem; 
-    padding-bottom: 20px; 
+.footerLink {
+    margin-top: 30px;
+    text-align: center;
+    color: #888;
+    font-size: 0.9rem;
+    padding-bottom: 20px;
 }
 
-.footerLink a { 
-    color: #000; 
-    font-weight: 900; 
-    text-decoration: underline; 
+.footerLink a {
+    color: #000;
+    font-weight: 900;
+    text-decoration: underline;
 }
 
 /* --- BRAND SECTION (BLACK - HIDDEN ON MOBILE) --- */
@@ -255,10 +260,10 @@
     min-height: 120px;
 }
 
-.cursor { 
-    color: #fff; 
-    margin-left: 4px; 
-    font-weight: 200; 
+.cursor {
+    color: #fff;
+    margin-left: 4px;
+    font-weight: 200;
 }
 
 /* ============================================================
@@ -298,7 +303,7 @@
     .socialGrid {
         grid-template-columns: 1fr;
     }
-    
+
     .title {
         font-size: 2rem;
     }
