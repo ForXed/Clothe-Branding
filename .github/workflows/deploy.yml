@@ -15,7 +15,24 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           script: |
+            # Install PM2 globally if not present
+            if ! command -v pm2 &> /dev/null; then
+              echo "Installing PM2..."
+              npm install -g pm2
+            fi
+
+            # Pull latest code
+            echo "Pulling changes..."
             cd ~/Clothe-Branding
             git pull
+
+            # install dependencies
+            echo "Installing dependencies..."
             npm install
-            pm2 restart brutige
+
+            # Restart the app with PM2
+            echo "Restarting app..."
+            pm2 restart brutige || pm2 start "npm run dev" --name brutige
+
+            # Save PM2 process list
+            pm2 save
