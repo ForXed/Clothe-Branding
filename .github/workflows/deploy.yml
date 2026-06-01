@@ -24,12 +24,12 @@ jobs:
             git pull origin main
 
             # install dependencies
-            cd my-branding
             echo "Installing dependencies..."
             npm install
 
             # Restart the app with PM2
             echo "Restarting app..."
+            npx pm2 delete brutige
             npx pm2 restart brutige || npx pm2 start "npm run dev" --name brutige
 
             # Save PM2 process list
