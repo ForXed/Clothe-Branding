@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [main, master]
+    branches: [dev, staging, main]
 
 jobs:
   deploy:
