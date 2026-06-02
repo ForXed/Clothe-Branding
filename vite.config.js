@@ -7,8 +7,8 @@ export default defineConfig({
   server: {
     allowedHosts: [
       'brutige.ekojoe.name.ng',
-      'staging.ekojoe.name.ng',
-      'ekojoe.name.ng'
+      'staging-brutige.ekojoe.name.ng',
+      'dev-brutige.ekojoe.name.ng'
     ],
     host: true,
     port: 5173,
