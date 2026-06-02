@@ -17,11 +17,11 @@ jobs:
           script: |
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            
+
             # Pull latest code
             echo "Pulling changes..."
-            cd ~/Clothe-Branding
-            git pull origin main
+            cd ~/brutige-react
+            git pull origin ${{ github.ref_name }}
 
             # install dependencies
             echo "Installing dependencies..."
@@ -29,8 +29,7 @@ jobs:
 
             # Restart the app with PM2
             echo "Restarting app..."
-            npx pm2 delete brutige
-            npx pm2 restart brutige || npx pm2 start "npm run dev" --name brutige
+            npx pm2 restart brutige-react || npx pm2 start "npm run dev" --name brutige-react
 
             # Save PM2 process list
             npx pm2 save
