@@ -2,7 +2,7 @@ name: Deploy to VPS
 
 on:
   push:
-    branches: [main, master]
+    branches: [dev, staging, main]
 
 jobs:
   deploy:
@@ -17,20 +17,45 @@ jobs:
           script: |
             export NVM_DIR="$HOME/.nvm"
             [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
-            
-            # Pull latest code
-            echo "Pulling changes..."
-            cd ~/Clothe-Branding
-            git pull origin main
 
-            # install dependencies
+            # Set branch-dependent variables
+            BRANCH="${{ github.ref_name }}"
+
+            # Fetch and checkout the exact branch
+            echo "Switching branch and pulling changes..."
+            cd ~/brutige-react
+            git fetch origin
+            git checkout $BRANCH
+            git pull origin $BRANCH
+
+            # Install dependencies
             echo "Installing dependencies..."
             npm install
 
-            # Restart the app with PM2
+            # Define PM2 process name and port based on branch
+            case "$BRANCH" in
+              dev)
+                PM2_NAME="brutige-react"
+                PORT=5173
+                ;;
+              staging)
+                PM2_NAME="staging-react"
+                PORT=5174
+                ;;
+              main)
+                PM2_NAME="prod-react"
+                PORT=5175
+                ;;
+              *)
+                echo "Unknown branch: $BRANCH, exiting"
+                exit 1
+                ;;
+            esac
+
+            # Start or restart the process with the correct port
             echo "Restarting app..."
-            npx pm2 delete brutige
-            npx pm2 restart brutige || npx pm2 start "npm run dev" --name brutige
+            npx pm2 restart $PM2_NAME 2>/dev/null || \
+              npx pm2 start "PORT=$PORT npm run dev" --name $PM2_NAME
 
             # Save PM2 process list
             npx pm2 save
