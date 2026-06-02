@@ -35,15 +35,15 @@ jobs:
             # Define PM2 process name and port based on branch
             case "$BRANCH" in
               dev)
-                PM2_NAME="brutige_react"
+                PM2_NAME="brutige-react"
                 PORT=5173
                 ;;
               staging)
-                PM2_NAME="staging_react"
+                PM2_NAME="staging-react"
                 PORT=5174
                 ;;
               main)
-                PM2_NAME="prod_react"
+                PM2_NAME="prod-react"
                 PORT=5175
                 ;;
               *)
