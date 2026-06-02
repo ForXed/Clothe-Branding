@@ -35,7 +35,7 @@ jobs:
             # Define PM2 process name and port based on branch
             case "$BRANCH" in
               dev)
-                PM2_NAME="brutige-react"
+                PM2_NAME="dev-react"
                 PORT=5173
                 ;;
               staging)
@@ -45,10 +45,6 @@ jobs:
               main)
                 PM2_NAME="prod-react"
                 PORT=5175
-                ;;
-              *)
-                echo "Unknown branch: $BRANCH, exiting"
-                exit 1
                 ;;
             esac
 
