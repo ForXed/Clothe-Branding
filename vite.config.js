@@ -6,9 +6,9 @@ export default defineConfig({
   plugins: [react()],
   server: {
     allowedHosts: [
-      'brutige.ekojoe.name.ng',
-      'staging-brutige.ekojoe.name.ng',
-      'dev-brutige.ekojoe.name.ng'
+      'brutige.name.ng',
+      'staging.brutige.name.ng',
+      'dev.brutige.name.ng'
     ],
     host: true,
     port: 5173,
