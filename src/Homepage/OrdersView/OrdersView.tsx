@@ -2,14 +2,44 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './OrdersView.module.css';
 
-const OrdersView = () => {
+// --- TypeScript Interfaces ---
+interface TimelineStep {
+  stage: string;
+  date: string;
+  completed: boolean;
+}
+
+interface ItemDetail {
+  name: string;
+  size: string;
+  quantity: number;
+}
+
+interface Order {
+  id: string;
+  date: string;
+  status: 'processing' | 'shipped' | 'delivered';
+  progress: number;
+  items: number;
+  total: string;
+  tracking: string | null;
+  timeline: TimelineStep[];
+  items_detail: ItemDetail[];
+}
+
+interface Filter {
+  id: string;
+  label: string;
+}
+
+const OrdersView: React.FC = () => {
   const navigate = useNavigate();
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [trackedOrder, setTrackedOrder] = useState(null);
+  const [activeFilter, setActiveFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [trackedOrder, setTrackedOrder] = useState<Order | null>(null);
 
   // Mock orders data with Timeline details
-  const orders = [
+  const orders: Order[] = [
     {
       id: 'BRT-2025-001',
       date: 'Jan 28, 2025',
@@ -71,7 +101,7 @@ const OrdersView = () => {
     }
   ];
 
-  const filters = [
+  const filters: Filter[] = [
     { id: 'all', label: 'All Orders' },
     { id: 'processing', label: 'Processing' },
     { id: 'shipped', label: 'Shipped' },
@@ -79,7 +109,7 @@ const OrdersView = () => {
   ];
 
   // Handle Search
-  const handleSearch = (e) => {
+  const handleSearch = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const query = searchQuery.toUpperCase().trim();
     if (!query) {
@@ -87,19 +117,17 @@ const OrdersView = () => {
       return;
     }
     
-    // Simulate finding an order (supports partial match for demo)
     const found = orders.find(o => o.id.includes(query) || query === 'DEMO');
     if (found) {
       setTrackedOrder(found);
-      setActiveFilter('all'); // Reset filter to show result
+      setActiveFilter('all'); 
     } else {
       setTrackedOrder(null);
       alert('Order not found. Try "BRT-2025-001" or "DEMO"');
     }
   };
 
-  const handleViewDetailedTrack = (order) => {
-    // Navigate to the dedicated tracker page with signature pad
+  const handleViewDetailedTrack = (order: Order) => {
     navigate(`/platform/orders/track/${order.id}`);
   };
 
@@ -109,8 +137,8 @@ const OrdersView = () => {
         ? orders 
         : orders.filter(order => order.status === activeFilter));
 
-  const getStatusBadge = (status) => {
-    const statusConfig = {
+  const getStatusBadge = (status: string): { label: string, class: string } => {
+    const statusConfig: Record<string, { label: string, class: string }> = {
       processing: { label: 'Processing', class: styles.statusProcessing },
       shipped: { label: 'Shipped', class: styles.statusShipped },
       delivered: { label: 'Delivered', class: styles.statusDelivered }
@@ -143,12 +171,13 @@ const OrdersView = () => {
         </form>
       </div>
 
-      {/* --- FILTERS (Hidden when tracking a specific order) --- */}
+      {/* --- FILTERS --- */}
       {!trackedOrder && (
         <div className={styles.filters}>
           {filters.map(filter => (
             <button
               key={filter.id}
+              type="button"
               className={`${styles.filterBtn} ${activeFilter === filter.id ? styles.activeFilter : ''}`}
               onClick={() => setActiveFilter(filter.id)}
             >
@@ -168,7 +197,7 @@ const OrdersView = () => {
           <h2>No Orders Found</h2>
           <p>{trackedOrder ? "That Order ID doesn't exist." : "You haven't placed any orders yet."}</p>
           {trackedOrder && (
-            <button onClick={() => {setSearchQuery(''); setTrackedOrder(null);}} className={styles.resetBtn}>
+            <button type="button" onClick={() => {setSearchQuery(''); setTrackedOrder(null);}} className={styles.resetBtn}>
               Clear Search
             </button>
           )}
@@ -191,7 +220,7 @@ const OrdersView = () => {
                   </span>
                 </div>
 
-                {/* VISUAL TIMELINE (Only shown when tracking) */}
+                {/* VISUAL TIMELINE */}
                 {trackedOrder && (
                   <div className={styles.timelineContainer}>
                     <div className={styles.timeline}>
@@ -253,7 +282,7 @@ const OrdersView = () => {
                 {/* Actions */}
                 <div className={styles.orderActions}>
                   {order.tracking && !trackedOrder && (
-                    <button className={styles.btnSecondary}>
+                    <button type="button" className={styles.btnSecondary}>
                       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
                         <circle cx="12" cy="10" r="3"/>
@@ -263,11 +292,11 @@ const OrdersView = () => {
                   )}
                   
                   {trackedOrder && order.status === 'delivered' ? (
-                     <button onClick={() => handleViewDetailedTrack(order)} className={styles.btnPrimary}>
+                     <button type="button" onClick={() => handleViewDetailedTrack(order)} className={styles.btnPrimary}>
                        Confirm Receipt & Sign
                      </button>
                   ) : (
-                    <button onClick={() => trackedOrder ? handleViewDetailedTrack(order) : null} className={styles.btnPrimary}>
+                    <button type="button" onClick={() => trackedOrder ? handleViewDetailedTrack(order) : null} className={styles.btnPrimary}>
                       {trackedOrder ? 'Full Details & Updates' : 'View Details'}
                     </button>
                   )}

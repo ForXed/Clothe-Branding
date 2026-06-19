@@ -1,8 +1,18 @@
 import React, { useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import navigate
+import { useNavigate } from 'react-router-dom';
 import styles from './HomeHeader.module.css';
 
-const HomeHeader = ({ 
+interface HomeHeaderProps {
+  setActiveTab: (tab: string) => void;
+  activeTab: string;
+  cartCount?: number;
+  orderCount?: number;
+  notificationCount?: number;
+  userAvatar?: string | null;
+  userName?: string;
+}
+
+const HomeHeader: React.FC<HomeHeaderProps> = ({ 
   setActiveTab, 
   activeTab,
   cartCount = 0, 
@@ -12,11 +22,11 @@ const HomeHeader = ({
   userName = 'User'
 }) => {
   const navigate = useNavigate();
-  const searchInputRef = useRef(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Keyboard Shortcut (⌘ + K) - Now navigates to search page
+  // Keyboard Shortcut (⌘ + K)
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         navigate('/platform/search');
@@ -38,7 +48,6 @@ const HomeHeader = ({
     navigate('/platform/settings');
   };
 
-  // New handler to redirect to SearchView
   const handleSearchClick = () => {
     navigate('/platform/search');
   };
@@ -48,11 +57,9 @@ const HomeHeader = ({
       {/* 1. STUDIO TICKER */}
       <div className={styles.ticker}>
         <div className={styles.tickerTrack}>
-          {/* Ticker content remains the same */}
           <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
           <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
           <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
-          {/* Duplicate for infinite scroll effect */}
           <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
           <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
           <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
@@ -67,7 +74,7 @@ const HomeHeader = ({
             <BrutigeLogo />
           </div>
 
-          {/* LAPTOP ONLY: SEARCH - Now acts as a button/link to SearchView */}
+          {/* LAPTOP ONLY: SEARCH */}
           <div 
             className={styles.searchContainer} 
             onClick={handleSearchClick}
@@ -81,8 +88,8 @@ const HomeHeader = ({
                 ref={searchInputRef}
                 type="text" 
                 placeholder="Search aesthetics, infrastructure..." 
-                readOnly // Prevents typing here since it redirects
-                onFocus={handleSearchClick} // Also triggers on focus
+                readOnly 
+                onFocus={handleSearchClick} 
               />
               <div className={styles.kbdShortcut}>
                 <kbd>⌘</kbd><kbd>K</kbd>
@@ -95,6 +102,7 @@ const HomeHeader = ({
             
             {/* Profile */}
             <button 
+              type="button"
               className={`${styles.actionItem} ${activeTab === 'profile' ? styles.activeAction : ''}`} 
               onClick={handleProfileClick}
               aria-label="Profile"
@@ -115,6 +123,7 @@ const HomeHeader = ({
 
             {/* Notifications */}
             <button 
+              type="button"
               className={`${styles.actionItem} ${activeTab === 'notifications' ? styles.activeAction : ''}`} 
               onClick={() => setActiveTab('notifications')}
               aria-label="Notifications"
@@ -131,6 +140,7 @@ const HomeHeader = ({
 
             {/* Orders */}
             <button 
+              type="button"
               className={`${styles.actionItem} ${activeTab === 'orders' ? styles.activeAction : ''}`} 
               onClick={() => setActiveTab('orders')}
               aria-label="Orders"
@@ -148,6 +158,7 @@ const HomeHeader = ({
 
             {/* Cart */}
             <button 
+              type="button"
               className={`${styles.actionItem} ${activeTab === 'cart' ? styles.activeAction : ''}`} 
               onClick={() => setActiveTab('cart')}
               aria-label="Cart"

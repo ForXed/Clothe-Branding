@@ -11,14 +11,15 @@ const brands = [
   "TECHWEAR", "VINTAGE", "LUXURY", "BASICS"
 ];
 
-// Duplicate for seamless loop
 const marqueeList = [...brands, ...brands];
 
-const LandingPageCommunity = () => {
-  const sectionRef = useRef();
-  const containerRef = useRef();
+const LandingPageCommunity: React.FC = () => {
+  const sectionRef = useRef<HTMLElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
+    if (!sectionRef.current || !containerRef.current) return;
+
     // 1. Reveal Animation for the entire container
     gsap.from(containerRef.current, {
       y: 100,
@@ -32,28 +33,28 @@ const LandingPageCommunity = () => {
     });
 
     // 2. GSAP Number Counting Effect
-    const stats = gsap.utils.toArray(`.${styles.number}`);
+    const stats = gsap.utils.toArray<HTMLElement>(`.${styles.number}`);
     stats.forEach((stat) => {
-      const targetValue = parseInt(stat.getAttribute('data-target'));
-      gsap.fromTo(stat, 
-        { innerText: 0 }, 
-        { 
-          innerText: targetValue, 
-          duration: 2.5, 
-          ease: "power2.out",
-          snap: { innerText: 1 }, // Ensures whole numbers
-          scrollTrigger: {
-            trigger: stat,
-            start: "top 90%",
-          },
-          onUpdate: function() {
-            // Re-adding the + sign after the count
-            if(stat.getAttribute('data-suffix')) {
-                stat.innerHTML = Math.ceil(this.targets()[0].innerText) + stat.getAttribute('data-suffix');
-            }
-          }
+      const targetValue = parseInt(stat.getAttribute('data-target') || '0', 10);
+      const suffix = stat.getAttribute('data-suffix') || '';
+      
+      // 👇 THE FIX: Animate a dummy object instead of the DOM element directly
+      const counter = { val: 0 };
+      
+      gsap.to(counter, {
+        val: targetValue,
+        duration: 2.5,
+        ease: "power2.out",
+        snap: { val: 1 }, // Ensures whole numbers
+        scrollTrigger: {
+          trigger: stat,
+          start: "top 90%",
+        },
+        onUpdate: () => {
+          // Safely update the DOM with the rounded number + suffix
+          stat.innerText = Math.ceil(counter.val) + suffix;
         }
-      );
+      });
     });
   }, { scope: sectionRef });
 

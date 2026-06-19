@@ -1,20 +1,35 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CartView.module.css';
+// Import core types from your Context file
+import { Product, CartItem } from '../BrutigeContext/BrutigeContext'; 
 
-const CartView = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
+// Extend CartItem for CartView-specific properties
+interface ExtendedCartItem extends CartItem {
+  isCustom?: boolean;
+  makerName?: string;
+}
+
+interface CartViewProps {
+  cartItems: ExtendedCartItem[];
+  updateQuantity: (id: number | string, size: string, newQuantity: number) => void;
+  removeItem: (id: number | string, size: string) => void;
+  toggleSaved: (product: Product) => void;
+}
+
+const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
   const navigate = useNavigate();
-  const [promoCode, setPromoCode] = useState('');
-  const [discount, setDiscount] = useState(0);
-  const [mockupApproved, setMockupApproved] = useState(false);
-  const [isCheckingOut, setIsCheckingOut] = useState(false);
   
-  // NEW STATE FOR THE CUSTOM DELETE MESSAGE
-  const [deleteMessage, setDeleteMessage] = useState(null);
+  const [promoCode, setPromoCode] = useState<string>('');
+  const [discount, setDiscount] = useState<number>(0);
+  const [mockupApproved, setMockupApproved] = useState<boolean>(false);
+  const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
+  const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
 
   // --- CALCULATIONS ---
   const subtotal = cartItems.reduce((sum, item) => {
-    const price = parseFloat(item.price.replace('$', ''));
+    // Safely convert price to string in case it's already a number
+    const price = parseFloat(item.price.toString().replace('$', ''));
     return sum + (price * item.quantity);
   }, 0);
 
@@ -30,13 +45,13 @@ const CartView = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
   const canCheckout = !hasCustomItems || mockupApproved;
 
   // --- HANDLERS ---
-  const handleIncrement = (item) => {
+  const handleIncrement = (item: ExtendedCartItem) => {
     if (updateQuantity) {
       updateQuantity(item.id, item.size, item.quantity + 1);
     }
   };
 
-  const handleDecrement = (item) => {
+  const handleDecrement = (item: ExtendedCartItem) => {
     if (item.quantity <= 1) {
       handleRemove(item);
     } else {
@@ -46,22 +61,18 @@ const CartView = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
     }
   };
 
-  const handleRemove = (item) => {
-    // 1. Call the parent function to actually remove the item
+  const handleRemove = (item: ExtendedCartItem) => {
     if (removeItem) {
       removeItem(item.id, item.size);
-      
-      // 2. Set the custom message to show the toast
       setDeleteMessage(`${item.title} (${item.size}) removed from cart`);
 
-      // 3. Hide the message after 3 seconds
       setTimeout(() => {
         setDeleteMessage(null);
       }, 3000);
     }
   };
 
-  const handleImageClick = (item) => {
+  const handleImageClick = (item: ExtendedCartItem) => {
     navigate('/platform/shop', { state: { selectedProduct: item } });
   };
 
@@ -76,7 +87,7 @@ const CartView = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
           shipping, 
           tax, 
           total,
-          formData: {} // You can pass form data later if needed
+          formData: {} 
         } 
       });
       setIsCheckingOut(false);
@@ -140,12 +151,14 @@ const CartView = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
           
           <div className={styles.itemsList}>
             {cartItems.map((item, idx) => {
-              const price = parseFloat(item.price.replace('$', ''));
+              const price = parseFloat(item.price.toString().replace('$', ''));
               let unitPrice = price;
               let discountPercent = 0;
+              
               if (item.quantity >= 50) { unitPrice = price * 0.85; discountPercent = 15; }
               else if (item.quantity >= 20) { unitPrice = price * 0.90; discountPercent = 10; }
               else if (item.quantity >= 5) { unitPrice = price * 0.95; discountPercent = 5; }
+              
               const lineTotal = unitPrice * item.quantity;
 
               return (
@@ -178,12 +191,13 @@ const CartView = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
 
                   <div className={styles.itemActions}>
                     <div className={styles.quantityControl}>
-                      <button onClick={() => handleDecrement(item)} aria-label="Decrease quantity">−</button>
+                      <button type="button" onClick={() => handleDecrement(item)} aria-label="Decrease quantity">−</button>
                       <span>{item.quantity}</span>
-                      <button onClick={() => handleIncrement(item)} aria-label="Increase quantity">+</button>
+                      <button type="button" onClick={() => handleIncrement(item)} aria-label="Increase quantity">+</button>
                     </div>
                     
                     <button 
+                      type="button"
                       className={styles.removeBtn} 
                       onClick={() => handleRemove(item)} 
                       title="Remove Item"
@@ -225,7 +239,7 @@ const CartView = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
 
             <div className={styles.promoSection}>
               <input type="text" placeholder="Promo Code" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
-              <button onClick={applyPromo}>Apply</button>
+              <button type="button" onClick={applyPromo}>Apply</button>
             </div>
 
             <div className={styles.summaryLine}><span>Subtotal</span><strong>${subtotal.toFixed(2)}</strong></div>
@@ -237,6 +251,7 @@ const CartView = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
             <div className={`${styles.summaryLine} ${styles.total}`}><span>Total Due</span><strong>${total.toFixed(2)}</strong></div>
 
             <button 
+              type="button"
               className={styles.checkoutBtn} 
               disabled={!canCheckout || isCheckingOut}
               onClick={handleCheckout}

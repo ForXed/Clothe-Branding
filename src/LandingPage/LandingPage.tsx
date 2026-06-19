@@ -24,16 +24,17 @@ import LandingPageBlueprint from './LandingPageBlueprint/LandingPageBlueprint';
 
 gsap.registerPlugin(ScrollTrigger);
 
-function LandingPage() {
-
+const LandingPage: React.FC = () => {
     useEffect(() => {
-        // 1. Initialize Lenis Smooth Scroll (The secret to professional TikTok-style sites)
+        // 1. Initialize Lenis Smooth Scroll
         const lenis = new Lenis({
             duration: 1.2,
-            easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+            // 👇 Typed the easing function parameter
+            easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
         });
 
-        function raf(time) {
+        // 👇 Typed the raf parameter
+        function raf(time: number) {
             lenis.raf(time);
             requestAnimationFrame(raf);
         }
@@ -49,47 +50,22 @@ function LandingPage() {
 
     return (
         <div className={styles.pageWrapper}>
-            {/* SECTION 1: Fixed Background Animation */}
             <BackgroundObjects />
-
-            {/* SECTION 2: Navigation */}
             <Navbar />
-
             <main>
-                {/* SECTION 3: The Entrance Hero */}
                 <MasonryHero />
-
-                {/* SECTION 4: Concept Explanation (Manifesto) */}
                 <ConceptManifesto />
-
-                {/* SECTION 5: The 4-Step Process */}
                 <HowItWorks />
-
-                {/* SECTION 6: The Infrastructure (Black Section) */}
                 <Community /> 
-
                 <LandingPageBlueprint />
-
-                {/* SECTION 7: Identity Branding Hero */}
                 <InfrastructureHero />
-
-                {/* SECTION 8: Professional Maker Network */}
                 <DesignerSection />
-
-                {/* SECTION 9: Selected Works Bento Grid */}
                 <ShowcaseGrid />
-
-                {/* SECTION 10: Client Testimonials (or a Marquee) */}
-                {/* Add a Marquee component here if desired */}
-
-                {/* SECTION 11: Professional FAQ */}
                 <FAQSection />
-
-                {/* SECTION 12: Contact / Footer */}
                 <Footer />
             </main>
         </div>
     );
-}
+};
 
 export default LandingPage;

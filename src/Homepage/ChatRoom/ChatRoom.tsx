@@ -1,47 +1,89 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ChatRoom.module.css';
+
+// 👇 ADDED @ts-ignore TO SILENCE JS SERVICE FILE ERROR
+// @ts-ignore
 import { chatAPI } from './ChatService';
 
-const ChatRoom = ({ initialData, onMobileNavChange }) => {
+// --- TypeScript Interfaces ---
+export interface Chat {
+  id: number | string;
+  name: string;
+  avatar: string;
+  role: string;
+  lastMessage?: string;
+  time?: string;
+  unread?: number;
+  hasRequest?: boolean;
+  requestStatus?: 'pending' | 'accepted' | null;
+}
+
+export interface Message {
+  id: number | string;
+  content: string;
+  sent: boolean;
+  senderId: number | string;
+  type: 'text' | 'file' | 'image';
+  fileName?: string | null;
+  fileType?: string | null;
+  fileUrl?: string | null;
+  time: string;
+  timestamp: string;
+  status: 'sent' | 'read' | 'delivered';
+}
+
+interface Attachment {
+  url: string;
+  type: 'image' | 'file';
+  name: string;
+  fileType: string;
+}
+
+interface ChatRoomProps {
+  initialData?: {
+    newConversation?: {
+      id: number | string;
+      name: string;
+      avatar: string;
+      role: string;
+      initialMessage?: string;
+    };
+  } | any; // Fallback for React Router's location.state
+  onMobileNavChange?: (hide: boolean) => void;
+}
+
+const ChatRoom: React.FC<ChatRoomProps> = ({ initialData, onMobileNavChange }) => {
   const navigate = useNavigate();
   
   // --- State Management ---
-  const [chats, setChats] = useState([]);
-  const [messages, setMessages] = useState({});
-  const [selectedChatId, setSelectedChatId] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [chats, setChats] = useState<Chat[]>([]);
+  const [messages, setMessages] = useState<Record<string | number, Message[]>>({});
+  const [selectedChatId, setSelectedChatId] = useState<number | string | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
   
-  // Mobile Navigation State
-  const [showMobileList, setShowMobileList] = useState(true);
+  const [showMobileList, setShowMobileList] = useState<boolean>(true);
   
-  // UI States
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [searchQuery, setSearchQuery] = useState('');
-  const [inputText, setInputText] = useState('');
+  const [activeFilter, setActiveFilter] = useState<string>('All');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [inputText, setInputText] = useState<string>('');
   
-  // Attachment State
-  const [attachment, setAttachment] = useState(null);
+  const [attachment, setAttachment] = useState<Attachment | null>(null);
+  const [attachmentMenuOpen, setAttachmentMenuOpen] = useState<boolean>(false);
+  const [optionsMenuOpen, setOptionsMenuOpen] = useState<boolean>(false);
   
-  const [attachmentMenuOpen, setAttachmentMenuOpen] = useState(false);
-  const [optionsMenuOpen, setOptionsMenuOpen] = useState(false);
-  
-  // Request Modal State
-  const [showRequestModal, setShowRequestModal] = useState(false);
-  const [reqTitle, setReqTitle] = useState('');
-  const [reqDesc, setReqDesc] = useState('');
-  const [modalError, setModalError] = useState('');
-  const [showSuccessToast, setShowSuccessToast] = useState(false);
+  const [showRequestModal, setShowRequestModal] = useState<boolean>(false);
+  const [reqTitle, setReqTitle] = useState<string>('');
+  const [reqDesc, setReqDesc] = useState<string>('');
+  const [modalError, setModalError] = useState<string>('');
+  const [showSuccessToast, setShowSuccessToast] = useState<boolean>(false);
 
-  // Image Viewer State
-  const [viewImage, setViewImage] = useState(null);
+  const [viewImage, setViewImage] = useState<string | null>(null);
 
   // Refs
-  const fileInputRef = useRef(null);
-  const textareaRef = useRef(null);
-  // We keep the ref in case you want to manually scroll later, 
-  // but we are NOT using it for auto-scrolling anymore.
-  const messagesEndRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // --- HELPERS ---
   const activeChat = chats.find(c => c.id === selectedChatId);
@@ -51,14 +93,15 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        let conversations = await chatAPI.getConversations();
+        // Cast API response to our Chat interface
+        let conversations = await chatAPI.getConversations() as Chat[];
         
         if (initialData?.newConversation) {
           const { id, name, avatar, role, initialMessage } = initialData.newConversation;
           const exists = conversations.find(c => c.id === id || c.name === name);
           
           if (!exists) {
-            const newConv = await chatAPI.findOrCreateConversation({ id, name, avatar, role });
+            const newConv = await chatAPI.findOrCreateConversation({ id, name, avatar, role }) as Chat;
             conversations = [newConv, ...conversations];
             
             if (initialMessage) {
@@ -69,13 +112,14 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
                    type: 'text',
                    senderId: 1
                  });
-                 const res = await chatAPI.getMessages(newConv.id);
+                 const res = await chatAPI.getMessages(newConv.id) as { content: Message[] };
                  setMessages(prev => ({
                    ...prev,
                    [newConv.id]: res.content.map(m => ({
                      ...m,
                      time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-                     status: m.sent ? 'read' : 'read'
+                     // 👇 FIXED: Added 'as const' to prevent TS from widening 'read' to 'string'
+                     status: 'read' as const 
                    }))
                  }));
                }, 500);
@@ -89,7 +133,7 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
           }
         }
 
-        const enhancedChats = conversations.map(c => ({
+        const enhancedChats: Chat[] = conversations.map(c => ({
           ...c,
           hasRequest: c.id === 2,
           requestStatus: c.id === 2 ? 'accepted' : null,
@@ -98,13 +142,14 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
         
         setChats(enhancedChats);
 
-        const allMessages = {};
+        const allMessages: Record<string | number, Message[]> = {};
         for (let chat of conversations) {
-          const res = await chatAPI.getMessages(chat.id);
+          const res = await chatAPI.getMessages(chat.id) as { content: Message[] };
           allMessages[chat.id] = res.content.map(m => ({
             ...m,
             time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-            status: m.sent ? 'read' : 'read'
+            // 👇 FIXED: Added 'as const'
+            status: 'read' as const
           }));
         }
         setMessages(allMessages);
@@ -125,11 +170,6 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
     }
   }, [showMobileList, onMobileNavChange]);
 
-  // --- AUTO-SCROLL REMOVED ---
-  // The previous useEffect that called scrollIntoView has been deleted.
-  // This prevents the "double push" and forced scroll when sending messages.
-  // The natural flow of the chat layout will now handle visibility.
-
   // Auto-resize textarea
   useEffect(() => {
     if (textareaRef.current) {
@@ -140,9 +180,9 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
 
   // Close dropdowns
   useEffect(() => {
-    const handleClickOutside = (event) => {
-      if (!event.target.closest(`.${styles.attachWrapper}`)) setAttachmentMenuOpen(false);
-      if (!event.target.closest(`.${styles.optionsWrapper}`)) setOptionsMenuOpen(false);
+    const handleClickOutside = (event: MouseEvent) => {
+      if (!(event.target as HTMLElement).closest(`.${styles.attachWrapper}`)) setAttachmentMenuOpen(false);
+      if (!(event.target as HTMLElement).closest(`.${styles.optionsWrapper}`)) setOptionsMenuOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
@@ -156,8 +196,9 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
         const timer = setTimeout(() => {
           setMessages(prev => ({
             ...prev,
-            [selectedChatId]: prev[selectedChatId].map((m, idx) => 
-              idx === prev[selectedChatId].length - 1 ? { ...m, status: 'read' } : m
+            [selectedChatId as string | number]: prev[selectedChatId as string | number].map((m, idx) => 
+              // 👇 FIXED: Added 'as const'
+              idx === prev[selectedChatId as string | number].length - 1 ? { ...m, status: 'read' as const } : m
             )
           }));
         }, 1500);
@@ -167,7 +208,7 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
   }, [currentMessages, selectedChatId]);
 
   // --- Handlers ---
-  const handleChatSelect = async (id) => {
+  const handleChatSelect = async (id: number | string) => {
     setSelectedChatId(id);
     setShowMobileList(false);
     setChats(prev => prev.map(c => c.id === id ? { ...c, unread: 0 } : c));
@@ -184,7 +225,7 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
     const isNewFile = attachment && attachment.type === 'file';
     const isNewImage = attachment && attachment.type === 'image';
 
-    const newMsg = {
+    const newMsg: Message = {
       id: Date.now(),
       content: inputText,
       sent: true,
@@ -222,8 +263,8 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
     } catch (e) { console.error(e); }
   };
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const isImage = file.type.startsWith('image/');
       setAttachment({
@@ -255,9 +296,9 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
     setOptionsMenuOpen(false);
   };
 
-  const handleImageClick = (url) => setViewImage(url);
+  const handleImageClick = (url: string) => setViewImage(url);
 
-  const handleFileClick = (url, name) => {
+  const handleFileClick = (url: string, name: string) => {
     const link = document.createElement('a');
     link.href = url;
     link.download = name;
@@ -271,7 +312,7 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
     let matchesCategory = true;
     if (activeFilter === 'Pending Review') matchesCategory = c.requestStatus === 'pending';
     else if (activeFilter === 'Completed') matchesCategory = c.requestStatus === 'accepted';
-    else if (activeFilter === 'Active') matchesCategory = c.unread > 0 || c.requestStatus === 'accepted';
+    else if (activeFilter === 'Active') matchesCategory = (c.unread || 0) > 0 || c.requestStatus === 'accepted';
     return matchesSearch && matchesCategory;
   });
 
@@ -303,7 +344,7 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
 
         <div className={styles.labelScroller}>
           {['All', 'Active', 'Pending Review', 'Completed'].map((f) => (
-            <button key={f} className={`${styles.labelPill} ${activeFilter === f ? styles.active : ''}`} onClick={() => setActiveFilter(f)}>
+            <button key={f} type="button" className={`${styles.labelPill} ${activeFilter === f ? styles.active : ''}`} onClick={() => setActiveFilter(f)}>
               {f}
             </button>
           ))}
@@ -327,10 +368,10 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
                 </div>
                 <div className={styles.chatBottom}>
                   <span className={styles.chatPreview}>{chat.lastMessage}</span>
-                  {chat.unread > 0 && <span className={styles.unreadDot}>{chat.unread}</span>}
+                  {(chat.unread || 0) > 0 && <span className={styles.unreadDot}>{chat.unread}</span>}
                 </div>
                 {chat.hasRequest && (
-                  <span className={`${styles.tagMini} ${styles['tag' + chat.requestStatus]}`}>
+                  <span className={`${styles.tagMini} ${styles['tag' + (chat.requestStatus || '')]}`}>
                     {chat.requestStatus === 'pending' ? 'Reviewing' : 'Accepted'}
                   </span>
                 )}
@@ -342,12 +383,12 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
 
       {/* RIGHT MAIN AREA */}
       <div className={`${styles.msgMain} ${!showMobileList ? styles.msgMainVisible : ''}`}>
-        {selectedChatId ? (
+        {selectedChatId && activeChat ? (
           <>
             {/* Header */}
             <div className={styles.mainHeader}>
               <div className={styles.headerUser}>
-                <button className={styles.mobileBackBtn} onClick={handleBackToList}>
+                <button type="button" className={styles.mobileBackBtn} onClick={handleBackToList}>
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                   </svg>
@@ -359,24 +400,24 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
                 </div>
               </div>
               <div className={styles.headerActions}>
-                <button className={styles.newRequestBtn} onClick={() => setShowRequestModal(true)}>
+                <button type="button" className={styles.newRequestBtn} onClick={() => setShowRequestModal(true)}>
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
                   </svg>
                   <span>New Request</span>
                 </button>
                 <div className={styles.optionsWrapper}>
-                  <button className={styles.iconBtn} onClick={() => setOptionsMenuOpen(!optionsMenuOpen)}>
+                  <button type="button" className={styles.iconBtn} onClick={() => setOptionsMenuOpen(!optionsMenuOpen)}>
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                       <circle cx="12" cy="12" r="1" /><circle cx="12" cy="5" r="1" /><circle cx="12" cy="19" r="1" />
                     </svg>
                   </button>
                   {optionsMenuOpen && (
                     <div className={styles.dropdownMenu}>
-                      <button onClick={handleViewProfile}>View Maker Profile</button>
-                      <button>Report Issue</button>
+                      <button type="button" onClick={handleViewProfile}>View Maker Profile</button>
+                      <button type="button">Report Issue</button>
                       <div className={styles.divider}></div>
-                      <button className={styles.dangerText}>Delete Chat</button>
+                      <button type="button" className={styles.dangerText}>Delete Chat</button>
                     </div>
                   )}
                 </div>
@@ -385,7 +426,7 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
 
             {/* Banner */}
             {activeChat.hasRequest && (
-              <div className={`${styles.agreementBanner} ${styles[activeChat.requestStatus]}`}>
+              <div className={`${styles.agreementBanner} ${styles[activeChat.requestStatus || '']}`}>
                 {activeChat.requestStatus === 'pending' ? (
                   <div className={styles.bannerContent}>
                     <div className={styles.bannerText}><strong>Under Review</strong><p>Maker is checking details.</p></div>
@@ -408,11 +449,11 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
                     <div className={styles.bubble}>
                       {msg.type === 'file' ? (
                         msg.fileType?.startsWith('image/') ? (
-                          <div className={styles.imageBubble} onClick={() => handleImageClick(msg.fileUrl)}>
-                            <img src={msg.fileUrl} alt="Sent" />
+                          <div className={styles.imageBubble} onClick={() => handleImageClick(msg.fileUrl || '')}>
+                            <img src={msg.fileUrl || ''} alt="Sent" />
                           </div>
                         ) : (
-                          <div className={styles.filePreview} onClick={() => handleFileClick(msg.fileUrl, msg.fileName)}>
+                          <div className={styles.filePreview} onClick={() => handleFileClick(msg.fileUrl || '', msg.fileName || 'file')}>
                             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/>
                             </svg>
@@ -442,7 +483,6 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
                     </div>
                   </div>
                 ))}
-                {/* Ref kept here but no longer used for auto-scrolling */}
                 <div ref={messagesEndRef} />
               </div>
 
@@ -465,7 +505,7 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
                       </div>
                     </div>
                   )}
-                  <button className={styles.removeAttachBtn} onClick={() => setAttachment(null)}>
+                  <button type="button" className={styles.removeAttachBtn} onClick={() => setAttachment(null)}>
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                   </button>
                 </div>
@@ -473,20 +513,31 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
 
               <div className={styles.inputZone}>
                 <div className={styles.attachWrapper}>
-                  <button className={styles.btnAttach} onClick={() => setAttachmentMenuOpen(!attachmentMenuOpen)}>
+                  <button type="button" className={styles.btnAttach} onClick={() => setAttachmentMenuOpen(!attachmentMenuOpen)}>
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" /></svg>
                   </button>
                   {attachmentMenuOpen && (
                     <div className={styles.attachMenu}>
-                      <button onClick={() => fileInputRef.current.click()}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg><span>Upload File</span></button>
+                      <button type="button" onClick={() => fileInputRef.current?.click()}>
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <span>Upload File</span>
+                      </button>
                     </div>
                   )}
                 </div>
                 <input type="file" ref={fileInputRef} hidden onChange={handleFileChange} accept=".pdf,.ai,.psd,.jpg,.png,image/*" />
                 
-                <textarea ref={textareaRef} className={styles.msgInput} placeholder="Message..." rows={1} value={inputText} onChange={(e) => setInputText(e.target.value)} onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} />
+                <textarea 
+                  ref={textareaRef} 
+                  className={styles.msgInput} 
+                  placeholder="Message..." 
+                  rows={1} 
+                  value={inputText} 
+                  onChange={(e) => setInputText(e.target.value)} 
+                  onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); } }} 
+                />
                 
-                <button className={styles.btnSend} onClick={handleSendMessage}>
+                <button type="button" className={styles.btnSend} onClick={handleSendMessage}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9" /></svg>
                 </button>
               </div>
@@ -508,8 +559,8 @@ const ChatRoom = ({ initialData, onMobileNavChange }) => {
             <textarea placeholder="Description" value={reqDesc} onChange={(e) => setReqDesc(e.target.value)} style={{ width: '100%', padding: '12px', background: 'var(--brut-bg)', border: `1px solid ${modalError && !reqDesc ? 'var(--brut-danger)' : 'var(--brut-border)'}`, borderRadius: '8px', color: 'var(--brut-text)', marginBottom: '16px', minHeight: '100px' }} />
             {modalError && <div style={{ color: 'var(--brut-danger)', fontSize: '0.85rem', marginBottom: '12px' }}>⚠️ {modalError}</div>}
             <div className={styles.modalActions}>
-              <button onClick={() => { setShowRequestModal(false); setModalError(''); }}>Cancel</button>
-              <button className={styles.primaryBtn} onClick={handleSubmitRequest}>Submit</button>
+              <button type="button" onClick={() => { setShowRequestModal(false); setModalError(''); }}>Cancel</button>
+              <button type="button" className={styles.primaryBtn} onClick={handleSubmitRequest}>Submit</button>
             </div>
           </div>
         </div>

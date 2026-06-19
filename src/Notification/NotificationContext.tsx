@@ -1,6 +1,5 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
 
-// Notification Types
 export const NOTIFICATION_TYPES = {
   ORDER: 'order',
   MESSAGE: 'message',
@@ -8,19 +7,43 @@ export const NOTIFICATION_TYPES = {
   SYSTEM: 'system',
   REVIEW: 'review',
   PROMOTION: 'promotion'
-};
+} as const;
 
-// Create Context
-const NotificationContext = createContext(null);
+export type NotificationType = typeof NOTIFICATION_TYPES[keyof typeof NOTIFICATION_TYPES];
 
-// Provider Component
-export const NotificationProvider = ({ children }) => {
-  const [notifications, setNotifications] = useState([]);
-  const [unreadCount, setUnreadCount] = useState(0);
+export interface Notification {
+  id: string;
+  timestamp: string;
+  read: boolean;
+  type: NotificationType;
+  title: string;
+  message: string;
+}
 
-  // Add a new notification
-  const addNotification = useCallback((notification) => {
-    const newNotification = {
+interface NotificationContextType {
+  notifications: Notification[];
+  unreadCount: number;
+  addNotification: (notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => void;
+  markAsRead: (notificationId: string) => void;
+  markAllAsRead: () => void;
+  removeNotification: (notificationId: string) => void;
+  clearAll: () => void;
+  getByType: (type: NotificationType) => Notification[];
+  getUnread: () => Notification[];
+}
+
+const NotificationContext = createContext<NotificationContextType | null>(null);
+
+interface NotificationProviderProps {
+  children: ReactNode;
+}
+
+export const NotificationProvider: React.FC<NotificationProviderProps> = ({ children }) => {
+  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+
+  const addNotification = useCallback((notification: Omit<Notification, 'id' | 'timestamp' | 'read'>) => {
+    const newNotification: Notification = {
       id: Date.now().toString(),
       timestamp: new Date().toISOString(),
       read: false,
@@ -28,55 +51,50 @@ export const NotificationProvider = ({ children }) => {
     };
     
     setNotifications(prev => [newNotification, ...prev]);
-    if (!notification.read) {
+    if (!newNotification.read) {
       setUnreadCount(prev => prev + 1);
     }
   }, []);
 
-  // Mark single notification as read
-  const markAsRead = useCallback((notificationId) => {
-    setNotifications(prev => 
-      prev.map(n => 
-        n.id === notificationId ? { ...n, read: true } : n
-      )
-    );
-    setUnreadCount(prev => Math.max(0, prev - 1));
+  const markAsRead = useCallback((notificationId: string) => {
+    setNotifications(prev => {
+      const target = prev.find(n => n.id === notificationId);
+      if (target && !target.read) {
+        setUnreadCount(c => Math.max(0, c - 1));
+      }
+      return prev.map(n => n.id === notificationId ? { ...n, read: true } : n);
+    });
   }, []);
 
-  // Mark all as read
   const markAllAsRead = useCallback(() => {
-    setNotifications(prev => 
-      prev.map(n => ({ ...n, read: true }))
-    );
+    setNotifications(prev => prev.map(n => ({ ...n, read: true })));
     setUnreadCount(0);
   }, []);
 
-  // Remove a notification
-  const removeNotification = useCallback((notificationId) => {
-    const notification = notifications.find(n => n.id === notificationId);
-    setNotifications(prev => prev.filter(n => n.id !== notificationId));
-    if (notification && !notification.read) {
-      setUnreadCount(prev => Math.max(0, prev - 1));
-    }
-  }, [notifications]);
+  const removeNotification = useCallback((notificationId: string) => {
+    setNotifications(prev => {
+      const target = prev.find(n => n.id === notificationId);
+      if (target && !target.read) {
+        setUnreadCount(c => Math.max(0, c - 1));
+      }
+      return prev.filter(n => n.id !== notificationId);
+    });
+  }, []);
 
-  // Clear all notifications
   const clearAll = useCallback(() => {
     setNotifications([]);
     setUnreadCount(0);
   }, []);
 
-  // Get notifications by type
-  const getByType = useCallback((type) => {
+  const getByType = useCallback((type: NotificationType) => {
     return notifications.filter(n => n.type === type);
   }, [notifications]);
 
-  // Get unread notifications
   const getUnread = useCallback(() => {
     return notifications.filter(n => !n.read);
   }, [notifications]);
 
-  const value = {
+  const value: NotificationContextType = {
     notifications,
     unreadCount,
     addNotification,
@@ -95,8 +113,7 @@ export const NotificationProvider = ({ children }) => {
   );
 };
 
-// Custom Hook
-export const useNotifications = () => {
+export const useNotifications = (): NotificationContextType => {
   const context = useContext(NotificationContext);
   if (!context) {
     throw new Error('useNotifications must be used within NotificationProvider');

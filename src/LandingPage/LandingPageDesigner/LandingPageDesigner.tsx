@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './LandingPageDesigner.module.css';
 import image3 from '../../assets/image3.jpg';
 
-const LandingPageDesigner = () => {
+const LandingPageDesigner: React.FC = () => {
   return (
     <section className={styles.container}>
         <div className={styles.imageWrapper}>

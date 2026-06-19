@@ -2,9 +2,21 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import styles from './BlogPost.module.css';
 
-// In a real app, this would come from an API/CMS. 
-// For now, we expand our local data to include full content.
-const allPosts = [
+// --- TypeScript Interfaces ---
+interface BlogPostData {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  content: string;
+  author: string;
+  date: string;
+  readTime: string;
+  category: string;
+  image: string;
+}
+
+const allPosts: BlogPostData[] = [
   {
     id: 0,
     slug: "death-of-fast-fashion",
@@ -54,33 +66,30 @@ const allPosts = [
     category: "Guides",
     image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=1200"
   },
-  // Add other posts with dummy content for testing navigation
   { id: 2, slug: "sustainable-fibers", title: "Sustainable Fibers", excerpt: "...", content: "<p>Content coming soon...</p>", author: "Sarah Jenkins", date: "Oct 15, 2024", readTime: "6 min read", category: "Materials", image: "https://images.unsplash.com/photo-1528458909336-e7a0adfed0a5?w=1200" },
   { id: 3, slug: "void-case-study", title: "Case Study: Void", excerpt: "...", content: "<p>Content coming soon...</p>", author: "Editorial Team", date: "Oct 10, 2024", readTime: "7 min read", category: "Case Study", image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=1200" },
 ];
 
-const BlogPost = () => {
-  const { slug } = useParams();
+const BlogPost: React.FC = () => {
+  const { slug } = useParams<{ slug: string }>();
   const navigate = useNavigate();
-  const [post, setPost] = useState(null);
-  const [relatedPosts, setRelatedPosts] = useState([]);
+  const [post, setPost] = useState<BlogPostData | null>(null);
+  const [relatedPosts, setRelatedPosts] = useState<BlogPostData[]>([]);
 
   useEffect(() => {
-    // Find the post
+    if (!slug) return;
+    
     const foundPost = allPosts.find(p => p.slug === slug);
     
     if (foundPost) {
       setPost(foundPost);
-      // Find 2 related posts from the same category (excluding current)
       const related = allPosts
         .filter(p => p.category === foundPost.category && p.id !== foundPost.id)
         .slice(0, 2);
       setRelatedPosts(related);
       
-      // Scroll to top
       window.scrollTo(0, 0);
     } else {
-      // Handle 404 or redirect
       navigate('/hub/blog');
     }
   }, [slug, navigate]);
@@ -90,7 +99,7 @@ const BlogPost = () => {
   return (
     <article className={styles.postContainer}>
       {/* Back Button */}
-      <button onClick={() => navigate('/hub/blog')} className={styles.backBtn}>
+      <button type="button" onClick={() => navigate('/hub/blog')} className={styles.backBtn}>
         ← Back to Journal
       </button>
 

@@ -2,7 +2,13 @@ import React, { useState } from 'react';
 import { Outlet, Link, useLocation, useNavigate } from 'react-router-dom';
 import styles from './HubLayout.module.css';
 
-const BrutigeLogo = () => (
+// --- TypeScript Interfaces ---
+interface NavItem {
+  path: string;
+  label: string;
+}
+
+const BrutigeLogo: React.FC = () => (
   <svg width="32" height="32" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="25" cy="25" r="25" fill="currentColor"/>
     <path d="M24.6 13L24.6 30.5L14 36.5L24.6 13Z" fill="var(--hub-bg)"/>
@@ -10,38 +16,39 @@ const BrutigeLogo = () => (
   </svg>
 );
 
-const HubLayout = () => {
+const HubLayout: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const [resourcesOpen, setResourcesOpen] = useState(false);
+  
+  const [resourcesOpen, setResourcesOpen] = useState<boolean>(false);
   
   // Mobile Menu State (Full overlay menu)
-  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   
   // Tablet Sidebar State (Collapsible sidebar)
-  const [tabletSidebarOpen, setTabletSidebarOpen] = useState(true);
+  const [tabletSidebarOpen, setTabletSidebarOpen] = useState<boolean>(true);
 
-  const isActive = (path) => location.pathname === path;
+  const isActive = (path: string): boolean => location.pathname === path;
 
-  const toggleMobileMenu = () => setMobileMenuOpen(!mobileMenuOpen);
-  const closeMobileMenu = () => setMobileMenuOpen(false);
+  const toggleMobileMenu = (): void => setMobileMenuOpen(!mobileMenuOpen);
+  const closeMobileMenu = (): void => setMobileMenuOpen(false);
   
-  const toggleTabletSidebar = () => setTabletSidebarOpen(!tabletSidebarOpen);
+  const toggleTabletSidebar = (): void => setTabletSidebarOpen(!tabletSidebarOpen);
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { path: '/hub/collections', label: 'Collections' },
     { path: '/hub/process', label: 'How It Works' },
     { path: '/hub/showcase', label: 'Showcase' },
   ];
 
-  const resourceItems = [
+  const resourceItems: NavItem[] = [
     { path: '/hub/faq', label: 'FAQ' },
     { path: '/hub/blog', label: 'Blog' },
     { path: '/hub/guides', label: 'Design Guides' },
     { path: '/hub/support', label: 'Support' },
   ];
 
-  const legalItems = [
+  const legalItems: NavItem[] = [
     { path: '/hub/privacy', label: 'Privacy' },
     { path: '/hub/terms', label: 'Terms' },
     { path: '/hub/cookies', label: 'Cookies' },
@@ -56,7 +63,6 @@ const HubLayout = () => {
       />
 
       {/* Persistent Sidebar */}
-      {/* Added class for tablet collapsed state */}
       <aside className={`
         ${styles.sidebar} 
         ${mobileMenuOpen ? styles.mobileOpen : ''} 
@@ -72,7 +78,7 @@ const HubLayout = () => {
           </Link>
           
           {/* Close Button for Mobile */}
-          <button className={styles.menuToggle} onClick={toggleMobileMenu}>
+          <button type="button" className={styles.menuToggle} onClick={toggleMobileMenu}>
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <line x1="18" y1="6" x2="6" y2="18"></line>
               <line x1="6" y1="6" x2="18" y2="18"></line>
@@ -98,6 +104,7 @@ const HubLayout = () => {
           {/* Resources Dropdown */}
           <div className={styles.navGroup}>
             <button 
+              type="button"
               className={styles.navGroupHeader}
               onClick={() => setResourcesOpen(!resourcesOpen)}
             >
@@ -136,7 +143,7 @@ const HubLayout = () => {
               </Link>
             ))}
           </div>
-          <button onClick={() => navigate('/')} className={styles.backBtn}>
+          <button type="button" onClick={() => navigate('/')} className={styles.backBtn}>
             ← Back
           </button>
           <span className={`${styles.version} ${!tabletSidebarOpen ? styles.hideText : ''}`}>v2.4.0</span>
@@ -149,7 +156,7 @@ const HubLayout = () => {
           <BrutigeLogo />
           <span>brutige</span>
         </Link>
-        <button className={styles.menuToggle} onClick={toggleMobileMenu}>
+        <button type="button" className={styles.menuToggle} onClick={toggleMobileMenu}>
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="3" y1="12" x2="21" y2="12"></line>
             <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -160,6 +167,7 @@ const HubLayout = () => {
 
       {/* Tablet Toggle Button (Visible ONLY on tablet 768px - 1150px) */}
       <button 
+        type="button"
         className={styles.tabletToggle} 
         onClick={toggleTabletSidebar}
         aria-label="Toggle Sidebar"

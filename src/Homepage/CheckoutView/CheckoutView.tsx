@@ -1,36 +1,84 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import styles from './CheckoutView.module.css';
 
-const CheckoutView = ({ notify }) => {
+// --- TypeScript Interfaces ---
+interface FormData {
+  fullName: string;
+  company: string;
+  email: string;
+  phone: string;
+  address1: string;
+  address2: string;
+  city: string;
+  state: string;
+  zip: string;
+  country: string;
+}
+
+interface ShippingOption {
+  id: string;
+  name: string;
+  carrier: string;
+  days: string;
+  price: number;
+}
+
+interface CartItemSummary {
+  id: number | string;
+  title: string;
+  quantity: number;
+  price: string | number;
+  img: string;
+}
+
+interface LocationState {
+  cartItems?: CartItemSummary[];
+  subtotal?: number;
+  total?: number;
+}
+
+// 👇 UPDATED INTERFACE TO ACCEPT PROPS FROM BrutigePlatform
+interface CheckoutViewProps {
+  cartItems?: CartItemSummary[];
+  clearCart?: () => void;
+  notify?: (message: string, type: string) => void;
+  onComplete?: () => void;
+}
+
+const CheckoutView: React.FC<CheckoutViewProps> = ({ cartItems: propCartItems, clearCart, notify, onComplete }) => {
   const navigate = useNavigate();
   const location = useLocation();
   
-  // Retrieve data passed from CartView
-  const { cartItems, subtotal: cartSubtotal, total: cartTotal } = location.state || {};
-
-  // Fallback if accessed directly (for development safety)
-  const safeItems = cartItems || [
+  // Safely cast location.state to our expected shape
+  const locationState = (location.state as LocationState) || {};
+  
+  // 👇 Use props if passed, otherwise fallback to location.state
+  const safeItems: CartItemSummary[] = propCartItems || locationState.cartItems || [
     { id: 1, title: 'Demo Product', quantity: 1, price: '$50.00', img: '' }
   ];
-  const safeSubtotal = cartSubtotal || 50.00;
-
-  const [step, setStep] = useState(1); 
-  const [isLoadingRates, setIsLoadingRates] = useState(false);
-  const [selectedShipping, setSelectedShipping] = useState(null);
   
-  const [formData, setFormData] = useState({
+  const safeSubtotal: number = locationState.subtotal || safeItems.reduce((sum, item) => {
+    const price = parseFloat(String(item.price).replace('$', ''));
+    return sum + (price * item.quantity);
+  }, 0);
+
+  const [step, setStep] = useState<number>(1); 
+  const [isLoadingRates, setIsLoadingRates] = useState<boolean>(false);
+  const [selectedShipping, setSelectedShipping] = useState<string | null>(null);
+  
+  const [formData, setFormData] = useState<FormData>({
     fullName: '', company: '', email: '', phone: '',
     address1: '', address2: '', city: '', state: '', zip: '', country: 'US'
   });
 
-  const shippingOptions = [
+  const shippingOptions: ShippingOption[] = [
     { id: 'std', name: 'Standard International', carrier: 'DHL eCommerce', days: '7-10', price: 45.00 },
     { id: 'exp', name: 'Express Worldwide', carrier: 'FedEx Priority', days: '3-5', price: 89.00 },
     { id: 'ovr', name: 'Overnight Global', carrier: 'DHL Express', days: '1-2', price: 150.00 }
   ];
 
-  const handleInputChange = (e) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
@@ -52,12 +100,20 @@ const CheckoutView = ({ notify }) => {
   const handleFinalize = () => {
     if(notify) notify("Processing Escrow & Generating Waybills...", "success");
     setTimeout(() => {
-      navigate('/platform/orders');
+      // 👇 Clear the cart if the function was passed
+      if (clearCart) clearCart();
+      
+      // 👇 Call onComplete if passed, otherwise fallback to navigate
+      if (onComplete) {
+        onComplete();
+      } else {
+        navigate('/platform/orders');
+      }
     }, 2000);
   };
 
-  // Calculate dynamic total
-  const shippingCost = selectedShipping ? shippingOptions.find(o => o.id === selectedShipping).price : 0;
+  // Calculate dynamic total (Added optional chaining for safety)
+  const shippingCost = selectedShipping ? (shippingOptions.find(o => o.id === selectedShipping)?.price || 0) : 0;
   const tax = safeSubtotal * 0.08;
   const finalTotal = safeSubtotal + shippingCost + tax;
 
@@ -127,6 +183,7 @@ const CheckoutView = ({ notify }) => {
               </div>
 
               <button 
+                type="button"
                 className={styles.continueBtn} 
                 onClick={handleAddressComplete}
                 disabled={!formData.fullName || !formData.address1 || !formData.city}
@@ -170,8 +227,8 @@ const CheckoutView = ({ notify }) => {
               )}
 
               <div className={styles.actionRow}>
-                <button className={styles.backBtn} onClick={() => setStep(1)}>Back</button>
-                <button className={styles.continueBtn} onClick={handleConfirmShipping} disabled={!selectedShipping}>
+                <button type="button" className={styles.backBtn} onClick={() => setStep(1)}>Back</button>
+                <button type="button" className={styles.continueBtn} onClick={handleConfirmShipping} disabled={!selectedShipping}>
                   Continue to Review
                 </button>
               </div>
@@ -219,8 +276,8 @@ const CheckoutView = ({ notify }) => {
               </div>
 
               <div className={styles.actionRow}>
-                <button className={styles.backBtn} onClick={() => setStep(2)}>Back</button>
-                <button className={styles.payBtn} onClick={handleFinalize}>
+                <button type="button" className={styles.backBtn} onClick={() => setStep(2)}>Back</button>
+                <button type="button" className={styles.payBtn} onClick={handleFinalize}>
                   Pay & Generate Waybill
                 </button>
               </div>

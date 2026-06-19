@@ -2,11 +2,22 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Pricing.module.css';
 
-const Pricing = () => {
-  const navigate = useNavigate();
-  const [isAnnual, setIsAnnual] = useState(false);
+interface Plan {
+  name: string;
+  price: string;
+  period: string;
+  description: string;
+  features: string[];
+  cta: string;
+  highlighted: boolean;
+  color: string;
+}
 
-  const plans = [
+const Pricing: React.FC = () => {
+  const navigate = useNavigate();
+  const [isAnnual, setIsAnnual] = useState<boolean>(false);
+
+  const plans: Plan[] = [
     {
       name: 'Maker',
       price: isAnnual ? '0' : '0',
@@ -66,7 +77,6 @@ const Pricing = () => {
 
   return (
     <div className={styles.pricingContainer}>
-      {/* Hero Section */}
       <div className={styles.header}>
         <div className={styles.badge}>For Makers & Brands</div>
         <h1>Invest in your infrastructure.</h1>
@@ -78,6 +88,7 @@ const Pricing = () => {
         <div className={styles.toggleContainer}>
           <span className={!isAnnual ? styles.active : ''}>Monthly Billing</span>
           <button 
+            type="button"
             className={`${styles.toggle} ${isAnnual ? styles.active : ''}`} 
             onClick={() => setIsAnnual(!isAnnual)}
             aria-label="Toggle billing period"
@@ -90,7 +101,6 @@ const Pricing = () => {
         </div>
       </div>
 
-      {/* Plans Grid */}
       <div className={styles.grid}>
         {plans.map((plan, idx) => (
           <div 
@@ -122,6 +132,7 @@ const Pricing = () => {
             </ul>
 
             <button 
+              type="button"
               className={`${styles.ctaBtn} ${plan.highlighted ? styles.primary : ''}`}
               onClick={() => navigate('/studio/settings')}
             >
@@ -131,7 +142,6 @@ const Pricing = () => {
         ))}
       </div>
 
-      {/* Comparison Table */}
       <div className={styles.comparisonSection}>
         <h2>Compare Infrastructure</h2>
         <div className={styles.tableWrapper}>
@@ -172,15 +182,15 @@ const Pricing = () => {
               <tr>
                 <td>Custom Branding</td>
                 <td>—</td>
-                <td>✓</td>
-                <td>✓</td>
+                {/* 👇 Replaced '✓' with an SVG checkmark icon */}
+                <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg></td>
+                <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg></td>
               </tr>
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* FAQ Section */}
       <div className={styles.faqSection}>
         <h2>Frequently Asked Questions</h2>
         <div className={styles.faqGrid}>

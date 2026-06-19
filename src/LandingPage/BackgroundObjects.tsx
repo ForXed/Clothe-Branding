@@ -3,12 +3,13 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import styles from './BackgroundObjects.module.css';
 
-const BackgroundObjects = () => {
-    const container = useRef();
+const BackgroundObjects: React.FC = () => {
+    // 👇 Typed ref
+    const container = useRef<HTMLDivElement>(null);
 
     useGSAP(() => {
-        // Find all elements with the 'shape' class inside this container
-        const shapes = gsap.utils.toArray(`.${styles.shape}`);
+        // 👇 Explicitly tell GSAP this is an array of HTMLElements
+        const shapes = gsap.utils.toArray<HTMLElement>(`.${styles.shape}`);
         
         if (shapes.length === 0) {
             console.warn("GSAP: No shapes found. Check your CSS Module classes.");
@@ -16,9 +17,8 @@ const BackgroundObjects = () => {
         }
 
         shapes.forEach((shape, i) => {
-            // 1. OBVIOUS FLOATING MOVEMENT
             gsap.to(shape, {
-                x: "random(-200, 200)", // Increased range to make it obvious
+                x: "random(-200, 200)",
                 y: "random(-200, 200)",
                 rotation: "random(-360, 360)",
                 duration: gsap.utils.random(10, 15),
@@ -29,8 +29,8 @@ const BackgroundObjects = () => {
             });
         });
 
-        // 2. OBVIOUS MOUSE INTERACTION
-        const handleMouseMove = (e) => {
+        // 👇 Typed the mouse event
+        const handleMouseMove = (e: MouseEvent) => {
             const { clientX, clientY } = e;
             const xMove = (clientX / window.innerWidth - 0.5) * 100;
             const yMove = (clientY / window.innerHeight - 0.5) * 100;
@@ -50,7 +50,6 @@ const BackgroundObjects = () => {
 
     return (
         <div ref={container} className={styles.bgWrapper}>
-            {/* Added more shapes and made them bigger */}
             <div className={`${styles.shape} ${styles.circle}`} style={{top: '10%', left: '10%'}} />
             <div className={`${styles.shape} ${styles.line}`} style={{top: '40%', right: '15%', transform: 'rotate(20deg)'}} />
             <div className={`${styles.shape} ${styles.circle} ${styles.large}`} style={{top: '60%', left: '30%'}} />

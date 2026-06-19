@@ -6,13 +6,22 @@ import styles from './FAQSection.module.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const FAQSection = () => {
-  const [openIndex, setOpenIndex] = useState(null);
-  const container = useRef();
-  const accordionRefs = useRef([]);
+// 👇 Interface for FAQ data
+interface FAQItem {
+  q: string;
+  a: string;
+}
 
-  // 1. Initial Reveal Animation on Scroll
+const FAQSection: React.FC = () => {
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
+  
+  // 👇 Typed refs
+  const container = useRef<HTMLElement>(null);
+  const accordionRefs = useRef<(HTMLElement | null)[]>([]);
+
   useGSAP(() => {
+    if (!container.current) return;
+    
     gsap.from(`.${styles.faqItem}`, {
       scrollTrigger: {
         trigger: container.current,
@@ -26,31 +35,36 @@ const FAQSection = () => {
     });
   }, { scope: container });
 
-  // 2. Accordion Logic using GSAP
-  const toggleFAQ = (index) => {
+  const toggleFAQ = (index: number) => {
     const isOpening = openIndex !== index;
     const content = accordionRefs.current[index];
-    const icon = content.parentElement.querySelector(`.${styles.faqIcon}`);
+    
+    // 👇 Safety check for DOM element
+    if (!content) return; 
+    
+    const icon = content.parentElement?.querySelector(`.${styles.faqIcon}`) as HTMLElement | null;
 
     // Close the previous one if it exists
     if (openIndex !== null) {
       const prevContent = accordionRefs.current[openIndex];
-      const prevIcon = prevContent.parentElement.querySelector(`.${styles.faqIcon}`);
-      gsap.to(prevContent, { height: 0, duration: 0.5, ease: "power3.inOut" });
-      gsap.to(prevIcon, { rotate: 0, duration: 0.5 });
+      if (prevContent) {
+        const prevIcon = prevContent.parentElement?.querySelector(`.${styles.faqIcon}`) as HTMLElement | null;
+        gsap.to(prevContent, { height: 0, duration: 0.5, ease: "power3.inOut" });
+        if (prevIcon) gsap.to(prevIcon, { rotate: 0, duration: 0.5 });
+      }
     }
 
     // Open the new one
     if (isOpening) {
       gsap.to(content, { height: "auto", duration: 0.6, ease: "elastic.out(1, 0.8)" });
-      gsap.to(icon, { rotate: 45, duration: 0.5 });
+      if (icon) gsap.to(icon, { rotate: 45, duration: 0.5 });
       setOpenIndex(index);
     } else {
       setOpenIndex(null);
     }
   };
 
-  const faqs = [
+  const faqs: FAQItem[] = [
     { q: "What is the Minimum Order Quantity?", a: "Brutige is built for scale. We operate with zero minimums, allowing you to prototype a single vision or manufacture a global collection." },
     { q: "What is the standard production cycle?", a: "Our infrastructure is engineered for speed. Standard turnaround is 14 days, with 7-day priority lanes available for elite partners." },
     { q: "Can I integrate my own supply chain?", a: "Yes. While we provide a premium network of makers, our platform allows you to plug in your own verified suppliers while using our tracking tech." },
@@ -73,7 +87,7 @@ const FAQSection = () => {
               </div>
               
               <div 
-                ref={el => accordionRefs.current[idx] = el} 
+                ref={el => { accordionRefs.current[idx] = el; }} 
                 className={styles.answerWrapper}
               >
                 <div className={styles.faqAnswer}>

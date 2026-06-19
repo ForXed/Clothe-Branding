@@ -2,22 +2,49 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './OrderTracker.module.css';
 
-const OrderTracker = ({ notify }) => {
-  const { orderId } = useParams(); // Gets ID from URL
+// --- TypeScript Interfaces ---
+interface OrderItem {
+  name: string;
+  size: string;
+  qty: number;
+}
+
+interface TimelineStep {
+  step: string;
+  date: string;
+  completed: boolean;
+}
+
+interface Order {
+  id: string;
+  status: 'processing' | 'shipped' | 'delivered';
+  estimatedDelivery: string;
+  carrier: string;
+  trackingNumber: string;
+  items: OrderItem[];
+  timeline: TimelineStep[];
+}
+
+interface OrderTrackerProps {
+  notify?: (message: string, type: string) => void;
+}
+
+const OrderTracker: React.FC<OrderTrackerProps> = ({ notify }) => {
+  const { orderId } = useParams<{ orderId: string }>(); 
   const navigate = useNavigate();
-  const canvasRef = useRef(null);
-  const [isDrawing, setIsDrawing] = useState(false);
-  const [hasSigned, setHasSigned] = useState(false);
-  const [showSignatureModal, setShowSignatureModal] = useState(false);
   
-  // Mock Data - In real app, fetch from API based on orderId
-  const [order, setOrder] = useState(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [isDrawing, setIsDrawing] = useState<boolean>(false);
+  const [hasSigned, setHasSigned] = useState<boolean>(false);
+  const [showSignatureModal, setShowSignatureModal] = useState<boolean>(false);
+  
+  const [order, setOrder] = useState<Order | null>(null);
 
   useEffect(() => {
     // Simulate API Fetch
-    const mockOrder = {
+    const mockOrder: Order = {
       id: orderId || 'BRT-2025-001',
-      status: 'delivered', // Options: processing, shipped, delivered
+      status: 'delivered', 
       estimatedDelivery: 'Oct 24, 2024',
       carrier: 'DHL Express',
       trackingNumber: 'TRK987654321',
@@ -37,19 +64,25 @@ const OrderTracker = ({ notify }) => {
     setOrder(mockOrder);
   }, [orderId]);
 
-  // --- Signature Pad Logic ---
-  const startDrawing = (e) => {
+  // --- Signature Pad Logic (With strict null checks for TS) ---
+  const startDrawing = (e: React.MouseEvent<HTMLCanvasElement>) => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     ctx.beginPath();
     ctx.moveTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
     setIsDrawing(true);
   };
 
-  const draw = (e) => {
+  const draw = (e: React.MouseEvent<HTMLCanvasElement>) => {
     if (!isDrawing) return;
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     ctx.lineTo(e.nativeEvent.offsetX, e.nativeEvent.offsetY);
     ctx.stroke();
   };
@@ -61,7 +94,10 @@ const OrderTracker = ({ notify }) => {
 
   const clearSignature = () => {
     const canvas = canvasRef.current;
+    if (!canvas) return;
     const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+    
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     setHasSigned(false);
   };
@@ -71,10 +107,8 @@ const OrderTracker = ({ notify }) => {
       if(notify) notify("Please sign to confirm receipt.", "error");
       return;
     }
-    // Here you would send the signature image data to backend
     if(notify) notify("Delivery confirmed. Thank you!", "success");
     setShowSignatureModal(false);
-    // Optionally redirect back to orders
     setTimeout(() => navigate('/platform/orders'), 1500);
   };
 
@@ -84,7 +118,7 @@ const OrderTracker = ({ notify }) => {
 
   return (
     <div className={styles.container}>
-      <button className={styles.backBtn} onClick={() => navigate('/platform/orders')}>
+      <button type="button" className={styles.backBtn} onClick={() => navigate('/platform/orders')}>
         ← Back to Orders
       </button>
 
@@ -139,11 +173,11 @@ const OrderTracker = ({ notify }) => {
         </ul>
       </div>
 
-      {/* Action Area: Only show Confirm button if Delivered */}
+      {/* Action Area */}
       {isDelivered && (
         <div className={styles.actionArea}>
           <p>Received your goods? Please confirm delivery.</p>
-          <button className={styles.confirmBtn} onClick={() => setShowSignatureModal(true)}>
+          <button type="button" className={styles.confirmBtn} onClick={() => setShowSignatureModal(true)}>
             Confirm Receipt & Sign
           </button>
         </div>
@@ -170,8 +204,9 @@ const OrderTracker = ({ notify }) => {
             </div>
             
             <div className={styles.modalActions}>
-              <button className={styles.clearBtn} onClick={clearSignature}>Clear</button>
+              <button type="button" className={styles.clearBtn} onClick={clearSignature}>Clear</button>
               <button 
+                type="button"
                 className={`${styles.saveBtn} ${!hasSigned ? styles.disabled : ''}`} 
                 onClick={handleConfirmDelivery}
                 disabled={!hasSigned}
@@ -179,7 +214,7 @@ const OrderTracker = ({ notify }) => {
                 Confirm Delivery
               </button>
             </div>
-            <button className={styles.closeModal} onClick={() => setShowSignatureModal(false)}>Cancel</button>
+            <button type="button" className={styles.closeModal} onClick={() => setShowSignatureModal(false)}>Cancel</button>
           </div>
         </div>
       )}

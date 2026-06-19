@@ -1,7 +1,16 @@
 import React from 'react';
 import styles from './NotificationBadge.module.css';
 
-const NotificationBadge = ({ 
+interface NotificationBadgeProps {
+  count?: number;
+  maxCount?: number;
+  showZero?: boolean;
+  pulse?: boolean;
+  onClick?: () => void;
+  className?: string;
+}
+
+const NotificationBadge: React.FC<NotificationBadgeProps> = ({ 
   count = 0, 
   maxCount = 99,
   showZero = false,
@@ -17,6 +26,8 @@ const NotificationBadge = ({
     <span 
       className={`${styles.badge} ${pulse ? styles.pulse : ''} ${className}`}
       onClick={onClick}
+      role={onClick ? 'button' : undefined}
+      tabIndex={onClick ? 0 : undefined}
     >
       {displayCount}
     </span>

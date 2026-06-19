@@ -2,7 +2,7 @@ import React from 'react';
 import styles from './LandingPageHero.module.css';
 import heroImage from '../../assets/image2.jpg';
 
-const LandingPageHero = () => {
+const LandingPageHero: React.FC = () => {
   return (
     <section className={styles.hero}>
         <div className={styles.content}>
@@ -27,7 +27,6 @@ const LandingPageHero = () => {
         </div>
         
         <div className={styles.imageContainer}>
-             {/* Abstract Fashion / Fabric Image */}
             <img 
                 src={heroImage} 
                 alt="Fabric texture" 

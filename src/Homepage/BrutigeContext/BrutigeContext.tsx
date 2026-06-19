@@ -1,17 +1,86 @@
-import React, { createContext, useState, useContext, useEffect } from 'react';
+import React, { createContext, useState, useContext, useEffect, ReactNode } from 'react';
 import styles from './BrutigeContext.module.css';
 
-const BrutigeContext = createContext();
+// --- CORE TYPESCRIPT INTERFACES (Exported for the whole app) ---
+export interface Product {
+  id: number | string;
+  title: string;
+  price: string;
+  img: string;
+  
+  // 👇 MADE THESE OPTIONAL so components with "small" products don't throw errors
+  category?: string;
+  description?: string;
+  stock?: number;
+  totalCapacity?: number;
+  brandsBuilt?: number;
+  dateCreated?: string;
+  
+  // 👇 REMOVED [key: string]: any; 
+  // (It was breaking TypeScript's Omit utility and causing the missing properties error!)
+}
 
-export const BrutigeProvider = ({ children }) => {
+export interface CartItem extends Product {
+  quantity: number;
+  size: string;
+  color: string;
+}
+
+export interface SavedItem extends Product {
+  collection?: string; // Kept this since SavedView uses it
+}
+
+export interface Notification {
+  id: number;
+  message: string;
+}
+
+type ViewMode = 'customer' | 'maker';
+
+// The shape of the context value
+interface BrutigeContextType {
+  viewMode: ViewMode;
+  toggleViewMode: () => void;
+  
+  products: Product[];
+  addProduct: (newProduct: Omit<Product, 'id' | 'brandsBuilt' | 'totalCapacity' | 'dateCreated'> & { stock?: number }) => void;
+  deleteProduct: (id: number | string) => void;
+  
+  cartItems: CartItem[];
+  setCartItems: React.Dispatch<React.SetStateAction<CartItem[]>>;
+  addToCart: (product: Product, quantity?: number, size?: string, color?: string) => void;
+  
+  savedItems: SavedItem[];
+  toggleSaved: (product: Product) => void;
+  
+  notifications: Notification[];
+}
+
+interface BrutigeProviderProps {
+  children: ReactNode;
+}
+
+// Create context with undefined as default
+const BrutigeContext = createContext<BrutigeContextType | undefined>(undefined);
+
+export const BrutigeProvider: React.FC<BrutigeProviderProps> = ({ children }) => {
   // --- 1. CORE STATE MANAGEMENT ---
-  const [viewMode, setViewMode] = useState(() => localStorage.getItem('brut_viewMode') || 'customer');
-  const [cartItems, setCartItems] = useState(() => JSON.parse(localStorage.getItem('brut_cart')) || []);
-  const [savedItems, setSavedItems] = useState(() => JSON.parse(localStorage.getItem('brut_saved')) || []);
-  const [notifications, setNotifications] = useState([]);
+  const [viewMode, setViewMode] = useState<ViewMode>(() => 
+    (localStorage.getItem('brut_viewMode') as ViewMode) || 'customer'
+  );
+  
+  const [cartItems, setCartItems] = useState<CartItem[]>(() => 
+    JSON.parse(localStorage.getItem('brut_cart') || '[]')
+  );
+  
+  const [savedItems, setSavedItems] = useState<SavedItem[]>(() => 
+    JSON.parse(localStorage.getItem('brut_saved') || '[]')
+  );
+  
+  const [notifications, setNotifications] = useState<Notification[]>([]);
   
   // --- 2. PRODUCT DATABASE ---
-  const [products, setProducts] = useState(() => {
+  const [products, setProducts] = useState<Product[]>(() => {
     const savedProducts = localStorage.getItem('brut_products');
     return savedProducts ? JSON.parse(savedProducts) : [
         { 
@@ -43,9 +112,18 @@ export const BrutigeProvider = ({ children }) => {
     localStorage.setItem('brut_products', JSON.stringify(products));
   }, [viewMode, cartItems, savedItems, products]);
 
+  // --- 6. UTILITY: NOTIFICATIONS ---
+  const addNotification = (message: string) => {
+    const id = Date.now();
+    setNotifications(prev => [...prev, { id, message }]);
+    setTimeout(() => {
+      setNotifications(prev => prev.filter(n => n.id !== id));
+    }, 3000);
+  };
+
   // --- 4. MAKER ACTIONS ---
-  const addProduct = (newProduct) => {
-    const productWithMeta = {
+  const addProduct = (newProduct: Omit<Product, 'id' | 'brandsBuilt' | 'totalCapacity' | 'dateCreated'> & { stock?: number }) => {
+    const productWithMeta: Product = {
       ...newProduct,
       id: Date.now(),
       brandsBuilt: 0,
@@ -56,19 +134,19 @@ export const BrutigeProvider = ({ children }) => {
     addNotification("New infrastructure template published.");
   };
 
-  const deleteProduct = (id) => {
+  const deleteProduct = (id: number | string) => {
     setProducts(prev => prev.filter(p => p.id !== id));
     addNotification("Template removed from catalog.");
   };
 
   // --- 5. CUSTOMER ACTIONS ---
   const toggleViewMode = () => {
-    const newMode = viewMode === 'customer' ? 'maker' : 'customer';
+    const newMode: ViewMode = viewMode === 'customer' ? 'maker' : 'customer';
     setViewMode(newMode);
     addNotification(`Switched to ${newMode} mode.`);
   };
 
-  const addToCart = (product, quantity = 1, size = 'M', color = 'Black') => {
+  const addToCart = (product: Product, quantity: number = 1, size: string = 'M', color: string = 'Black') => {
     setCartItems(prev => {
       const exists = prev.find(item => item.id === product.id && item.size === size && item.color === color);
       if (exists) {
@@ -79,7 +157,7 @@ export const BrutigeProvider = ({ children }) => {
     addNotification(`${product.title} added to loop.`);
   };
 
-  const toggleSaved = (product) => {
+  const toggleSaved = (product: Product) => {
     setSavedItems(prev => {
       const isSaved = prev.some(item => item.id === product.id);
       if (isSaved) {
@@ -89,15 +167,6 @@ export const BrutigeProvider = ({ children }) => {
       addNotification("Template archived.");
       return [...prev, product];
     });
-  };
-
-  // --- 6. UTILITY: NOTIFICATIONS ---
-  const addNotification = (message) => {
-    const id = Date.now();
-    setNotifications(prev => [...prev, { id, message }]);
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== id));
-    }, 3000);
   };
 
   return (
@@ -123,4 +192,11 @@ export const BrutigeProvider = ({ children }) => {
   );
 };
 
-export const useBrutige = () => useContext(BrutigeContext);
+// Custom hook with safety check
+export const useBrutige = (): BrutigeContextType => {
+  const context = useContext(BrutigeContext);
+  if (context === undefined) {
+    throw new Error('useBrutige must be used within a BrutigeProvider');
+  }
+  return context;
+};

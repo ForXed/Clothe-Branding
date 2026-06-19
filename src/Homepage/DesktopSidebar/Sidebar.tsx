@@ -2,10 +2,26 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Sidebar.module.css';
 
-const Sidebar = ({ activeTab, setActiveTab, isDarkMode, toggleTheme }) => {
+// --- TypeScript Interfaces ---
+interface NavItem {
+  id: string;
+  label: string;
+  // 👇 FIXED: Changed JSX.Element to React.ReactNode
+  icon: React.ReactNode;
+}
+
+interface SidebarProps {
+  activeTab: string;
+  setActiveTab: (tab: string) => void;
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  goToStudio?: () => void; 
+}
+
+const Sidebar: React.FC<SidebarProps> = ({ activeTab, setActiveTab, isDarkMode, toggleTheme, goToStudio: propGoToStudio }) => {
   const navigate = useNavigate();
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { 
       id: 'shop', 
       label: 'Feed', 
@@ -23,9 +39,12 @@ const Sidebar = ({ activeTab, setActiveTab, isDarkMode, toggleTheme }) => {
     }
   ];
 
-  // Navigate to Studio (standalone page)
-  const goToStudio = () => {
-    navigate('/studio');
+  const handleGoToStudio = () => {
+    if (propGoToStudio) {
+      propGoToStudio();
+    } else {
+      navigate('/studio');
+    }
   };
 
   return (
@@ -42,6 +61,7 @@ const Sidebar = ({ activeTab, setActiveTab, isDarkMode, toggleTheme }) => {
         {navItems.map(item => (
           <button 
             key={item.id}
+            type="button"
             className={`${styles.navBtn} ${activeTab === item.id ? styles.active : ''}`}
             onClick={() => setActiveTab(item.id)}
             aria-label={item.label}
@@ -50,10 +70,10 @@ const Sidebar = ({ activeTab, setActiveTab, isDarkMode, toggleTheme }) => {
           </button>
         ))}
         
-        {/* Studio Button - Navigates to standalone /studio page */}
         <button 
+          type="button"
           className={styles.navBtn}
-          onClick={goToStudio}
+          onClick={handleGoToStudio}
           aria-label="Maker Studio"
         >
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -63,7 +83,7 @@ const Sidebar = ({ activeTab, setActiveTab, isDarkMode, toggleTheme }) => {
       </nav>
 
       <div className={styles.bottomStack}>
-        <button className={styles.themeToggle} onClick={toggleTheme}>
+        <button type="button" className={styles.themeToggle} onClick={toggleTheme}>
           {isDarkMode ? (
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="5"/><path d="M12 1v2m0 18v2M4.22 4.22l1.42 1.42m12.72 12.72l1.42 1.42M1 12h2m18 0h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
           ) : (
@@ -71,8 +91,8 @@ const Sidebar = ({ activeTab, setActiveTab, isDarkMode, toggleTheme }) => {
           )}
         </button>
 
-        {/* GEAR ICON - Now goes to Settings instead of Profile */}
         <button 
+          type="button"
           className={`${styles.settingsBtn} ${activeTab === 'settings' ? styles.active : ''}`}
           onClick={() => setActiveTab('settings')}
           aria-label="Settings"

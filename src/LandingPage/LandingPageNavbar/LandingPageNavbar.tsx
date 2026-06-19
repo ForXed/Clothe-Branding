@@ -1,11 +1,10 @@
 import React, { useRef } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Added routing imports
+import { Link, useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import styles from './LandingPageNavbar.module.css';
 
-// The Brand Logo remains inside the file as requested
-const BrutigeLogo = () => (
+const BrutigeLogo: React.FC = () => (
   <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="25" cy="25" r="25" fill="black"/>
     <path d="M24.6 13L24.6 30.5L14 36.5L24.6 13Z" fill="white"/>
@@ -13,12 +12,15 @@ const BrutigeLogo = () => (
   </svg>
 );
 
-const LandingPageNavbar = () => {
-  const navRef = useRef();
-  const navigate = useNavigate(); // Hook to navigate programmatically
+const LandingPageNavbar: React.FC = () => {
+  // 👇 Typed ref
+  const navRef = useRef<HTMLElement>(null);
+  const navigate = useNavigate();
 
-  // GSAP Entrance Animation
   useGSAP(() => {
+    // 👇 Safety check for GSAP trigger
+    if (!navRef.current) return;
+
     gsap.from(navRef.current, {
       y: -100,
       opacity: 0,
@@ -29,7 +31,6 @@ const LandingPageNavbar = () => {
 
   return (
     <nav ref={navRef} className={styles.navbar}>
-      {/* Clickable Logo leads to Home */}
       <div 
         className={styles.logoWrapper} 
         onClick={() => navigate('/')}
@@ -40,19 +41,15 @@ const LandingPageNavbar = () => {
       </div>
 
       <ul className={styles.navLinks}>
-          {/* These use normal anchor tags because they link to sections on the same page */}
           <li><a href="#how-it-works">How it Works</a></li>
           <li><a href="#designers">For Designers</a></li>
           <li><a href="#pricing">Pricing</a></li>
       </ul>
 
       <div className={styles.authButtons}>
-        {/* Log In Routes to /login */}
         <Link to="/login" className={styles.loginBtn}>
           Log In
         </Link>
-
-        {/* Get Started Routes to /signup */}
         <Link to="/signup" className={styles.startBtn}>
           Get Started
         </Link>

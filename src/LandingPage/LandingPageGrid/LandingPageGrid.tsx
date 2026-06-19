@@ -4,7 +4,6 @@ import { useGSAP } from '@gsap/react';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import styles from './LandingPageGrid.module.css';
 
-// Importing your local assets
 import image4 from '../../assets/image4.jpg';
 import image5 from '../../assets/image5.jpg';
 import image6 from '../../assets/image6.jpg';
@@ -16,7 +15,14 @@ import image1 from '../../assets/image1.jpg';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const items = [
+// 👇 Interface for grid items
+interface GridItem {
+  size: 'tall' | 'wide' | 'small';
+  src: string;
+  title: string;
+}
+
+const items: GridItem[] = [
   { size: 'tall', src: image4, title: "Avant-Garde" },
   { size: 'wide', src: image5, title: "Streetwear Identity" },
   { size: 'small', src: image6, title: "Minimalist Loop" },
@@ -27,11 +33,13 @@ const items = [
   { size: 'wide', src: image1, title: "Modern Heritage" },
 ];
 
-const LandingPageGrid = () => {
-  const containerRef = useRef();
+const LandingPageGrid: React.FC = () => {
+  // 👇 Typed ref
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useGSAP(() => {
-    // Refined Entrance: Staggered fade up with a slight scale from below
+    if (!containerRef.current) return;
+
     gsap.from(`.${styles.card}`, {
       scrollTrigger: {
         trigger: containerRef.current,
@@ -46,13 +54,16 @@ const LandingPageGrid = () => {
       ease: "power3.out"
     });
 
-    // Refined Image Hover: Subtle scale and color reveal
-    const cards = gsap.utils.toArray(`.${styles.card}`);
+    // 👇 Explicitly type the array of cards
+    const cards = gsap.utils.toArray<HTMLElement>(`.${styles.card}`);
     
     cards.forEach(card => {
-      const img = card.querySelector(`.${styles.image}`);
-      const frame = card.querySelector(`.${styles.frame}`);
+      // 👇 Cast querySelector results to HTMLElement so GSAP accepts them
+      const img = card.querySelector(`.${styles.image}`) as HTMLElement | null;
+      const frame = card.querySelector(`.${styles.frame}`) as HTMLElement | null;
       
+      if (!img || !frame) return; // Safety check
+
       const tl = gsap.timeline({ paused: true });
 
       tl.to(img, {
@@ -83,12 +94,8 @@ const LandingPageGrid = () => {
       <div ref={containerRef} className={styles.gridContainer}>
         {items.map((item, index) => (
           <div key={index} className={`${styles.card} ${styles[item.size]}`}>
-            {/* Animated Frame Overlay */}
             <div className={styles.frame}></div>
-            
             <img src={item.src} alt={item.title} className={styles.image} />
-            
-            {/* Minimal Title - Only visible on hover/focus if desired, or always subtle */}
             <div className={styles.minimalLabel}>
               {item.title}
             </div>

@@ -16,12 +16,27 @@ import SavedView from './SavedView/SavedView';
 import SearchView from './SearchView/SearchView';
 import styles from './BrutigePlatform.module.css';
 
+// 👇 IMPORT THE TYPES FROM THE CONTEXT INSTEAD OF DEFINING THEM HERE
+import { Product, CartItem, SavedItem } from './BrutigeContext/BrutigeContext';
+
+interface BrutigePlatformProps {
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+  notify: (message: string, type: 'success' | 'error' | 'info' | string) => void;
+}
+
+interface ProfileWrapperProps {
+  userAvatar: string | null;
+  setUserAvatar: React.Dispatch<React.SetStateAction<string | null>>;
+  setActiveTab: (tab: string) => void;
+}
+
 // Wrapper component to handle URL params for Profile
-const ProfileWrapper = ({ userAvatar, setUserAvatar, setActiveTab }) => {
-  const { makerId } = useParams();
+const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ userAvatar, setUserAvatar, setActiveTab }) => {
+  const { makerId } = useParams<{ makerId: string }>();
   const navigate = useNavigate();
 
-  const handleProductClick = (product) => {
+  const handleProductClick = (product: Product) => {
     navigate(`/platform/shop`, { state: { selectedProduct: product } });
   };
 
@@ -31,7 +46,7 @@ const ProfileWrapper = ({ userAvatar, setUserAvatar, setActiveTab }) => {
 
   return (
     <ProfileView 
-      makerId={makerId}
+      makerId={makerId || 'me'}
       userAvatar={userAvatar}
       setUserAvatar={setUserAvatar}
       onProductClick={handleProductClick}
@@ -40,32 +55,33 @@ const ProfileWrapper = ({ userAvatar, setUserAvatar, setActiveTab }) => {
   );
 };
 
-const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
+const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleTheme, notify }) => {
   const navigate = useNavigate();
   const location = useLocation();
   
   const pathSegments = location.pathname.split('/');
-  const currentTab = pathSegments[2] || 'shop';
+  const currentTab: string = pathSegments[2] || 'shop';
 
-  const [selectedProduct, setSelectedProduct] = useState(null);
-  const [cartItems, setCartItems] = useState([]);
-  const [savedItems, setSavedItems] = useState([]);
-  const [userAvatar, setUserAvatar] = useState(null);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [cartItems, setCartItems] = useState<CartItem[]>([]);
+  const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
   
   // --- STATE: Control Mobile Nav Visibility ---
-  // Default to false (visible). ChatRoom will set this to true (hidden) when a chat is open.
-  const [hideMobileNav, setHideMobileNav] = useState(false);
+  const [hideMobileNav, setHideMobileNav] = useState<boolean>(false);
 
   // --- COLLECTIONS STATE ---
-  const [collections, setCollections] = useState(['All', 'Streetwear', 'Minimalist', 'Summer Drop', 'Blueprints']);
+  const [collections, setCollections] = useState<string[]>(['All', 'Streetwear', 'Minimalist', 'Summer Drop', 'Blueprints']);
 
   // Handle product selection from navigation state
   useEffect(() => {
-    if (location.state?.selectedProduct) {
-      setSelectedProduct(location.state.selectedProduct);
+    // Safely cast location.state to our expected shape
+    const state = location.state as { selectedProduct?: Product } | null;
+    if (state?.selectedProduct) {
+      setSelectedProduct(state.selectedProduct);
       navigate(location.pathname, { replace: true, state: {} });
     }
-  }, [location.state, navigate]);
+  }, [location.state, navigate, location.pathname]);
 
   // Load avatar from local storage
   useEffect(() => {
@@ -79,16 +95,15 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
   }, [userAvatar]);
 
   // --- SAFEGUARD: Reset Mobile Nav when leaving Chat Tab ---
-  // If the user navigates away from 'chat' entirely, ensure the nav bar comes back.
   useEffect(() => {
     if (currentTab !== 'chat') {
       setHideMobileNav(false);
     }
   }, [currentTab]);
 
-  const handleTabChange = (tabId) => {
+  const handleTabChange = (tabId: string) => {
     setSelectedProduct(null);
-    setHideMobileNav(false); // Reset nav visibility on manual tab change
+    setHideMobileNav(false); 
     navigate(`/platform/${tabId}`);
   };
 
@@ -97,7 +112,7 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
   };
 
   // --- CART LOGIC ---
-  const addToCart = (product, quantity = 1, size = 'M', color = 'Default') => {
+  const addToCart = (product: Product, quantity: number = 1, size: string = 'M', color: string = 'Default') => {
     setCartItems(prev => {
       const existingIndex = prev.findIndex(item => item.id === product.id && item.size === size);
       
@@ -115,7 +130,7 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
     if (notify) notify('Added to Loop', 'success');
   };
 
-  const updateQuantity = (id, size, newQuantity) => {
+  const updateQuantity = (id: string | number, size: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     setCartItems(prev => prev.map(item => 
       (item.id === id && item.size === size) 
@@ -124,13 +139,13 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
     ));
   };
 
-  const removeItem = (id, size) => {
+  const removeItem = (id: string | number, size: string) => {
     setCartItems(prev => prev.filter(item => 
       !(item.id === id && item.size === size)
     ));
   };
 
-  const toggleSaved = (product) => {
+  const toggleSaved = (product: Product) => {
     setSavedItems(prev => {
       const isSaved = prev.some(item => item.id === product.id);
       if (!isSaved && notify) notify('Saved to Archive', 'success');
@@ -143,7 +158,7 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
   };
 
   // --- COLLECTION HANDLERS ---
-  const handleCreateCollection = (newName) => {
+  const handleCreateCollection = (newName: string): boolean => {
     if (newName && !collections.includes(newName)) {
       setCollections([...collections, newName]);
       if (notify) notify(`Collection "${newName}" created`, 'success');
@@ -152,7 +167,7 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
     return false;
   };
 
-  const handleMoveItem = (itemId, targetCollection) => {
+  const handleMoveItem = (itemId: string | number, targetCollection: string) => {
     setSavedItems(prev => prev.map(item => 
       item.id === itemId 
         ? { ...item, collection: targetCollection } 
@@ -162,7 +177,6 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
   };
 
   // Determine if we should show header
-  // Hides header for 'chat' because ChatRoom has its own internal header
   const showHeader = !selectedProduct && 
                      currentTab !== 'search' && 
                      currentTab !== 'chat' &&
@@ -217,12 +231,11 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
             
             <Route path="search" element={<SearchView onSelect={setSelectedProduct} />} />
             
-            {/* Pass the state setter to ChatRoom */}
             <Route 
               path="chat" 
               element={
                 <ChatRoom 
-                  initialData={location.state} 
+                  initialData={location.state as any} 
                   onMobileNavChange={setHideMobileNav} 
                 /> 
               } 
@@ -246,7 +259,7 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
                   makerId="me" 
                   userAvatar={userAvatar}
                   setUserAvatar={setUserAvatar}
-                  onProductClick={(p) => console.log(p)}
+                  onProductClick={(p: Product) => console.log(p)}
                   onMessageMaker={() => navigate('/platform/chat')}
                 />
               } 
@@ -257,7 +270,7 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
               element={
                 <ProfileSettings 
                   userProfile={{ avatar: userAvatar }}
-                  setUserProfile={(data) => setUserAvatar(data.avatar)}
+                  setUserProfile={(data: { avatar: string | null }) => setUserAvatar(data.avatar)}
                 />
               } 
             />
@@ -305,7 +318,6 @@ const BrutigePlatform = ({ isDarkMode, toggleTheme, notify }) => {
         </div>
       </main>
 
-      {/* Conditionally render MobileNav based on hideMobileNav state */}
       {!hideMobileNav && (
         <MobileNav 
           activeTab={currentTab} 

@@ -1,8 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './ProfileSettings.module.css';
+
+// 👇 ADDED @ts-ignore TO SILENCE JS IMPORT ERRORS
+// @ts-ignore
 import { countryCodes, searchCountryCodes } from "../../data/countryCodes";
+// @ts-ignore
 import { languages } from '../../data/languages';
+// @ts-ignore
 import { timezones } from '../../data/timezones';
 
 // Import Modal Components
@@ -12,38 +17,146 @@ import TwoStepSetup from '../../Form/TwoFactorSetup';
 // Import Brand Vault
 import BrandVault from '../BrandVault/BrandVault';
 
-const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' }) => {
+// --- TypeScript Interfaces ---
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  displayName?: string;
+  username?: string;
+  email?: string;
+  phoneNumber?: string;
+  location?: string;
+  timezone?: string;
+  language?: string;
+  bio?: string;
+  avatar?: string | null;
+}
+
+interface CountryCode {
+  flag: string;
+  code: string;
+  country: string;
+}
+
+interface Language {
+  code: string;
+  name: string;
+  nativeName: string;
+}
+
+interface Timezone {
+  value: string;
+  label: string;
+  offset: string;
+}
+
+interface Session {
+  device: string;
+  location: string;
+  lastActive: string;
+  current: boolean;
+}
+
+interface SecurityData {
+  twoFactor: boolean;
+  publicProfile: boolean;
+  loginAlerts: boolean;
+  activeSessions: Session[];
+}
+
+interface NotificationMethods {
+  email: boolean;
+  push: boolean;
+  sms: boolean;
+}
+
+interface NotificationPrefs {
+  orders: NotificationMethods;
+  messages: NotificationMethods;
+  marketing: NotificationMethods;
+  system: NotificationMethods;
+  [key: string]: NotificationMethods;
+}
+
+interface PaymentMethod {
+  id: number;
+  type: 'card' | 'paypal';
+  last4?: string;
+  brand?: string;
+  expiry?: string;
+  email?: string;
+  default: boolean;
+}
+
+interface BillingHistoryItem {
+  id: number;
+  date: string;
+  description: string;
+  amount: number;
+  status: string;
+  invoice: string;
+}
+
+interface BillingData {
+  paymentMethods: PaymentMethod[];
+  history: BillingHistoryItem[];
+}
+
+interface AccountData {
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  username: string;
+  email: string;
+  phoneNumber: string;
+  location: string;
+  timezone: string;
+  language: string;
+  bio: string;
+  avatar: string | null;
+}
+
+// 👇 FIXED: Changed JSX.Element to React.ReactNode
+interface Section {
+  id: string;
+  label: string;
+  icon: React.ReactNode;
+}
+
+interface ProfileSettingsProps {
+  userProfile?: UserProfile | null;
+  setUserProfile?: (data: any) => void;
+  userType?: 'customer' | 'maker';
+}
+
+const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile, setUserProfile, userType = 'customer' }) => {
   const navigate = useNavigate();
-  const fileInputRef = useRef(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const [activeSection, setActiveSection] = useState('account');
-  const [isLoading, setIsLoading] = useState(false);
-  const [saveSuccess, setSaveSuccess] = useState(false);
+  const [activeSection, setActiveSection] = useState<string>('account');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [saveSuccess, setSaveSuccess] = useState<boolean>(false);
   
   // Modal State
-  const [showPasswordModal, setShowPasswordModal] = useState(false);
-  const [show2FAModal, setShow2FAModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState<boolean>(false);
+  const [show2FAModal, setShow2FAModal] = useState<boolean>(false);
   
   // --- DROPDOWN STATES ---
-  // Country
-  const [countrySearch, setCountrySearch] = useState('');
-  const [showCountryDropdown, setShowCountryDropdown] = useState(false);
-  const [selectedCountry, setSelectedCountry] = useState(countryCodes[0]);
+  const [countrySearch, setCountrySearch] = useState<string>('');
+  const [showCountryDropdown, setShowCountryDropdown] = useState<boolean>(false);
+  const [selectedCountry, setSelectedCountry] = useState<CountryCode>(countryCodes[0] as CountryCode);
   
-  // Language
-  const [showLangDropdown, setShowLangDropdown] = useState(false);
-  const [langSearch, setLangSearch] = useState('');
+  const [showLangDropdown, setShowLangDropdown] = useState<boolean>(false);
+  const [langSearch, setLangSearch] = useState<string>('');
   
-  // Timezone
-  const [showTzDropdown, setShowTzDropdown] = useState(false);
-  const [tzSearch, setTzSearch] = useState('');
+  const [showTzDropdown, setShowTzDropdown] = useState<boolean>(false);
+  const [tzSearch, setTzSearch] = useState<string>('');
   
-  // Location state
-  const [isGettingLocation, setIsGettingLocation] = useState(false);
-  const [locationError, setLocationError] = useState('');
+  const [isGettingLocation, setIsGettingLocation] = useState<boolean>(false);
+  const [locationError, setLocationError] = useState<string>('');
 
   // Account Data
-  const [accountData, setAccountData] = useState({
+  const [accountData, setAccountData] = useState<AccountData>({
     firstName: userProfile?.firstName || '',
     lastName: userProfile?.lastName || '',
     displayName: userProfile?.displayName || '',
@@ -58,7 +171,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
   });
 
   // Security Data
-  const [securityData, setSecurityData] = useState({
+  const [securityData, setSecurityData] = useState<SecurityData>({
     twoFactor: false,
     publicProfile: true,
     loginAlerts: true,
@@ -69,7 +182,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
   });
 
   // Notification Preferences
-  const [notificationPrefs, setNotificationPrefs] = useState({
+  const [notificationPrefs, setNotificationPrefs] = useState<NotificationPrefs>({
     orders: { email: true, push: true, sms: false },
     messages: { email: true, push: true, sms: false },
     marketing: { email: false, push: false, sms: false },
@@ -77,7 +190,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
   });
 
   // Billing Data
-  const [billingData, setBillingData] = useState({
+  const [billingData, setBillingData] = useState<BillingData>({
     paymentMethods: [
       { id: 1, type: 'card', last4: '4242', brand: 'Visa', expiry: '12/25', default: true },
       { id: 2, type: 'paypal', email: 'user@example.com', default: false }
@@ -93,18 +206,17 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
 
   const filteredCountries = countrySearch ? searchCountryCodes(countrySearch) : countryCodes;
   
-  // Filter helpers for Lang and TZ
   const filteredLanguages = langSearch 
-    ? languages.filter(l => l.name.toLowerCase().includes(langSearch.toLowerCase()) || l.nativeName.toLowerCase().includes(langSearch.toLowerCase()))
+    ? languages.filter((l: Language) => l.name.toLowerCase().includes(langSearch.toLowerCase()) || l.nativeName.toLowerCase().includes(langSearch.toLowerCase()))
     : languages;
 
   const filteredTimezones = tzSearch
-    ? timezones.filter(t => t.label.toLowerCase().includes(tzSearch.toLowerCase()) || t.value.toLowerCase().includes(tzSearch.toLowerCase()))
+    ? timezones.filter((t: Timezone) => t.label.toLowerCase().includes(tzSearch.toLowerCase()) || t.value.toLowerCase().includes(tzSearch.toLowerCase()))
     : timezones;
 
   // --- SECTIONS CONFIGURATION ---
-  const getSections = () => {
-    const baseSections = [
+  const getSections = (): Section[] => {
+    const baseSections: Section[] = [
       { id: 'account', label: 'Account', icon: <UserIcon /> },
       { id: 'security', label: 'Security', icon: <ShieldIcon /> },
       { id: 'notifications', label: 'Notifications', icon: <BellIcon /> },
@@ -157,14 +269,14 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
         }
         setIsGettingLocation(false);
       },
-      (error) => {
+      () => {
         setLocationError('Permission denied or unavailable');
         setIsGettingLocation(false);
       }
     );
   };
 
-  const handleInputChange = (field, value) => {
+  const handleInputChange = (field: keyof AccountData, value: any) => {
     setAccountData(prev => {
       const updated = { ...prev, [field]: value };
       if (setUserProfile) setUserProfile(updated);
@@ -172,18 +284,18 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
     });
   };
 
-  const handleCountrySelect = (country) => {
+  const handleCountrySelect = (country: CountryCode) => {
     setSelectedCountry(country);
     setShowCountryDropdown(false);
     setCountrySearch('');
   };
 
-  const handlePhoneChange = (value) => {
+  const handlePhoneChange = (value: string) => {
     const cleaned = value.replace(/[^\d+]/g, '');
     handleInputChange('phoneNumber', cleaned);
   };
 
-  const handleSave = async (section) => {
+  const handleSave = async (section: string) => {
     setIsLoading(true);
     await new Promise(resolve => setTimeout(resolve, 800));
     console.log(`Saving ${section}...`);
@@ -192,7 +304,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
     setTimeout(() => setSaveSuccess(false), 3000);
   };
 
-  const handleNotificationChange = (category, method, value) => {
+  const handleNotificationChange = (category: keyof NotificationPrefs, method: keyof NotificationMethods, value: boolean) => {
     setNotificationPrefs(prev => ({
       ...prev,
       [category]: { ...prev[category], [method]: value }
@@ -201,22 +313,23 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
 
   const handleAvatarClick = () => fileInputRef.current?.click();
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => handleInputChange('avatar', reader.result);
+      reader.onloadend = () => handleInputChange('avatar', reader.result as string);
       reader.readAsDataURL(file);
     }
   };
 
   // Close dropdowns when clicking outside
   useEffect(() => {
-    const handleClickOutside = (e) => {
-      if (!e.target.closest(`.${styles.phoneInputWrapper}`)) {
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest(`.${styles.phoneInputWrapper}`)) {
         setShowCountryDropdown(false);
       }
-      if (!e.target.closest(`.${styles.customSelectWrapper}`)) {
+      if (!target.closest(`.${styles.customSelectWrapper}`)) {
         setShowLangDropdown(false);
         setShowTzDropdown(false);
       }
@@ -266,6 +379,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
             {sections.map(section => (
               <button
                 key={section.id}
+                type="button"
                 className={`${styles.navItem} ${activeSection === section.id ? styles.activeNav : ''}`}
                 onClick={() => setActiveSection(section.id)}
               >
@@ -276,6 +390,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
             
             {userType === 'customer' && !sections.some(s => s.id === 'business') && (
               <button
+                type="button"
                 className={`${styles.navItem} ${styles.upgradeNav}`}
                 onClick={() => setActiveSection('business')}
               >
@@ -355,7 +470,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                             <input type="text" placeholder="Search country..." value={countrySearch} onChange={(e) => setCountrySearch(e.target.value)} autoFocus />
                           </div>
                           <div className={styles.dropdownList}>
-                            {filteredCountries.map((country, idx) => (
+                            {filteredCountries.map((country: CountryCode, idx: number) => (
                               <button key={`${country.code}-${idx}`} className={styles.dropdownOption} onClick={() => handleCountrySelect(country)} type="button">
                                 <span className={styles.countryFlag}>{country.flag}</span>
                                 <span className={styles.optionText}>{country.country}</span>
@@ -394,7 +509,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                         }}
                       >
                         <span className={styles.selectedValue}>
-                          {languages.find(l => l.code === accountData.language)?.nativeName || 'Select Language'}
+                          {languages.find((l: Language) => l.code === accountData.language)?.nativeName || 'Select Language'}
                         </span>
                         <ChevronDown />
                       </button>
@@ -406,7 +521,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                             <input type="text" placeholder="Search language..." value={langSearch} onChange={(e) => setLangSearch(e.target.value)} autoFocus />
                           </div>
                           <div className={styles.dropdownList}>
-                            {filteredLanguages.map((lang) => (
+                            {filteredLanguages.map((lang: Language) => (
                               <button 
                                 key={lang.code} 
                                 className={`${styles.dropdownOption} ${accountData.language === lang.code ? styles.activeOption : ''}`} 
@@ -440,7 +555,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                         }}
                       >
                         <span className={styles.selectedValue}>
-                          {timezones.find(t => t.value === accountData.timezone)?.label || 'Select Timezone'}
+                          {timezones.find((t: Timezone) => t.value === accountData.timezone)?.label || 'Select Timezone'}
                         </span>
                         <ChevronDown />
                       </button>
@@ -452,7 +567,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                             <input type="text" placeholder="Search city or zone..." value={tzSearch} onChange={(e) => setTzSearch(e.target.value)} autoFocus />
                           </div>
                           <div className={styles.dropdownList}>
-                            {filteredTimezones.map((tz, index) => (
+                            {filteredTimezones.map((tz: Timezone, index: number) => (
                               <button 
                                 key={`${tz.value}-${index}`} 
                                 className={`${styles.dropdownOption} ${accountData.timezone === tz.value ? styles.activeOption : ''}`} 
@@ -475,13 +590,13 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
 
                   <div className={styles.formGroupFull}>
                     <label>Bio</label>
-                    <textarea rows="3" value={accountData.bio} onChange={(e) => handleInputChange('bio', e.target.value)} placeholder="Tell us about yourself..." className={styles.textarea} />
+                    <textarea rows={3} value={accountData.bio} onChange={(e) => handleInputChange('bio', e.target.value)} placeholder="Tell us about yourself..." className={styles.textarea} />
                   </div>
                 </div>
                 
                 <div className={styles.formActions}>
-                  <button className={styles.btnPrimary} onClick={() => handleSave('account')} disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Changes'}</button>
-                  <button className={styles.btnText}>Cancel</button>
+                  <button type="button" className={styles.btnPrimary} onClick={() => handleSave('account')} disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Changes'}</button>
+                  <button type="button" className={styles.btnText}>Cancel</button>
                 </div>
               </div>
             </div>
@@ -510,7 +625,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                   <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className={styles.upgradeIcon}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
                   <h4>Maker Studio Dashboard</h4>
                   <p>Access your production dashboard, manage tech packs, and view analytics.</p>
-                  <button className={styles.btnPrimary} onClick={() => navigate('/studio')}>Go to Studio</button>
+                  <button type="button" className={styles.btnPrimary} onClick={() => navigate('/studio')}>Go to Studio</button>
                 </div>
               </div>
             </div>
@@ -533,7 +648,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                     <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg> Process secure escrow payments</li>
                     <li><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg> Generate Tech Packs automatically</li>
                   </ul>
-                  <button className={styles.btnPrimary} onClick={() => navigate('/maker-signup')}>Start Application</button>
+                  <button type="button" className={styles.btnPrimary} onClick={() => navigate('/maker-signup')}>Start Application</button>
                   <p className={styles.upgradeNote}>Free to apply. Verification takes 24-48 hours.</p>
                 </div>
               </div>
@@ -595,7 +710,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                           {session.current && <span className={styles.currentBadge}>Current</span>}
                         </div>
                       </div>
-                      {!session.current && <button className={styles.btnText}>Revoke</button>}
+                      {!session.current && <button type="button" className={styles.btnText}>Revoke</button>}
                     </div>
                   ))}
                 </div>
@@ -608,7 +723,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                     <h4>Change Password</h4>
                     <p>Update your password regularly for security</p>
                   </div>
-                  <button className={styles.btnSecondary} onClick={() => setShowPasswordModal(true)}>Update Password</button>
+                  <button type="button" className={styles.btnSecondary} onClick={() => setShowPasswordModal(true)}>Update Password</button>
                 </div>
               </div>
             </div>
@@ -634,13 +749,13 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                       <h4>{category.charAt(0).toUpperCase() + category.slice(1)}</h4>
                       <p>{category === 'orders' ? 'New orders, shipping updates' : category === 'messages' ? 'Direct messages' : category === 'marketing' ? 'Tips and offers' : 'Security alerts'}</p>
                     </div>
-                    <label className={styles.checkbox}><input type="checkbox" checked={methods.email} onChange={(e) => handleNotificationChange(category, 'email', e.target.checked)} /><span className={styles.checkmark}></span></label>
-                    <label className={styles.checkbox}><input type="checkbox" checked={methods.push} onChange={(e) => handleNotificationChange(category, 'push', e.target.checked)} /><span className={styles.checkmark}></span></label>
-                    <label className={styles.checkbox}><input type="checkbox" checked={methods.sms} onChange={(e) => handleNotificationChange(category, 'sms', e.target.checked)} /><span className={styles.checkmark}></span></label>
+                    <label className={styles.checkbox}><input type="checkbox" checked={methods.email} onChange={(e) => handleNotificationChange(category as keyof NotificationPrefs, 'email', e.target.checked)} /><span className={styles.checkmark}></span></label>
+                    <label className={styles.checkbox}><input type="checkbox" checked={methods.push} onChange={(e) => handleNotificationChange(category as keyof NotificationPrefs, 'push', e.target.checked)} /><span className={styles.checkmark}></span></label>
+                    <label className={styles.checkbox}><input type="checkbox" checked={methods.sms} onChange={(e) => handleNotificationChange(category as keyof NotificationPrefs, 'sms', e.target.checked)} /><span className={styles.checkmark}></span></label>
                   </div>
                 ))}
                 <div className={styles.formActions} style={{ marginTop: '24px' }}>
-                  <button className={styles.btnPrimary} onClick={() => handleSave('notifications')} disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Preferences'}</button>
+                  <button type="button" className={styles.btnPrimary} onClick={() => handleSave('notifications')} disabled={isLoading}>{isLoading ? 'Saving...' : 'Save Preferences'}</button>
                 </div>
               </div>
             </div>
@@ -658,7 +773,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                 <div className={styles.card}>
                   <div className={styles.cardHeaderRow}>
                     <h4 className={styles.subSectionTitle}>Payment Methods</h4>
-                    <button className={styles.btnSecondary}>Add Payment Method</button>
+                    <button type="button" className={styles.btnSecondary}>Add Payment Method</button>
                   </div>
                   <div className={styles.paymentList}>
                     {billingData.paymentMethods.map(method => (
@@ -674,7 +789,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                           <h5>{method.type === 'card' ? `•••• ${method.last4}` : method.email} {method.default && <span className={styles.defaultBadge}>Default</span>}</h5>
                           <p>{method.type === 'card' ? `Expires ${method.expiry}` : 'PayPal Account'}</p>
                         </div>
-                        <button className={styles.btnText}>{method.default ? 'Edit' : 'Set Default'}</button>
+                        <button type="button" className={styles.btnText}>{method.default ? 'Edit' : 'Set Default'}</button>
                       </div>
                     ))}
                   </div>
@@ -684,7 +799,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
               <div className={styles.card} style={{ marginTop: '24px' }}>
                 <div className={styles.cardHeaderRow}>
                   <h4 className={styles.subSectionTitle}>{userType === 'customer' ? 'Past Orders' : 'Billing History'}</h4>
-                  <button className={styles.btnText}>Download All</button>
+                  <button type="button" className={styles.btnText}>Download All</button>
                 </div>
                 <div className={styles.billingList}>
                   {billingData.history.map(item => (
@@ -696,7 +811,7 @@ const ProfileSettings = ({ userProfile, setUserProfile, userType = 'customer' })
                       <div className={styles.billingAmount}>
                         <span>${item.amount.toFixed(2)}</span>
                         <span className={`${styles.statusBadge} ${styles[item.status]}`}>{item.status}</span>
-                        <button className={styles.btnText} style={{fontSize: '0.75rem', marginLeft: '10px'}}>
+                        <button type="button" className={styles.btnText} style={{fontSize: '0.75rem', marginLeft: '10px'}}>
                           {userType === 'customer' ? 'View' : 'Invoice'}
                         </button>
                       </div>

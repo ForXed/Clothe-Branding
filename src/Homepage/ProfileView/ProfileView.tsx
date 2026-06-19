@@ -2,24 +2,70 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import styles from './ProfileView.module.css';
 
-const ProfileView = ({ userAvatar, setUserAvatar, onProductClick }) => {
-  const { makerId } = useParams();
+// --- TypeScript Interfaces ---
+export interface ProfileProduct {
+  id: number | string;
+  title: string;
+  price: string;
+  category: string;
+  stock: number;
+  img: string;
+}
+
+interface MakerStats {
+  products: number;
+  rating: number;
+  sales: number;
+  responseTime?: string;
+}
+
+interface MakerProfile {
+  id: string;
+  name: string;
+  bio: string;
+  location: string;
+  established: string; // Changed from 'joined' to fit the industrial vibe
+  stats: MakerStats;
+  avatar: string | null;
+  cover: string;
+  verified: boolean;
+  products: ProfileProduct[];
+}
+
+interface ProfileViewProps {
+  makerId?: string;
+  userAvatar: string | null;
+  setUserAvatar: React.Dispatch<React.SetStateAction<string | null>>;
+  onProductClick: (product: ProfileProduct) => void;
+  onMessageMaker?: () => void;
+}
+
+const ProfileView: React.FC<ProfileViewProps> = ({ 
+  makerId: propMakerId, 
+  userAvatar, 
+  setUserAvatar, 
+  onProductClick, 
+  onMessageMaker 
+}) => {
+  const params = useParams<{ makerId: string }>();
   const navigate = useNavigate();
   
-  const currentMakerId = makerId || 'me';
-  const [loading, setLoading] = useState(true);
-  const [profileData, setProfileData] = useState(null);
+  const currentMakerId = params.makerId || propMakerId || 'me';
+  
+  const [loading, setLoading] = useState<boolean>(true);
+  const [profileData, setProfileData] = useState<MakerProfile | null>(null);
+  const [activeTab, setActiveTab] = useState<'infrastructure' | 'specs'>('infrastructure');
+  const [shareCopied, setShareCopied] = useState<boolean>(false);
 
-  // Mock Database
-  const MAKERS_DB = {
+  // Mock Database (Stripped of social handles)
+  const MAKERS_DB: Record<string, MakerProfile> = {
     'julian-v-studio': {
       id: 'julian-v-studio',
-      name: "Julian V.",
-      handle: "@julianv_studio",
-      bio: "Creative director specializing in heavyweight blanks & techwear aesthetics. Based in Berlin. Available for custom production runs ranging from 50-500 units.",
+      name: "Julian V. Studio",
+      bio: "Creative direction specializing in heavyweight blanks & techwear architecture. Based in Berlin. Available for custom production runs ranging from 50-500 units.",
       location: "Berlin, DE",
-      joined: "2023",
-      stats: { products: 6, rating: 4.9, sales: 128, responseTime: "2h" },
+      established: "2023",
+      stats: { products: 6, rating: 4.9, sales: 128, responseTime: "< 2h" },
       avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200",
       cover: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200",
       verified: true,
@@ -32,13 +78,13 @@ const ProfileView = ({ userAvatar, setUserAvatar, onProductClick }) => {
     },
     'me': {
       id: 'me',
-      name: "My Profile",
-      handle: "@my_brand",
-      bio: "You haven't set up your maker profile yet. Go to Settings to upgrade!",
+      name: "My Atelier",
+      bio: "You haven't set up your maker profile yet. Go to Settings to upgrade.",
       location: "Unknown",
-      joined: "2024",
+      established: "2024",
       stats: { products: 0, rating: 0, sales: 0 },
       avatar: userAvatar,
+      cover: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200",
       verified: false,
       products: []
     }
@@ -54,40 +100,50 @@ const ProfileView = ({ userAvatar, setUserAvatar, onProductClick }) => {
     return () => clearTimeout(timer);
   }, [currentMakerId, userAvatar]);
 
-  const handleProductClick = (product) => {
+  const handleProductClick = (product: ProfileProduct) => {
     if (onProductClick) onProductClick(product);
   };
 
-  // Direct Navigation Handler to Chat
   const handleContactMaker = () => {
     if (!profileData) return;
     
-    // CRITICAL FIX: Force scroll to top BEFORE navigation
-    // This prevents the Chat Room from inheriting the Profile's scroll position
     window.scrollTo(0, 0);
-    document.body.scrollTop = 0; // For Safari
+    document.body.scrollTop = 0; 
     
-    // Small delay ensures the scroll happens before React Router changes the view
     setTimeout(() => {
-      navigate('/platform/chat', { 
-        state: { 
-          newConversation: {
-            id: profileData.id, 
-            name: profileData.name,
-            avatar: profileData.avatar,
-            role: profileData.location, 
-            initialMessage: `Hi ${profileData.name.split(' ')[0]}, I'm interested in your work.`
-          }
-        } 
-      });
-    }, 50); // Increased delay slightly to ensure scroll registers
+      if (onMessageMaker) {
+        onMessageMaker();
+      } else {
+        navigate('/platform/chat', { 
+          state: { 
+            newConversation: {
+              id: profileData.id, 
+              name: profileData.name,
+              avatar: profileData.avatar,
+              role: profileData.location, 
+              initialMessage: `Hi ${profileData.name.split(' ')[0]}, I'm interested in discussing a production run.`
+            }
+          } 
+        });
+      }
+    }, 50);
+  };
+
+  // --- SHARE LOGIC ---
+  const handleShareProfile = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setShareCopied(true);
+      setTimeout(() => setShareCopied(false), 2000);
+    } catch (err) {
+      console.error('Failed to copy link: ', err);
+    }
   };
 
   if (loading) {
     return (
-      <div className={styles.loadingState}>
-        <div className={styles.spinner}></div>
-        <p>Loading Infrastructure...</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh', textTransform: 'uppercase', letterSpacing: '2px', fontWeight: 700 }}>
+        <p>Initializing Infrastructure...</p>
       </div>
     );
   }
@@ -99,44 +155,42 @@ const ProfileView = ({ userAvatar, setUserAvatar, onProductClick }) => {
 
   return (
     <div className={styles.profileContainer}>
-      <div className={styles.coverBackground} style={{ backgroundImage: `url(${profileData.cover || 'https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=1200'})` }} />
-      
-      <div className={styles.container}>
-        {/* --- MAKER HEADER --- */}
-        <div className={styles.makerHeader}>
-          <div className={styles.avatarSection}>
-            <div className={styles.avatarWrapper}>
-              {profileData.avatar ? (
-                <img src={profileData.avatar} alt={profileData.name} className={styles.avatar} />
-              ) : (
-                <div className={styles.avatarPlaceholder}>
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
-                  </svg>
-                </div>
-              )}
-            </div>
-            
-            {!isOwnProfile && profileData.verified && (
-              <div className={styles.verifiedBadge} title="Verified Maker">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+      {/* --- COVER & AVATAR --- */}
+      <div className={styles.coverWrapper}>
+        <img src={profileData.cover} alt="Cover" className={styles.coverImage} />
+        <div className={styles.avatarContainer}>
+          <div className={styles.avatarWrapper}>
+            {profileData.avatar ? (
+              <img src={profileData.avatar} alt={profileData.name} className={styles.avatar} />
+            ) : (
+              <div style={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#eee' }}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="1.5">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+                  <circle cx="12" cy="7" r="4"/>
                 </svg>
               </div>
             )}
           </div>
+          {!isOwnProfile && profileData.verified && (
+            <div className={styles.verifiedBadge} title="Verified Atelier">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/>
+              </svg>
+            </div>
+          )}
+        </div>
+      </div>
 
-          <div className={styles.infoSection}>
+      <div className={styles.contentContainer}>
+        {/* --- HEADER INFO --- */}
+        <div className={styles.profileHeader}>
+          <div className={styles.headerLeft}>
             <div className={styles.nameRow}>
               <h1 className={styles.makerName}>{profileData.name}</h1>
               {!isOwnProfile && profileData.verified && (
                  <span className={styles.verifiedText}>Verified</span>
               )}
             </div>
-            <span className={styles.makerHandle}>{profileData.handle}</span>
-            
-            <p className={styles.makerBio}>{profileData.bio}</p>
             
             <div className={styles.metaRow}>
               <span className={styles.metaItem}>
@@ -146,7 +200,6 @@ const ProfileView = ({ userAvatar, setUserAvatar, onProductClick }) => {
                 </svg>
                 {profileData.location}
               </span>
-              <span className={styles.metaDivider}>•</span>
               <span className={styles.metaItem}>
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
@@ -154,106 +207,153 @@ const ProfileView = ({ userAvatar, setUserAvatar, onProductClick }) => {
                   <line x1="8" y1="2" x2="8" y2="6"/>
                   <line x1="3" y1="10" x2="21" y2="10"/>
                 </svg>
-                Joined {profileData.joined}
+                Est. {profileData.established}
               </span>
-              {!isOwnProfile && (
-                <>
-                  <span className={styles.metaDivider}>•</span>
-                  <span className={styles.metaItem}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+            </div>
+
+            <p className={styles.makerBio}>{profileData.bio}</p>
+          </div>
+
+          {!isOwnProfile && (
+            <div className={styles.headerRight}>
+              <button 
+                type="button"
+                className={`${styles.actionBtn} ${shareCopied ? styles.copiedState : ''}`}
+                onClick={handleShareProfile}
+              >
+                {shareCopied ? (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg>
+                    Copied
+                  </>
+                ) : (
+                  <>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
                     </svg>
-                    Resp. {profileData.stats.responseTime}
-                  </span>
-                </>
-              )}
-            </div>
-
-            <div className={styles.statsRow}>
-              <div className={styles.stat}>
-                <strong>{profileData.stats.products}</strong>
-                <span>Products</span>
-              </div>
-              <div className={styles.stat}>
-                <strong>{profileData.stats.rating > 0 ? profileData.stats.rating : '-'}</strong>
-                <span>Rating</span>
-              </div>
-              <div className={styles.stat}>
-                <strong>{profileData.stats.sales}</strong>
-                <span>Sales</span>
-              </div>
-            </div>
-
-            {!isOwnProfile && (
-              <div className={styles.actionRow}>
-                <button 
-                  className={styles.messageBtn}
-                  onClick={handleContactMaker}
-                >
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14 8.38 8.38 0 0 1 3.8.9L21 3z"/>
-                  </svg>
-                  Contact Maker
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* --- PRODUCT CATALOG --- */}
-        <div className={styles.catalogSection}>
-          <div className={styles.sectionHeader}>
-            <h2>Available Infrastructure</h2>
-            <span className={styles.itemCount}>{catalog.length} items</span>
-          </div>
-
-          {catalog.length === 0 ? (
-            <div className={styles.emptyCatalog}>
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" style={{opacity: 0.3, marginBottom: '16px'}}>
-                <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                <line x1="12" y1="22.08" x2="12" y2="12"/>
-              </svg>
-              <p>No products available yet.</p>
-              {isOwnProfile && (
-                <button className={styles.setupBtn} onClick={() => navigate('/studio')}>
-                  Setup Your Studio
-                </button>
-              )}
-            </div>
-          ) : (
-            <div className={styles.productGrid}>
-              {catalog.map(product => (
-                <div 
-                  key={product.id} 
-                  className={styles.productCard}
-                  onClick={() => handleProductClick(product)}
-                >
-                  <div className={styles.productImage}>
-                    <img src={product.img} alt={product.title} loading="lazy" />
-                    <div className={styles.cardOverlay}>
-                      <button className={styles.overlayBtn} title="Quick View">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
-                        </svg>
-                      </button>
-                    </div>
-                    {product.stock < 20 && (
-                      <span className={styles.stockTag}>Low Stock ({product.stock})</span>
-                    )}
-                  </div>
-                  <div className={styles.productDetails}>
-                    <div className={styles.productCategory}>{product.category}</div>
-                    <h3 className={styles.productTitle}>{product.title}</h3>
-                    <div className={styles.productFooter}>
-                      <span className={styles.productPrice}>{product.price}</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
+                    Share Profile
+                  </>
+                )}
+              </button>
+              <button 
+                type="button"
+                className={`${styles.actionBtn} ${styles.primaryBtn}`}
+                onClick={handleContactMaker}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 1 1-7.6-14 8.38 8.38 0 0 1 3.8.9L21 3z"/>
+                </svg>
+                Inquire for Production
+              </button>
             </div>
           )}
         </div>
+
+        {/* --- STATS BAR --- */}
+        <div className={styles.statsBar}>
+          <div className={styles.statItem}>
+            <span className={styles.statValue}>{profileData.stats.products}</span>
+            <span className={styles.statLabel}>Active Templates</span>
+          </div>
+          <div className={styles.statItem}>
+            <span className={styles.statValue}>{profileData.stats.rating > 0 ? profileData.stats.rating : '-'}</span>
+            <span className={styles.statLabel}>Quality Index</span>
+          </div>
+          <div className={styles.statItem}>
+            <span className={styles.statValue}>{profileData.stats.sales}</span>
+            <span className={styles.statLabel}>Units Produced</span>
+          </div>
+          {!isOwnProfile && profileData.stats.responseTime && (
+            <div className={styles.statItem}>
+              <span className={styles.statValue}>{profileData.stats.responseTime}</span>
+              <span className={styles.statLabel}>Atelier Response</span>
+            </div>
+          )}
+        </div>
+
+        {/* --- TABS --- */}
+        <div className={styles.tabsContainer}>
+          <button 
+            type="button"
+            className={`${styles.tabBtn} ${activeTab === 'infrastructure' ? styles.active : ''}`}
+            onClick={() => setActiveTab('infrastructure')}
+          >
+            Infrastructure
+          </button>
+          <button 
+            type="button"
+            className={`${styles.tabBtn} ${activeTab === 'specs' ? styles.active : ''}`}
+            onClick={() => setActiveTab('specs')}
+          >
+            Atelier Specs
+          </button>
+        </div>
+
+        {/* --- TAB CONTENT --- */}
+        {activeTab === 'infrastructure' && (
+          <>
+            {catalog.length === 0 ? (
+              <div className={styles.emptyCatalog}>
+                <p>No infrastructure templates available yet.</p>
+                {isOwnProfile && (
+                  <button 
+                    type="button"
+                    className={`${styles.actionBtn} ${styles.primaryBtn}`} 
+                    style={{ marginTop: '20px' }}
+                    onClick={() => navigate('/studio')}
+                  >
+                    Setup Your Studio
+                  </button>
+                )}
+              </div>
+            ) : (
+              <div className={styles.productGrid}>
+                {catalog.map(product => (
+                  <div 
+                    key={product.id} 
+                    className={styles.productCard}
+                    onClick={() => handleProductClick(product)}
+                  >
+                    <div className={styles.productImage}>
+                      <img src={product.img} alt={product.title} loading="lazy" />
+                      {product.stock < 20 && (
+                        <span className={styles.stockTag}>Low Stock ({product.stock})</span>
+                      )}
+                    </div>
+                    <div className={styles.productDetails}>
+                      <div className={styles.productCategory}>{product.category}</div>
+                      <h3 className={styles.productTitle}>{product.title}</h3>
+                      <span className={styles.productPrice}>{product.price}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </>
+        )}
+
+        {activeTab === 'specs' && (
+          <div className={styles.aboutSection}>
+            <h3>Production Capabilities</h3>
+            <p>
+              Specializing in heavyweight blanks and techwear architecture. We handle everything from 
+              initial tech pack review to final quality control. Minimum order quantities start at 50 units 
+              for custom branding, with turnaround times of 3-4 weeks depending on complexity.
+            </p>
+            <h3>Logistics & Fulfillment</h3>
+            <p>
+              Based in {profileData.location}. We ship globally via DHL and FedEx, with automated 
+              customs documentation and HS codes generated directly from our studio dashboard. 
+              All funds are held in secure escrow until delivery confirmation.
+            </p>
+            <h3>Quality Assurance</h3>
+            <p>
+              Every production run undergoes a 5-point inspection process. We maintain a 99.2% 
+              quality approval rate across all active templates.
+            </p>
+          </div>
+        )}
       </div>
     </div>
   );
