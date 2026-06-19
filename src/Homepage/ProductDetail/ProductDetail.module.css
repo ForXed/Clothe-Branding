@@ -33,6 +33,48 @@
     font-family: 'Outfit', sans-serif;
 }
 
+/* --- SIZE HEADER RIGHT (US/UK TOGGLE + SIZE GUIDE) --- */
+.sizeHeaderRight {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+/* --- SIZE SYSTEM TOGGLE (US / UK) --- */
+.sizeSystemToggle {
+    display: inline-flex;
+    background: var(--brut-bg);
+    border: 1.5px solid var(--brut-border);
+    border-radius: 100px;
+    padding: 4px;
+    gap: 2px;
+}
+
+.sizeSystemToggle button {
+    background: none;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 100px;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 700;
+    font-size: 0.8rem;
+    color: var(--brut-text);
+    opacity: 0.5;
+    cursor: pointer;
+    transition: all 0.2s;
+    letter-spacing: 0.5px;
+}
+
+.sizeSystemToggle button:hover {
+    opacity: 0.8;
+}
+
+.activeToggle {
+    background: var(--brut-text) !important;
+    color: var(--brut-bg) !important;
+    opacity: 1 !important;
+}
+
 .backBtn:hover {
     opacity: 1;
     transform: translateX(-8px);
@@ -1005,6 +1047,8 @@
     
     .messageBtn {
         width: 100%;
+        flex: none; /* 👈 Remove flex: 1 so it doesn't try to grow */
+        height: 52px;
     }
     
     .features {
