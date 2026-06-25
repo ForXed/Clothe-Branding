@@ -1,21 +1,39 @@
 import React, { useState } from 'react';
 import styles from './ChangePasswordForm.module.css';
 
-const ChangePasswordForm = ({ onClose, onSuccess }) => {
-  const [formData, setFormData] = useState({
+interface ChangePasswordFormProps {
+  onClose: () => void;
+  onSuccess?: () => void;
+  notify?: (message: string, type: 'success' | 'error' | 'info') => void;
+}
+
+interface FormData {
+  currentPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+interface FormErrors {
+  currentPassword?: string | null;
+  newPassword?: string | null;
+  confirmPassword?: string | null;
+}
+
+const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onClose, onSuccess, notify }) => {
+  const [formData, setFormData] = useState<FormData>({
     currentPassword: '',
     newPassword: '',
     confirmPassword: ''
   });
   
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
-  const [showCurrent, setShowCurrent] = useState(false);
-  const [showNew, setShowNew] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [errors, setErrors] = useState<FormErrors>({});
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [showCurrent, setShowCurrent] = useState<boolean>(false);
+  const [showNew, setShowNew] = useState<boolean>(false);
+  const [showConfirm, setShowConfirm] = useState<boolean>(false);
 
-  const validate = () => {
-    const newErrors = {};
+  const validate = (): boolean => {
+    const newErrors: FormErrors = {};
     
     if (!formData.currentPassword) {
       newErrors.currentPassword = 'Current password is required';
@@ -37,7 +55,7 @@ const ChangePasswordForm = ({ onClose, onSuccess }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!validate()) return;
     
@@ -47,13 +65,14 @@ const ChangePasswordForm = ({ onClose, onSuccess }) => {
     await new Promise(resolve => setTimeout(resolve, 1500));
     
     setIsLoading(false);
+    if (notify) notify('Password updated successfully', 'success');
     onSuccess?.();
   };
 
-  const handleChange = (e) => {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
+    if (errors[name as keyof FormErrors]) {
       setErrors(prev => ({ ...prev, [name]: null }));
     }
   };

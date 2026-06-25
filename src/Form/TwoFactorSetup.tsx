@@ -1,11 +1,16 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './TwoFactorSetup.module.css';
 
-const TwoStepSetup = ({ onClose, onSuccess }) => {
-  const [code, setCode] = useState(['', '', '', '', '', '']);
-  const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const inputRefs = useRef([]);
+interface TwoFactorSetupProps {
+  onClose: () => void;
+  onSuccess?: () => void;
+}
+
+const TwoFactorSetup: React.FC<TwoFactorSetupProps> = ({ onClose, onSuccess }) => {
+  const [code, setCode] = useState<string[]>(['', '', '', '', '', '']);
+  const [error, setError] = useState<string>('');
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Focus first input on mount
   useEffect(() => {
@@ -14,8 +19,8 @@ const TwoStepSetup = ({ onClose, onSuccess }) => {
     }
   }, []);
 
-  const handleChange = (element, index) => {
-    if (isNaN(element.value)) return;
+  const handleChange = (element: HTMLInputElement, index: number) => {
+    if (isNaN(Number(element.value))) return;
 
     const newCode = [...code];
     newCode[index] = element.value;
@@ -24,21 +29,21 @@ const TwoStepSetup = ({ onClose, onSuccess }) => {
 
     // Auto-focus next input
     if (element.value && index < 5) {
-      inputRefs.current[index + 1].focus();
+      inputRefs.current[index + 1]?.focus();
     }
   };
 
-  const handleKeyDown = (e, index) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
     // Move back on backspace if empty
     if (e.key === 'Backspace' && !code[index] && index > 0) {
-      inputRefs.current[index - 1].focus();
+      inputRefs.current[index - 1]?.focus();
     }
   };
 
-  const handlePaste = (e) => {
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
     const pastedData = e.clipboardData.getData('text').slice(0, 6).split('');
-    if (pastedData.every(char => !isNaN(char))) {
+    if (pastedData.every(char => !isNaN(Number(char)))) {
       const newCode = [...code];
       pastedData.forEach((char, i) => {
         if (i < 6) newCode[i] = char;
@@ -46,11 +51,11 @@ const TwoStepSetup = ({ onClose, onSuccess }) => {
       setCode(newCode);
       // Focus last filled or next empty
       const focusIndex = Math.min(pastedData.length, 5);
-      inputRefs.current[focusIndex].focus();
+      inputRefs.current[focusIndex]?.focus();
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fullCode = code.join('');
     
@@ -124,9 +129,11 @@ const TwoStepSetup = ({ onClose, onSuccess }) => {
             {code.map((digit, index) => (
               <input
                 key={index}
-                ref={el => inputRefs.current[index] = el}
+                ref={el => {
+                  inputRefs.current[index] = el;
+                }}
                 type="text"
-                maxLength="1"
+                maxLength={1}
                 value={digit}
                 onChange={(e) => handleChange(e.target, index)}
                 onKeyDown={(e) => handleKeyDown(e, index)}
@@ -155,4 +162,4 @@ const TwoStepSetup = ({ onClose, onSuccess }) => {
   );
 };
 
-export default TwoStepSetup;
+export default TwoFactorSetup;

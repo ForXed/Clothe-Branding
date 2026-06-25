@@ -7,11 +7,11 @@ import styles from './VerifyPassword.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
-const VerifyPassword = () => {
-  const [otp, setOtp] = useState(new Array(6).fill(''));
-  const container = useRef();
-  const textRef = useRef();
-  const cursorRef = useRef();
+const VerifyPassword: React.FC = () => {
+  const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
+  const container = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
   const navigate = useNavigate();
 
   useGSAP(
@@ -47,20 +47,23 @@ const VerifyPassword = () => {
     { scope: container },
   );
 
-  const handleChange = (element, index) => {
-    if (isNaN(element.value)) return false;
+  const handleChange = (element: HTMLInputElement, index: number) => {
+    if (isNaN(Number(element.value))) return;
     const newOtp = [...otp];
     newOtp[index] = element.value;
     setOtp(newOtp);
-    if (element.value !== '' && element.nextSibling)
-      element.nextSibling.focus();
+    if (element.value !== '' && element.nextSibling) {
+      (element.nextSibling as HTMLInputElement).focus();
+    }
   };
 
-  const handleVerify = (e) => {
+  const handleVerify = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (otp.join('').length < 6) return alert('Enter the full 6-digit code.');
+    if (otp.join('').length < 6) {
+      alert('Enter the full 6-digit code.');
+      return;
+    }
 
-    // SUCCESS: Navigate to Platform Homepage
     navigate('/platform/shop');
   };
 
@@ -78,7 +81,7 @@ const VerifyPassword = () => {
                 <input
                   key={index}
                   type='text'
-                  maxLength='1'
+                  maxLength={1}
                   className={styles.otpInput}
                   value={data}
                   onChange={(e) => handleChange(e.target, index)}
@@ -103,4 +106,5 @@ const VerifyPassword = () => {
     </div>
   );
 };
+
 export default VerifyPassword;

@@ -15,7 +15,7 @@ import MakerStudio from './MakerStudio/MakerStudio/MakerStudio';
 import ChangePasswordForm from './Form/ChangePasswordForm';
 import TwoStepSetup from './Form/TwoFactorSetup';
 
-// Hub Pages (Clean Names)
+// Hub Pages
 import HubLayout from './Hub/HubLayout';
 import Collections from './Hub/Collections/Collections';
 import Process from './Hub/Process/Process';
@@ -30,25 +30,41 @@ import Privacy from './Hub/Legal/Privacy';
 import Terms from './Hub/Legal/Terms';
 import Cookies from './Hub/Legal/Cookies';
 
-// Pricing Page (NEW IMPORT)
+// Pricing Page
 import Pricing from './Pricing/Pricing';
 
 // Global Infrastructure Components
 import Preloader from './Homepage/Preloader/Preloader';
 import FloatingMessage from './Notification/FloatingMessage';
+import MakerApplication from './Form/MakerApplication';
+import TwoFactorSetup from './Form/TwoFactorSetup';
+
+// --- Type Definitions ---
+interface NotificationState {
+  message: string;
+  type: 'success' | 'error' | 'info';
+  visible: boolean;
+}
+
+type NotifyFunction = (message: string, type?: 'success' | 'error' | 'info') => void;
 
 // Global Validation Helper
-export const validateEmail = (email) => {
-  return String(email).toLowerCase().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+export const validateEmail = (email: string): boolean => {
+  const match = String(email).toLowerCase().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
+  return match !== null;
 };
 
-function App() {
+const App: React.FC = () => {
   // --- GLOBAL STATE ---
-  const [isDarkMode, setIsDarkMode] = useState(() => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('brutige_theme') === 'dark';
   });
-  const [isAppLoading, setIsAppLoading] = useState(true);
-  const [notification, setNotification] = useState({ message: '', type: 'success', visible: false });
+  const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
+  const [notification, setNotification] = useState<NotificationState>({ 
+    message: '', 
+    type: 'success', 
+    visible: false 
+  });
 
   // --- THEME SYNC ---
   useEffect(() => {
@@ -56,18 +72,17 @@ function App() {
     localStorage.setItem('brutige_theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
-  const toggleTheme = () => setIsDarkMode(prev => !prev);
+  const toggleTheme = (): void => setIsDarkMode(prev => !prev);
 
   // --- NOTIFICATION HANDLER ---
-  const notify = (message, type = 'success') => {
+  const notify: NotifyFunction = (message, type = 'success') => {
     setNotification({ message, type, visible: true });
-    // Auto-hide after 4 seconds
     setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 4000);
   };
 
   return (
     <Router>
-      {/* 1. Global Notification Layer (Floats at bottom) */}
+      {/* Global Notification Layer */}
       <FloatingMessage 
         message={notification.message} 
         type={notification.type} 
@@ -75,55 +90,60 @@ function App() {
       />
 
       <Routes>
-        {/* 2. Public Landing Page */}
+        {/* Public Landing Page */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* 3. Pricing Page (NEW ROUTE) */}
+        {/* Pricing Page */}
         <Route path="/pricing" element={<Pricing />} />
 
-        {/* 4. Auth Flow - Passing 'notify' to every page */}
+        {/* Auth Flow - Only pass notify to components that accept it */}
         <Route path="/login" element={<SignInPage notify={notify} />} />
         <Route path="/signup" element={<SignUpPage notify={notify} />} />
-        <Route path="/maker-signup" element={<MakerSignUp notify={notify} />} />
-        <Route path="/forgot-password" element={<ForgottenPassword notify={notify} />} />
-        <Route path="/verify" element={<VerifyPassword notify={notify} />} />
+        <Route path="/maker-signup" element={<MakerSignUp />} />
+        <Route path="/forgot-password" element={<ForgottenPassword />} />
+        <Route path="/verify" element={<VerifyPassword />} />
+        <Route path="/maker-application" element={<MakerApplication notify={notify} />} />
         
-        {/* 5. Account Management Forms (Modal Routes) */}
-        <Route path="/change-password" element={<ChangePasswordForm notify={notify} />} />
-        <Route path="/2fa-setup" element={<TwoStepSetup notify={notify} />} />
+        {/* Account Management Forms */}
+        <Route path="/change-password" element={<ChangePasswordForm notify={notify} onClose={function (): void {
+          throw new Error('Function not implemented.');
+        } } />} />
+        <Route path="/2fa-setup" element={<TwoFactorSetup onClose={function (): void {
+          throw new Error('Function not implemented.');
+        } } />} />
 
-        {/* 6. MAKER STUDIO (Standalone Sub-Routes) */}
+        {/* MAKER STUDIO */}
         <Route 
           path="/studio/*" 
           element={
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
-              <MakerStudio isDarkMode={isDarkMode} toggleTheme={toggleTheme} notify={notify} />
+              <MakerStudio />
             )
           } 
         />
 
-        {/* 7. THE PLATFORM HUB (Shop, Chat, Profile) */}
+        {/* THE PLATFORM HUB */}
         <Route 
           path="/platform/*" 
           element={
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
-              <BrutigePlatform isDarkMode={isDarkMode} toggleTheme={toggleTheme} notify={notify} />
+              <BrutigePlatform isDarkMode={isDarkMode} toggleTheme={toggleTheme} notify={notify as (message: string, type?: string) => void} />
             )
           } 
         />
 
-        {/* 8. THE RESOURCE HUB (Collections, Guides, Support, etc.) */}
+        {/* THE RESOURCE HUB */}
         <Route 
           path="/hub" 
           element={
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
-              <HubLayout isDarkMode={isDarkMode} toggleTheme={toggleTheme} notify={notify} />
+              <HubLayout />
             )
           }
         >
@@ -137,18 +157,16 @@ function App() {
           <Route path="guides" element={<Guides />} />
           <Route path="guides/:slug" element={<GuideDetail />} />
           <Route path="support" element={<Support />} />
-          
-          {/* Legal Pages */}
           <Route path="privacy" element={<Privacy />} />
           <Route path="terms" element={<Terms />} />
           <Route path="cookies" element={<Cookies />} />
         </Route>
 
-        {/* 9. Catch-all: Back to Landing */}
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </Router>
   );
-}
+};
 
 export default App;
