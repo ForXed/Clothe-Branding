@@ -1,0 +1,120 @@
+/* AttachmentMenu.module.css */
+
+.menuOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  background: transparent;
+}
+
+.menu {
+  position: absolute;
+  bottom: 70px;
+  left: 0;
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 16px;
+  padding: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+  z-index: 1000;
+  min-width: 280px;
+  animation: slideUp 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: left;
+}
+
+.menuItem:hover {
+  background: var(--brut-hover);
+}
+
+.iconWrapper {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.photoIcon {
+  background: rgba(59, 130, 246, 0.15);
+  color: #3b82f6;
+}
+
+.fileIcon {
+  background: rgba(245, 158, 11, 0.15);
+  color: #f59e0b;
+}
+
+.vaultIcon {
+  background: rgba(139, 92, 246, 0.15);
+  color: #8b5cf6;
+}
+
+.menuContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.menuLabel {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--brut-text);
+}
+
+.menuDesc {
+  font-size: 0.75rem;
+  color: var(--brut-text);
+  opacity: 0.6;
+}
+
+/* Mobile adjustments */
+@media (max-width: 768px) {
+  .menu {
+    min-width: 260px;
+    bottom: 60px;
+  }
+
+  .menuItem {
+    padding: 10px;
+  }
+
+  .iconWrapper {
+    width: 40px;
+    height: 40px;
+  }
+
+  .menuLabel {
+    font-size: 0.85rem;
+  }
+
+  .menuDesc {
+    font-size: 0.7rem;
+  }
+}

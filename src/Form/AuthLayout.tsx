@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, ReactNode } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
@@ -6,15 +6,20 @@ import styles from './AuthLayout.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
-const AuthLayout = ({ children, phrases }) => {
-  const textRef = useRef();
-  const cursorRef = useRef();
-  const container = useRef();
+interface AuthLayoutProps {
+  children: ReactNode;
+  phrases: string[];
+}
+
+const AuthLayout: React.FC<AuthLayoutProps> = ({ children, phrases }) => {
+  const textRef = useRef<HTMLSpanElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
+  const container = useRef<HTMLDivElement>(null);
 
   useGSAP(
     () => {
       // Background Lines
-      gsap.utils.toArray(`.${styles.line}`).forEach((line, i) => {
+      gsap.utils.toArray<HTMLElement>(`.${styles.line}`).forEach((line, i) => {
         gsap.to(line, {
           x: i % 2 === 0 ? 80 : -80,
           opacity: 0.2,

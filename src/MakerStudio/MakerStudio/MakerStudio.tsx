@@ -19,15 +19,21 @@ import styles from './MakerStudio.module.css';
 const MakerStudio: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  
   const [isCollapsed, setIsCollapsed] = useState<boolean>(false);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => document.documentElement.getAttribute('data-theme') === 'dark');
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => 
+    document.documentElement.getAttribute('data-theme') === 'dark'
+  );
   const [showProModal, setShowProModal] = useState<boolean>(false);
   const [isPro, setIsPro] = useState<boolean>(false);
   const [hideMobileNav, setHideMobileNav] = useState<boolean>(false);
   
   const pathSegments = location.pathname.split('/');
   const currentTab = pathSegments[2] || 'overview';
+
   const studioData = useStudioData();
+
+  const showStudioHeader = currentTab !== 'messages';
 
   const toggleTheme = () => {
     const newTheme = isDarkMode ? 'light' : 'dark';
@@ -37,19 +43,45 @@ const MakerStudio: React.FC = () => {
 
   const handleTabChange = (tabId: string) => {
     const proFeatures = ['transactions', 'analytics'];
-    if (proFeatures.includes(tabId) && !isPro) { setShowProModal(true); return; }
+    
+    if (proFeatures.includes(tabId) && !isPro) {
+      setShowProModal(true);
+      return;
+    }
     navigate(`/studio/${tabId}`);
   };
 
   const goToPlatform = () => navigate('/platform/shop');
 
-  useEffect(() => { if (currentTab !== 'messages') setHideMobileNav(false); }, [currentTab]);
+  useEffect(() => {
+    if (currentTab !== 'messages') {
+      setHideMobileNav(false);
+    }
+  }, [currentTab]);
 
   return (
     <div className={styles.studioWrapper} data-theme={isDarkMode ? 'dark' : 'light'}>
-      <StudioSideBar isCollapsed={isCollapsed} onToggle={() => setIsCollapsed(!isCollapsed)} activeTab={currentTab} setActiveTab={handleTabChange} goToPlatform={goToPlatform} isDarkMode={isDarkMode} toggleTheme={toggleTheme} isPro={isPro} onUpgradeClick={() => setShowProModal(true)} />
+      <StudioSideBar 
+        isCollapsed={isCollapsed}
+        onToggle={() => setIsCollapsed(!isCollapsed)}
+        activeTab={currentTab}
+        setActiveTab={handleTabChange}
+        goToPlatform={goToPlatform}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+        isPro={isPro}
+        onUpgradeClick={() => setShowProModal(true)}
+      />
+
       <main className={`${styles.mainContent} ${isCollapsed ? styles.contentExpanded : styles.contentContracted}`}>
-        <StudioHeader activeTab={currentTab} goToPlatform={goToPlatform} isPro={isPro} />
+        {showStudioHeader && (
+          <StudioHeader 
+            activeTab={currentTab}
+            goToPlatform={goToPlatform}
+            isPro={isPro}
+          />
+        )}
+        
         <div className={styles.viewport}>
           <Routes>
             <Route path="/" element={<Navigate to="overview" replace />} />
@@ -57,16 +89,46 @@ const MakerStudio: React.FC = () => {
             <Route path="add-product" element={<AddProduct {...studioData} />} />
             <Route path="products" element={<Products {...studioData} />} />
             <Route path="orders" element={<Order {...studioData} />} />
-            <Route path="messages" element={<Messages {...studioData} onMobileNavChange={setHideMobileNav} />} />
+            <Route 
+              path="messages" 
+              element={
+                <Messages 
+                  {...studioData} 
+                  onMobileNavChange={setHideMobileNav}
+                  isCollapsed={isCollapsed}  // 👈 Pass sidebar state
+                /> 
+              } 
+            />
             <Route path="transactions" element={<Transaction {...studioData} />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<StudioSettings isPro={isPro} onUpgradeClick={() => setShowProModal(true)} />} />
           </Routes>
         </div>
       </main>
-      {!hideMobileNav && <StudioMobileNav activeTab={currentTab} setActiveTab={handleTabChange} goToPlatform={goToPlatform} isDarkMode={isDarkMode} toggleTheme={toggleTheme} isPro={isPro} onUpgradeClick={() => setShowProModal(true)} />}
-      {showProModal && <ProModal onClose={() => setShowProModal(false)} onUpgrade={(planId) => { setIsPro(true); setShowProModal(false); }} />}
+
+      {!hideMobileNav && (
+        <StudioMobileNav 
+          activeTab={currentTab} 
+          setActiveTab={handleTabChange}
+          goToPlatform={goToPlatform}
+          isDarkMode={isDarkMode}
+          toggleTheme={toggleTheme}
+          isPro={isPro}
+          onUpgradeClick={() => setShowProModal(true)} 
+        />
+      )}
+
+      {showProModal && (
+        <ProModal 
+          onClose={() => setShowProModal(false)}
+          onUpgrade={(planId) => { 
+            setIsPro(true); 
+            setShowProModal(false); 
+          }}
+        />
+      )}
     </div>
   );
 };
+
 export default MakerStudio;

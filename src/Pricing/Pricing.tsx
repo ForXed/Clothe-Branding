@@ -5,22 +5,31 @@ import styles from './Pricing.module.css';
 interface Plan {
   name: string;
   price: string;
+  annualPrice: string;
   period: string;
   description: string;
   features: string[];
   cta: string;
   highlighted: boolean;
   color: string;
+  badge?: string;
+}
+
+interface FAQItem {
+  question: string;
+  answer: string;
 }
 
 const Pricing: React.FC = () => {
   const navigate = useNavigate();
   const [isAnnual, setIsAnnual] = useState<boolean>(false);
+  const [openFAQ, setOpenFAQ] = useState<number | null>(null);
 
   const plans: Plan[] = [
     {
       name: 'Maker',
-      price: isAnnual ? '0' : '0',
+      price: '0',
+      annualPrice: '0',
       period: '/forever',
       description: 'Perfect for testing your first collection.',
       features: [
@@ -37,7 +46,8 @@ const Pricing: React.FC = () => {
     },
     {
       name: 'Pro Atelier',
-      price: isAnnual ? '29' : '39',
+      price: '19,500',
+      annualPrice: '15,600',
       period: '/month',
       description: 'For serious brands ready to scale.',
       features: [
@@ -52,13 +62,15 @@ const Pricing: React.FC = () => {
       ],
       cta: 'Start 14-Day Free Trial',
       highlighted: true,
-      color: 'var(--brut-text)'
+      color: 'var(--brut-text)',
+      badge: 'Most Popular'
     },
     {
       name: 'Enterprise',
-      price: isAnnual ? '99' : '129',
+      price: '89,000',
+      annualPrice: '71,200',
       period: '/month',
-      description: 'Full infrastructure for large houses.',
+      description: 'Full infrastructure for large fashion houses.',
       features: [
         'Everything in Pro Atelier',
         'Dedicated Account Manager',
@@ -75,6 +87,79 @@ const Pricing: React.FC = () => {
     }
   ];
 
+  const faqs: FAQItem[] = [
+    {
+      question: 'Can I sell without a subscription?',
+      answer: 'Yes. The Maker plan is free forever. You can list up to 5 products and start selling immediately. We only charge a small 2% fee on successful sales.'
+    },
+    {
+      question: 'What payment methods do you accept?',
+      answer: 'We accept all major Nigerian payment methods including Paystack (cards, bank transfers, USSD), direct bank transfers to our escrow account, and international cards. All transactions are secured with bank-level encryption.'
+    },
+    {
+      question: 'Are prices in Naira? Can I pay in USD?',
+      answer: 'All prices are displayed in Nigerian Naira (₦). Currently, we only accept Naira payments as we focus on the Nigerian market. International currency support will be added when we expand globally.'
+    },
+    {
+      question: 'Is VAT included in the pricing?',
+      answer: 'Prices shown exclude the 7.5% Nigerian VAT, which will be added at checkout as required by law. Business customers with valid TIN can claim VAT credits.'
+    },
+    {
+      question: 'Do customers pay extra fees?',
+      answer: 'No. Customers only pay the price of the product and shipping. There are no hidden fees or subscriptions for buyers on Brutige.'
+    },
+    {
+      question: 'Can I change plans later?',
+      answer: 'Absolutely. You can upgrade or downgrade your plan at any time from your studio settings. Changes take effect immediately, and we\'ll prorate any differences.'
+    },
+    {
+      question: 'What happens if I exceed the product limit?',
+      answer: 'If you are on the free plan and try to add a 6th product, we will prompt you to upgrade to Pro Atelier to continue expanding your collection.'
+    },
+    {
+      question: 'Is there a money-back guarantee?',
+      answer: 'Yes! All paid plans come with a 14-day money-back guarantee. If you\'re not satisfied, contact our support team within 14 days for a full refund, no questions asked.'
+    }
+  ];
+
+  const comparisonFeatures = [
+    { feature: 'Product Limit', maker: '5', pro: 'Unlimited', enterprise: 'Unlimited' },
+    { feature: 'Transaction Fee', maker: '2%', pro: '0%', enterprise: '0%' },
+    { feature: 'Analytics', maker: 'Basic', pro: 'Advanced', enterprise: 'Custom Reports' },
+    { feature: 'Support', maker: 'Email', pro: 'Priority 24/7', enterprise: 'Dedicated Agent' },
+    { feature: 'Staff Accounts', maker: '1', pro: 'Up to 3', enterprise: 'Unlimited' },
+    { feature: 'Custom Branding', maker: false, pro: true, enterprise: true },
+    { feature: 'API Access', maker: false, pro: false, enterprise: true },
+    { feature: 'White-label Dashboard', maker: false, pro: false, enterprise: true },
+    { feature: 'SLA Guarantee', maker: false, pro: false, enterprise: true },
+    { feature: 'Bulk Discounts', maker: false, pro: false, enterprise: true }
+  ];
+
+  const toggleFAQ = (index: number) => {
+    setOpenFAQ(openFAQ === index ? null : index);
+  };
+
+  const renderCellValue = (value: string | boolean, isPro: boolean) => {
+    if (typeof value === 'boolean') {
+      return value ? (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isPro ? 'var(--brut-bg)' : 'var(--brut-text)'} strokeWidth="3">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      ) : (
+        <span style={{ opacity: 0.3 }}>—</span>
+      );
+    }
+    return value;
+  };
+
+  // Helper function to calculate annual savings
+  const calculateAnnualSavings = (price: string, annualPrice: string): string => {
+    const monthlyPrice = parseInt(price.replace(/,/g, ''));
+    const monthlyAnnual = parseInt(annualPrice.replace(/,/g, ''));
+    const yearlySavings = (monthlyPrice - monthlyAnnual) * 12;
+    return yearlySavings.toLocaleString();
+  };
+
   return (
     <div className={styles.pricingContainer}>
       <div className={styles.header}>
@@ -86,7 +171,7 @@ const Pricing: React.FC = () => {
         </p>
         
         <div className={styles.toggleContainer}>
-          <span className={!isAnnual ? styles.active : ''}>Monthly Billing</span>
+          <span className={!isAnnual ? styles.active : ''}>Monthly</span>
           <button 
             type="button"
             className={`${styles.toggle} ${isAnnual ? styles.active : ''}`} 
@@ -96,8 +181,16 @@ const Pricing: React.FC = () => {
             <div className={styles.toggleKnob}></div>
           </button>
           <span className={isAnnual ? styles.active : ''}>
-            Yearly Billing <span className={styles.saveBadge}>Save 20%</span>
+            Annual <span className={styles.saveBadge}>Save 20%</span>
           </span>
+        </div>
+
+        <div className={styles.guaranteeBadge}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            <polyline points="9 12 11 14 15 10"/>
+          </svg>
+          <span>14-Day Money-Back Guarantee · No Hidden Fees · Cancel Anytime</span>
         </div>
       </div>
 
@@ -108,15 +201,20 @@ const Pricing: React.FC = () => {
             className={`${styles.card} ${plan.highlighted ? styles.highlighted : ''}`}
             style={{ borderColor: plan.highlighted ? plan.color : 'var(--brut-border)' }}
           >
-            {plan.highlighted && <div className={styles.popularBadge}>Most Popular</div>}
+            {plan.badge && <div className={styles.popularBadge}>{plan.badge}</div>}
             
             <div className={styles.cardHeader}>
               <h3>{plan.name}</h3>
               <div className={styles.price}>
-                <span className={styles.currency}>$</span>
-                {plan.price}
+                <span className={styles.currency}>₦</span>
+                {isAnnual ? plan.annualPrice : plan.price}
                 <span className={styles.period}>{plan.period}</span>
               </div>
+              {isAnnual && plan.price !== '0' && (
+                <div className={styles.annualNote}>
+                  Billed annually · Save ₦{calculateAnnualSavings(plan.price, plan.annualPrice)}/year
+                </div>
+              )}
               <p className={styles.description}>{plan.description}</p>
             </div>
 
@@ -142,6 +240,46 @@ const Pricing: React.FC = () => {
         ))}
       </div>
 
+      {/* Payment Methods Section */}
+      <div className={styles.paymentSection}>
+        <p className={styles.paymentTitle}>Trusted Payment Methods</p>
+        <div className={styles.paymentMethods}>
+          <div className={styles.paymentMethod}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="1" y="4" width="22" height="16" rx="2" ry="2"/>
+              <line x1="1" y1="10" x2="23" y2="10"/>
+            </svg>
+            <span>Cards</span>
+          </div>
+          <div className={styles.paymentMethod}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M3 21h18"/>
+              <path d="M3 10h18"/>
+              <path d="M5 6l7-3 7 3"/>
+              <path d="M4 10v11"/>
+              <path d="M20 10v11"/>
+              <path d="M8 14v3"/>
+              <path d="M12 14v3"/>
+              <path d="M16 14v3"/>
+            </svg>
+            <span>Bank Transfer</span>
+          </div>
+          <div className={styles.paymentMethod}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/>
+              <line x1="12" y1="18" x2="12.01" y2="18"/>
+            </svg>
+            <span>USSD</span>
+          </div>
+          <div className={styles.paymentMethod}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+            </svg>
+            <span>Paystack Secure</span>
+          </div>
+        </div>
+      </div>
+
       <div className={styles.comparisonSection}>
         <h2>Compare Infrastructure</h2>
         <div className={styles.tableWrapper}>
@@ -150,42 +288,19 @@ const Pricing: React.FC = () => {
               <tr>
                 <th>Feature</th>
                 <th>Maker</th>
-                <th>Pro Atelier</th>
+                <th className={styles.proHeader}>Pro Atelier</th>
                 <th>Enterprise</th>
               </tr>
             </thead>
             <tbody>
-              <tr>
-                <td>Product Limit</td>
-                <td>5</td>
-                <td>Unlimited</td>
-                <td>Unlimited</td>
-              </tr>
-              <tr>
-                <td>Transaction Fee</td>
-                <td>2%</td>
-                <td>0%</td>
-                <td>0%</td>
-              </tr>
-              <tr>
-                <td>Analytics</td>
-                <td>Basic</td>
-                <td>Advanced</td>
-                <td>Custom Reports</td>
-              </tr>
-              <tr>
-                <td>Support</td>
-                <td>Email</td>
-                <td>Priority 24/7</td>
-                <td>Dedicated Agent</td>
-              </tr>
-              <tr>
-                <td>Custom Branding</td>
-                <td>—</td>
-                {/* 👇 Replaced '✓' with an SVG checkmark icon */}
-                <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg></td>
-                <td><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3"><polyline points="20 6 9 17 4 12"/></svg></td>
-              </tr>
+              {comparisonFeatures.map((row, idx) => (
+                <tr key={idx}>
+                  <td>{row.feature}</td>
+                  <td>{renderCellValue(row.maker, false)}</td>
+                  <td className={styles.proCell}>{renderCellValue(row.pro, true)}</td>
+                  <td>{renderCellValue(row.enterprise, false)}</td>
+                </tr>
+              ))}
             </tbody>
           </table>
         </div>
@@ -194,23 +309,48 @@ const Pricing: React.FC = () => {
       <div className={styles.faqSection}>
         <h2>Frequently Asked Questions</h2>
         <div className={styles.faqGrid}>
-          <div className={styles.faqItem}>
-            <h4>Can I sell without a subscription?</h4>
-            <p>Yes. The Maker plan is free forever. You can list up to 5 products and start selling immediately. We only charge a small 2% fee on successful sales.</p>
-          </div>
-          <div className={styles.faqItem}>
-            <h4>Do customers pay extra fees?</h4>
-            <p>No. Customers only pay the price of the product and shipping. There are no hidden fees or subscriptions for buyers on Brutige.</p>
-          </div>
-          <div className={styles.faqItem}>
-            <h4>Can I change plans later?</h4>
-            <p>Absolutely. You can upgrade or downgrade your plan at any time from your studio settings. Changes take effect immediately.</p>
-          </div>
-          <div className={styles.faqItem}>
-            <h4>What happens if I exceed the product limit?</h4>
-            <p>If you are on the free plan and try to add a 6th product, we will prompt you to upgrade to Pro Atelier to continue expanding your collection.</p>
-          </div>
+          {faqs.map((faq, idx) => (
+            <div 
+              key={idx} 
+              className={`${styles.faqItem} ${openFAQ === idx ? styles.faqOpen : ''}`}
+            >
+              <button 
+                type="button"
+                className={styles.faqQuestion}
+                onClick={() => toggleFAQ(idx)}
+              >
+                <h4>{faq.question}</h4>
+                <svg 
+                  width="20" 
+                  height="20" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2"
+                  className={styles.faqIcon}
+                >
+                  <line x1="12" y1="5" x2="12" y2="19"/>
+                  <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+              </button>
+              <div className={styles.faqAnswer}>
+                <p>{faq.answer}</p>
+              </div>
+            </div>
+          ))}
         </div>
+      </div>
+
+      <div className={styles.ctaSection}>
+        <h3>Still have questions?</h3>
+        <p>Our team is here to help you choose the right plan for your brand.</p>
+        <button 
+          type="button"
+          className={styles.contactBtn}
+          onClick={() => navigate('/hub/support')}
+        >
+          Talk to Sales
+        </button>
       </div>
     </div>
   );

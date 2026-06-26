@@ -8,7 +8,25 @@ import styles from './SignUpPage.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
-const BrutigeLogo = ({ color = 'black' }) => (
+interface NotifyFunction {
+  (message: string, type: 'success' | 'error' | 'info'): void;
+}
+
+interface SignUpPageProps {
+  notify?: NotifyFunction;
+}
+
+interface FormData {
+  name: string;
+  email: string;
+  password: string;
+}
+
+interface BrutigeLogoProps {
+  color?: string;
+}
+
+const BrutigeLogo: React.FC<BrutigeLogoProps> = ({ color = 'black' }) => (
   <svg width='40' height='40' viewBox='0 0 100 100' fill='none'>
     <circle cx='50' cy='50' r='50' fill={color} />
     <path
@@ -23,8 +41,7 @@ const BrutigeLogo = ({ color = 'black' }) => (
   </svg>
 );
 
-// Eye Icons
-const EyeIcon = () => (
+const EyeIcon: React.FC = () => (
   <svg
     width='20'
     height='20'
@@ -39,7 +56,8 @@ const EyeIcon = () => (
     <circle cx='12' cy='12' r='3'></circle>
   </svg>
 );
-const EyeOffIcon = () => (
+
+const EyeOffIcon: React.FC = () => (
   <svg
     width='20'
     height='20'
@@ -55,21 +73,20 @@ const EyeOffIcon = () => (
   </svg>
 );
 
-const SignUpPage = ({ notify }) => {
-  const container = useRef();
-  const textRef = useRef();
-  const cursorRef = useRef();
+const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
+  const container = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
   const navigate = useNavigate();
 
-  // FORM STATE
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     name: '',
     email: '',
     password: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
 
-  const phrases = [
+  const phrases: string[] = [
     'brutige: join the infrastructure.',
     'design the future of fashion.',
     'your brand, engineered.',
@@ -79,7 +96,6 @@ const SignUpPage = ({ notify }) => {
 
   useGSAP(
     () => {
-      // 1. Entrance Animation for Form Elements
       gsap.from(`.${styles.formWrapper} > *`, {
         opacity: 0,
         y: 30,
@@ -88,8 +104,7 @@ const SignUpPage = ({ notify }) => {
         ease: 'expo.out',
       });
 
-      // 2. Background Architectural Line Drift
-      const lines = gsap.utils.toArray(`.${styles.line}`);
+      const lines = gsap.utils.toArray<HTMLElement>(`.${styles.line}`);
       lines.forEach((line, i) => {
         gsap.to(line, {
           x: i % 2 === 0 ? 80 : -80,
@@ -101,7 +116,6 @@ const SignUpPage = ({ notify }) => {
         });
       });
 
-      // 3. Typewriter Logic
       let masterTl = gsap.timeline({ repeat: -1 });
       phrases.forEach((phrase) => {
         let tl = gsap.timeline({ repeat: 1, yoyo: true, repeatDelay: 2 });
@@ -113,7 +127,6 @@ const SignUpPage = ({ notify }) => {
         masterTl.add(tl);
       });
 
-      // 4. Cursor Blink
       gsap.to(cursorRef.current, {
         opacity: 0,
         ease: 'steps(1)',
@@ -124,20 +137,22 @@ const SignUpPage = ({ notify }) => {
     { scope: container },
   );
 
-  const handleSubmit = (e) => {
+  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (formData.name.length < 2) {
-      return notify('Please enter your full name.', 'error');
+      if (notify) notify('Please enter your full name.', 'error');
+      return;
     }
     if (!validateEmail(formData.email)) {
-      return notify('Invalid professional email address.', 'error');
+      if (notify) notify('Invalid professional email address.', 'error');
+      return;
     }
     if (formData.password.length < 8) {
-      return notify('Security requires at least 8 characters.', 'error');
+      if (notify) notify('Security requires at least 8 characters.', 'error');
+      return;
     }
 
-    // SUCCESS: Notify and Route
-    notify('Identity created. Verifying access...', 'success');
+    if (notify) notify('Identity created. Verifying access...', 'success');
     setTimeout(() => navigate('/verify'), 1500);
   };
 
@@ -205,7 +220,6 @@ const SignUpPage = ({ notify }) => {
               />
             </div>
 
-            {/* PASSWORD WITH TOGGLE */}
             <div className={styles.inputGroup}>
               <label>Password</label>
               <div className={styles.passwordWrapper}>
@@ -221,7 +235,7 @@ const SignUpPage = ({ notify }) => {
                   type='button'
                   className={styles.togglePassword}
                   onClick={() => setShowPassword(!showPassword)}
-                  tabIndex='-1'
+                  tabIndex={-1}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>

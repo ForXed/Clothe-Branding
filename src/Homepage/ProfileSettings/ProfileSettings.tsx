@@ -607,9 +607,10 @@ const ProfileSettings: React.FC<ProfileSettingsProps> = ({ userProfile, setUserP
             <div className={styles.section}>
               <div className={styles.sectionHeader}>
                 <h3 className={styles.sectionTitle}>Brand Vault</h3>
-                <span className={styles.sectionDesc}>Your saved aesthetics and inspiration</span>
+                <span className={styles.sectionDesc}>Organize your designs and share them with makers instantly.</span>
               </div>
-              <BrandVault />
+              {/* 👇 FIXED: Pass showHeader={false} to prevent duplicate header */}
+              <BrandVault showHeader={false} />
             </div>
           )}
 
