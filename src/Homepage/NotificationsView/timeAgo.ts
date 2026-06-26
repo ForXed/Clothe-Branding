@@ -7,8 +7,8 @@ export function timeAgo(date: Date): string {
   const diffDays = Math.floor(diffHours / 24);
 
   if (diffSecs < 60) return "just now";
-  if (diffMins < 60) return `${diffMins}m ago`;
-  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffMins < 60) return `${diffMins}m`;
+  if (diffHours < 24) return ` ${diffHours}h`;
   if (diffDays === 1) return "Yesterday";
   return `${diffDays}d ago`;
 }

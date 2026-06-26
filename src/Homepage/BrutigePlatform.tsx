@@ -26,7 +26,10 @@ import styles from "./BrutigePlatform.module.css";
 // 👇 IMPORT THE TYPES FROM THE CONTEXT INSTEAD OF DEFINING THEM HERE
 import { Product, CartItem, SavedItem } from "./BrutigeContext/BrutigeContext";
 import Notifications from "./NotificationsView/Notifications";
-import { MOCK_MAKER_NOTIFICATIONS } from "./NotificationsView/notification";
+import {
+  MOCK_BUYER_NOTIFICATIONS,
+  MOCK_MAKER_NOTIFICATIONS,
+} from "./NotificationsView/notification";
 
 interface BrutigePlatformProps {
   isDarkMode: boolean;
@@ -43,7 +46,7 @@ interface ProfileWrapperProps {
   setActiveTab: (tab: string) => void;
 }
 
-const notificationItems = MOCK_MAKER_NOTIFICATIONS;
+const notificationItems = MOCK_BUYER_NOTIFICATIONS;
 
 // Wrapper component to handle URL params for Profile
 const ProfileWrapper: React.FC<ProfileWrapperProps> = ({
