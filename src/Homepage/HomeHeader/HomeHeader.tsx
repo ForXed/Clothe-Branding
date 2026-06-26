@@ -1,6 +1,6 @@
-import React, { useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import styles from './HomeHeader.module.css';
+import React, { useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import styles from "./HomeHeader.module.css";
 
 interface HomeHeaderProps {
   setActiveTab: (tab: string) => void;
@@ -12,14 +12,14 @@ interface HomeHeaderProps {
   userName?: string;
 }
 
-const HomeHeader: React.FC<HomeHeaderProps> = ({ 
-  setActiveTab, 
+const HomeHeader: React.FC<HomeHeaderProps> = ({
+  setActiveTab,
   activeTab,
-  cartCount = 0, 
-  orderCount = 0, 
+  cartCount = 0,
+  orderCount = 0,
   notificationCount = 0,
   userAvatar = null,
-  userName = 'User'
+  userName = "User",
 }) => {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -27,29 +27,29 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
   // Keyboard Shortcut (⌘ + K)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
         e.preventDefault();
-        navigate('/platform/search');
+        navigate("/platform/search");
       }
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
   }, [navigate]);
 
   const BrutigeLogo = () => (
     <svg className={styles.logoSvg} viewBox="0 0 100 100" fill="none">
-      <circle className={styles.logoCircle} cx="50" cy="50" r="50"/>
-      <path d="M48 25L48 65L25 80L48 25Z" fill="var(--brut-bg)"/>
-      <path d="M52 25L52 65L75 80L52 25Z" fill="var(--brut-bg)"/>
+      <circle className={styles.logoCircle} cx="50" cy="50" r="50" />
+      <path d="M48 25L48 65L25 80L48 25Z" fill="var(--brut-bg)" />
+      <path d="M52 25L52 65L75 80L52 25Z" fill="var(--brut-bg)" />
     </svg>
   );
 
   const handleProfileClick = () => {
-    navigate('/platform/settings');
+    navigate("/platform/settings");
   };
 
   const handleSearchClick = () => {
-    navigate('/platform/search');
+    navigate("/platform/search");
   };
 
   return (
@@ -57,124 +57,191 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
       {/* 1. STUDIO TICKER */}
       <div className={styles.ticker}>
         <div className={styles.tickerTrack}>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
+          <span className={styles.tickerItem}>
+            <span className={styles.tickerDot}>•</span> New 450GSM Heavyweight
+            Fleece templates added
+          </span>
+          <span className={styles.tickerItem}>
+            <span className={styles.tickerDot}>•</span> Global shipping now
+            active for 52 countries
+          </span>
+          <span className={styles.tickerItem}>
+            <span className={styles.tickerDot}>•</span> Julian V. just started a
+            50pc production
+          </span>
+          <span className={styles.tickerItem}>
+            <span className={styles.tickerDot}>•</span> New 450GSM Heavyweight
+            Fleece templates added
+          </span>
+          <span className={styles.tickerItem}>
+            <span className={styles.tickerDot}>•</span> Global shipping now
+            active for 52 countries
+          </span>
+          <span className={styles.tickerItem}>
+            <span className={styles.tickerDot}>•</span> Julian V. just started a
+            50pc production
+          </span>
         </div>
       </div>
 
       <header className={styles.header}>
         <div className={styles.container}>
-          
           {/* MOBILE ONLY: BRANDING */}
-          <div className={styles.mobileBrand} onClick={() => setActiveTab('shop')}>
+          <div
+            className={styles.mobileBrand}
+            onClick={() => setActiveTab("shop")}
+          >
             <BrutigeLogo />
           </div>
 
           {/* LAPTOP ONLY: SEARCH */}
-          <div 
-            className={styles.searchContainer} 
+          <div
+            className={styles.searchContainer}
             onClick={handleSearchClick}
-            style={{ cursor: 'pointer' }}
+            style={{ cursor: "pointer" }}
           >
             <div className={styles.searchBar}>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" className={styles.searchIcon}>
-                <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+              <svg
+                width="18"
+                height="18"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                className={styles.searchIcon}
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
               </svg>
-              <input 
+              <input
                 ref={searchInputRef}
-                type="text" 
-                placeholder="Search aesthetics, infrastructure..." 
-                readOnly 
-                onFocus={handleSearchClick} 
+                type="text"
+                placeholder="Search aesthetics, infrastructure..."
+                readOnly
+                onFocus={handleSearchClick}
               />
               <div className={styles.kbdShortcut}>
-                <kbd>⌘</kbd><kbd>K</kbd>
+                <kbd>⌘</kbd>
+                <kbd>K</kbd>
               </div>
             </div>
           </div>
 
           {/* ACTIONS WITH LABELS */}
           <div className={styles.headerActions}>
-            
             {/* Profile */}
-            <button 
+            <button
               type="button"
-              className={`${styles.actionItem} ${activeTab === 'profile' ? styles.activeAction : ''}`} 
+              className={`${styles.actionItem} ${activeTab === "profile" ? styles.activeAction : ""}`}
               onClick={handleProfileClick}
               aria-label="Profile"
             >
               <div className={styles.iconWrapper}>
                 {userAvatar ? (
-                  <img src={userAvatar} alt="Profile" className={styles.avatarThumb} />
+                  <img
+                    src={userAvatar}
+                    alt="Profile"
+                    className={styles.avatarThumb}
+                  />
                 ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-                    <circle cx="12" cy="7" r="4"/>
+                  <svg
+                    width="20"
+                    height="20"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                  >
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                    <circle cx="12" cy="7" r="4" />
                   </svg>
                 )}
-                {notificationCount > 0 && <span className={styles.badge}>{notificationCount}</span>}
+                {notificationCount > 0 && (
+                  <span className={styles.badge}>{notificationCount}</span>
+                )}
               </div>
               <span className={styles.actionLabel}>Profile</span>
             </button>
 
             {/* Notifications */}
-            <button 
+            <button
               type="button"
-              className={`${styles.actionItem} ${activeTab === 'notifications' ? styles.activeAction : ''}`} 
-              onClick={() => setActiveTab('notifications')}
+              className={`${styles.actionItem} ${activeTab === "notifications" ? styles.activeAction : ""}`}
+              onClick={() => setActiveTab("notifications")}
               aria-label="Notifications"
             >
               <div className={styles.iconWrapper}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-                  <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                  <path d="M13.73 21a2 2 0 0 1-3.46 0" />
                 </svg>
-                {notificationCount > 0 && <span className={styles.badge}>{notificationCount}</span>}
+                {notificationCount > 0 && (
+                  <span className={styles.badge}>{notificationCount}</span>
+                )}
               </div>
               <span className={styles.actionLabel}>Notifications</span>
             </button>
 
             {/* Orders */}
-            <button 
+            <button
               type="button"
-              className={`${styles.actionItem} ${activeTab === 'orders' ? styles.activeAction : ''}`} 
-              onClick={() => setActiveTab('orders')}
+              className={`${styles.actionItem} ${activeTab === "orders" ? styles.activeAction : ""}`}
+              onClick={() => setActiveTab("orders")}
               aria-label="Orders"
             >
               <div className={styles.iconWrapper}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
-                  <polyline points="3.27 6.96 12 12.01 20.73 6.96"/>
-                  <line x1="12" y1="22.08" x2="12" y2="12"/>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
+                  <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+                  <line x1="12" y1="22.08" x2="12" y2="12" />
                 </svg>
-                {orderCount > 0 && <span className={styles.badge}>{orderCount}</span>}
+                {orderCount > 0 && (
+                  <span className={styles.badge}>{orderCount}</span>
+                )}
               </div>
               <span className={styles.actionLabel}>Orders</span>
             </button>
 
             {/* Cart */}
-            <button 
+            <button
               type="button"
-              className={`${styles.actionItem} ${activeTab === 'cart' ? styles.activeAction : ''}`} 
-              onClick={() => setActiveTab('cart')}
+              className={`${styles.actionItem} ${activeTab === "cart" ? styles.activeAction : ""}`}
+              onClick={() => setActiveTab("cart")}
               aria-label="Cart"
             >
               <div className={styles.iconWrapper}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                  <path d="M16 10a4 4 0 0 1-8 0"/>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                >
+                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z" />
+                  <path d="M16 10a4 4 0 0 1-8 0" />
                 </svg>
-                {cartCount > 0 && <span className={styles.badge}>{cartCount}</span>}
+                {cartCount > 0 && (
+                  <span className={styles.badge}>{cartCount}</span>
+                )}
               </div>
               <span className={styles.actionLabel}>Cart</span>
             </button>
-
           </div>
-
         </div>
       </header>
     </div>
