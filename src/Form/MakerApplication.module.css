@@ -18,6 +18,7 @@
   background: var(--brut-bg);
   position: relative;
   z-index: 2;
+  overflow-y: auto;
 }
 
 .formWrapper {
@@ -77,16 +78,14 @@
   overflow: hidden;
 }
 
-.bar::after {
-  content: '';
+.barFill {
   position: absolute;
   top: 0;
   left: 0;
   height: 100%;
-  width: var(--progress-width, 33%);
   background: var(--brut-text);
   border-radius: 2px;
-  transition: width 0.3s ease;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .progressSteps {
@@ -125,6 +124,13 @@
   opacity: 1;
 }
 
+.stepDot.completed span {
+  background: var(--brut-success, #22c55e);
+  border-color: var(--brut-success, #22c55e);
+  color: white;
+  opacity: 1;
+}
+
 .stepDot label {
   font-size: 0.75rem;
   font-weight: 600;
@@ -134,7 +140,8 @@
   letter-spacing: 0.5px;
 }
 
-.stepDot.active label {
+.stepDot.active label,
+.stepDot.completed label {
   opacity: 1;
 }
 
@@ -171,6 +178,7 @@
 /* Form Groups */
 .formGroup {
   margin-bottom: 20px;
+  position: relative;
 }
 
 .formGroup label {
@@ -185,7 +193,6 @@
 }
 
 .formGroup input, 
-.formGroup select, 
 .formGroup textarea {
   width: 100%;
   padding: 12px 16px;
@@ -196,10 +203,10 @@
   font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   transition: border-color 0.2s;
+  box-sizing: border-box;
 }
 
 .formGroup input:focus, 
-.formGroup select:focus, 
 .formGroup textarea:focus {
   outline: none;
   border-color: var(--brut-text);
@@ -210,13 +217,82 @@
   min-height: 80px;
 }
 
+/* Error States */
+.formGroup.hasError input,
+.formGroup.hasError textarea,
+.formGroup.hasError .selectWrapper select {
+  border-color: var(--brut-danger, #ef4444);
+}
+
+.errorMsg {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--brut-danger, #ef4444);
+  margin-top: 6px;
+  font-weight: 600;
+}
+
+/* 🔧 Custom Select Wrapper with SVG Chevron */
+.selectWrapper {
+  position: relative;
+}
+
+.chevron {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--brut-text);
+  opacity: 0.6;
+  transition: opacity 0.2s, transform 0.2s;
+  display: flex;
+  align-items: center;
+}
+
+.selectWrapper:hover .chevron {
+  opacity: 1;
+}
+
 .formGroup select {
+  width: 100%;
+  padding: 12px 44px 12px 16px;
+  border: 1.5px solid var(--brut-border);
+  border-radius: 10px;
+  background: var(--brut-bg);
+  color: var(--brut-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
   cursor: pointer;
   appearance: none;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 16px center;
-  padding-right: 40px;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  transition: border-color 0.2s, background 0.2s;
+  box-sizing: border-box;
+}
+
+.formGroup select:hover {
+  border-color: var(--brut-text);
+}
+
+.formGroup select:focus {
+  outline: none;
+  border-color: var(--brut-text);
+}
+
+/* Style the options properly */
+.formGroup select option {
+  background: var(--brut-card);
+  color: var(--brut-text);
+  padding: 12px;
+  font-size: 0.9rem;
+}
+
+.formGroup select option:disabled {
+  color: var(--brut-text);
+  opacity: 0.4;
+  background: var(--brut-bg);
+  font-style: italic;
 }
 
 .hint {
@@ -227,10 +303,93 @@
   margin-top: 6px;
 }
 
+.charCount {
+  display: block;
+  font-size: 0.7rem;
+  color: var(--brut-text);
+  opacity: 0.4;
+  margin-top: 4px;
+  text-align: right;
+}
+
 .formRow {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+}
+
+/* Image Upload */
+.imageUpload {
+  cursor: pointer;
+  position: relative;
+}
+
+.imagePlaceholder {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: 2px dashed var(--brut-border);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: var(--brut-text);
+  opacity: 0.6;
+  transition: all 0.2s;
+}
+
+.imagePlaceholder:hover {
+  border-color: var(--brut-text);
+  opacity: 1;
+  background: var(--brut-hover, rgba(255,255,255,0.03));
+}
+
+.imagePlaceholder span {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.imagePlaceholder small {
+  font-size: 0.75rem;
+  opacity: 0.7;
+}
+
+.imagePreview {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 2px solid var(--brut-border);
+}
+
+.imagePreview img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.removeImage {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.removeImage:hover {
+  background: var(--brut-danger, #ef4444);
+  transform: scale(1.1);
 }
 
 /* Security Note */
@@ -259,8 +418,12 @@
   margin: 24px 0;
   padding: 16px;
   background: var(--brut-bg);
-  border: 1px solid var(--brut-border);
+  border: 1.5px solid var(--brut-border);
   border-radius: 10px;
+}
+
+.termsBox.hasError {
+  border-color: var(--brut-danger, #ef4444);
 }
 
 .checkboxLabel {
@@ -279,6 +442,7 @@
   margin-top: 2px;
   cursor: pointer;
   accent-color: var(--brut-text);
+  flex-shrink: 0;
 }
 
 .checkboxLabel a {
@@ -398,7 +562,33 @@
   font-weight: 600;
 }
 
-/* Mobile Responsive */
+/* 🔒 Locked Country Field */
+.lockedField {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  border: 1.5px solid var(--brut-border);
+  border-radius: 10px;
+  background: var(--brut-hover, rgba(255,255,255,0.03));
+  cursor: not-allowed;
+  opacity: 0.85;
+}
+
+.lockedValue {
+  font-size: 0.9rem;
+  color: var(--brut-text);
+  font-weight: 600;
+}
+
+.lockIcon {
+  display: flex;
+  align-items: center;
+  color: var(--brut-text);
+  opacity: 0.5;
+}
+
+/* 🔧 Mobile Responsive */
 @media (max-width: 900px) {
   .mainWrapper {
     flex-direction: column;
@@ -406,15 +596,12 @@
 
   .formSection {
     padding: 24px 20px;
+    min-height: 100vh;
   }
 
+  /* 🔧 FIX: Hide brand section completely on mobile */
   .brandSection {
-    min-height: 200px;
-    padding: 40px 20px;
-  }
-
-  .typewriterText {
-    font-size: 1.2rem;
+    display: none !important;
   }
 
   .header h1 {
