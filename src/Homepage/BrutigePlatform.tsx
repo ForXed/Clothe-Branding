@@ -25,11 +25,8 @@ import styles from "./BrutigePlatform.module.css";
 
 // 👇 IMPORT THE TYPES FROM THE CONTEXT INSTEAD OF DEFINING THEM HERE
 import { Product, CartItem, SavedItem } from "./BrutigeContext/BrutigeContext";
-import Notifications from "./NotificationsView/Notifications";
-import {
-  MOCK_BUYER_NOTIFICATIONS,
-  MOCK_MAKER_NOTIFICATIONS,
-} from "./NotificationsView/notification";
+import NotificationList from "../Notification/NotificationList";
+import { NotificationProvider } from "../Notification/NotificationContext";
 
 interface BrutigePlatformProps {
   isDarkMode: boolean;
@@ -45,8 +42,6 @@ interface ProfileWrapperProps {
   setUserAvatar: React.Dispatch<React.SetStateAction<string | null>>;
   setActiveTab: (tab: string) => void;
 }
-
-const notificationItems = MOCK_BUYER_NOTIFICATIONS;
 
 // Wrapper component to handle URL params for Profile
 const ProfileWrapper: React.FC<ProfileWrapperProps> = ({
@@ -236,170 +231,177 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
     !location.pathname.includes("/checkout");
 
   return (
-    <div className={styles.platformWrapper}>
-      <Sidebar
-        activeTab={currentTab}
-        setActiveTab={handleTabChange}
-        goToStudio={goToStudio}
-        isDarkMode={isDarkMode}
-        toggleTheme={toggleTheme}
-      />
-
-      <main className={styles.mainContent}>
-        {showHeader && (
-          <HomeHeader
-            activeTab={currentTab}
-            setActiveTab={handleTabChange}
-            cartCount={cartItems.length}
-            userAvatar={userAvatar}
-            userName="User"
-            notificationCount={notificationItems.length}
-          />
-        )}
-
-        <div className={styles.viewport}>
-          <Routes location={location}>
-            <Route path="/" element={<Navigate to="shop" replace />} />
-
-            <Route
-              path="shop"
-              element={
-                selectedProduct ? (
-                  <ProductDetail
-                    product={selectedProduct}
-                    onBack={() => setSelectedProduct(null)}
-                    addToCart={addToCart}
-                    isSaved={savedItems.some(
-                      (i) => i.id === selectedProduct.id,
-                    )}
-                    toggleSaved={() => toggleSaved(selectedProduct)}
-                  />
-                ) : (
-                  <MasonryFeed
-                    onSelect={setSelectedProduct}
-                    savedItems={savedItems}
-                    toggleSaved={toggleSaved}
-                    addToCart={addToCart}
-                  />
-                )
-              }
-            />
-
-            <Route
-              path="search"
-              element={<SearchView onSelect={setSelectedProduct} />}
-            />
-
-            <Route
-              path="chat"
-              element={
-                <ChatRoom
-                  initialData={location.state as any}
-                  onMobileNavChange={setHideMobileNav}
-                />
-              }
-            />
-
-            <Route
-              path="profile/:makerId"
-              element={
-                <ProfileWrapper
-                  userAvatar={userAvatar}
-                  setUserAvatar={setUserAvatar}
-                  setActiveTab={handleTabChange}
-                />
-              }
-            />
-
-            <Route
-              path="profile"
-              element={
-                <ProfileView
-                  makerId="me"
-                  userAvatar={userAvatar}
-                  setUserAvatar={setUserAvatar}
-                  onProductClick={(p: Product) => console.log(p)}
-                  onMessageMaker={() => navigate("/platform/chat")}
-                />
-              }
-            />
-
-            <Route
-              path="notifications"
-              element={<Notifications notificationItems={notificationItems} />}
-            />
-            <Route
-              path="settings"
-              element={
-                <ProfileSettings
-                  userProfile={{ avatar: userAvatar }}
-                  setUserProfile={(data: { avatar: string | null }) =>
-                    setUserAvatar(data.avatar)
-                  }
-                />
-              }
-            />
-
-            <Route
-              path="cart"
-              element={
-                <CartView
-                  cartItems={cartItems}
-                  updateQuantity={updateQuantity}
-                  removeItem={removeItem}
-                  toggleSaved={toggleSaved}
-                />
-              }
-            />
-
-            <Route
-              path="checkout"
-              element={
-                <CheckoutView
-                  cartItems={cartItems}
-                  clearCart={clearCart}
-                  notify={notify}
-                  onComplete={() => navigate("/orders")}
-                />
-              }
-            />
-
-            <Route path="orders" element={<OrdersView />} />
-
-            <Route
-              path="orders/track/:orderId"
-              element={<OrderTracker notify={notify} />}
-            />
-
-            <Route
-              path="saved"
-              element={
-                <SavedView
-                  savedItems={savedItems}
-                  collections={collections}
-                  onCreateCollection={handleCreateCollection}
-                  onMoveItem={handleMoveItem}
-                  onSelect={setSelectedProduct}
-                  toggleSaved={toggleSaved}
-                  addToCart={addToCart}
-                />
-              }
-            />
-          </Routes>
-        </div>
-      </main>
-
-      {!hideMobileNav && (
-        <MobileNav
+    <NotificationProvider>
+      <div className={styles.platformWrapper}>
+        <Sidebar
           activeTab={currentTab}
           setActiveTab={handleTabChange}
           goToStudio={goToStudio}
-          cartCount={cartItems.length}
           isDarkMode={isDarkMode}
           toggleTheme={toggleTheme}
         />
-      )}
-    </div>
+
+        <main className={styles.mainContent}>
+          {showHeader && (
+            <HomeHeader
+              activeTab={currentTab}
+              setActiveTab={handleTabChange}
+              cartCount={cartItems.length}
+              userAvatar={userAvatar}
+              userName="User"
+              // notificationCount={notificationItems.length}
+            />
+          )}
+
+          <div className={styles.viewport}>
+            <Routes location={location}>
+              <Route path="/" element={<Navigate to="shop" replace />} />
+
+              <Route
+                path="shop"
+                element={
+                  selectedProduct ? (
+                    <ProductDetail
+                      product={selectedProduct}
+                      onBack={() => setSelectedProduct(null)}
+                      addToCart={addToCart}
+                      isSaved={savedItems.some(
+                        (i) => i.id === selectedProduct.id,
+                      )}
+                      toggleSaved={() => toggleSaved(selectedProduct)}
+                    />
+                  ) : (
+                    <MasonryFeed
+                      onSelect={setSelectedProduct}
+                      savedItems={savedItems}
+                      toggleSaved={toggleSaved}
+                      addToCart={addToCart}
+                    />
+                  )
+                }
+              />
+
+              <Route
+                path="search"
+                element={<SearchView onSelect={setSelectedProduct} />}
+              />
+
+              <Route
+                path="chat"
+                element={
+                  <ChatRoom
+                    initialData={location.state as any}
+                    onMobileNavChange={setHideMobileNav}
+                  />
+                }
+              />
+
+              <Route
+                path="profile/:makerId"
+                element={
+                  <ProfileWrapper
+                    userAvatar={userAvatar}
+                    setUserAvatar={setUserAvatar}
+                    setActiveTab={handleTabChange}
+                  />
+                }
+              />
+
+              <Route
+                path="profile"
+                element={
+                  <ProfileView
+                    makerId="me"
+                    userAvatar={userAvatar}
+                    setUserAvatar={setUserAvatar}
+                    onProductClick={(p: Product) => console.log(p)}
+                    onMessageMaker={() => navigate("/platform/chat")}
+                  />
+                }
+              />
+
+              <Route
+                path="notifications"
+                // element={<Notifications notificationItems={notificationItems} />}
+                element={
+                  <div style={{ padding: "40px 5%" }}>
+                    <NotificationList />
+                  </div>
+                }
+              />
+              <Route
+                path="settings"
+                element={
+                  <ProfileSettings
+                    userProfile={{ avatar: userAvatar }}
+                    setUserProfile={(data: { avatar: string | null }) =>
+                      setUserAvatar(data.avatar)
+                    }
+                  />
+                }
+              />
+
+              <Route
+                path="cart"
+                element={
+                  <CartView
+                    cartItems={cartItems}
+                    updateQuantity={updateQuantity}
+                    removeItem={removeItem}
+                    toggleSaved={toggleSaved}
+                  />
+                }
+              />
+
+              <Route
+                path="checkout"
+                element={
+                  <CheckoutView
+                    cartItems={cartItems}
+                    clearCart={clearCart}
+                    notify={notify}
+                    onComplete={() => navigate("/orders")}
+                  />
+                }
+              />
+
+              <Route path="orders" element={<OrdersView />} />
+
+              <Route
+                path="orders/track/:orderId"
+                element={<OrderTracker notify={notify} />}
+              />
+
+              <Route
+                path="saved"
+                element={
+                  <SavedView
+                    savedItems={savedItems}
+                    collections={collections}
+                    onCreateCollection={handleCreateCollection}
+                    onMoveItem={handleMoveItem}
+                    onSelect={setSelectedProduct}
+                    toggleSaved={toggleSaved}
+                    addToCart={addToCart}
+                  />
+                }
+              />
+            </Routes>
+          </div>
+        </main>
+
+        {!hideMobileNav && (
+          <MobileNav
+            activeTab={currentTab}
+            setActiveTab={handleTabChange}
+            goToStudio={goToStudio}
+            cartCount={cartItems.length}
+            isDarkMode={isDarkMode}
+            toggleTheme={toggleTheme}
+          />
+        )}
+      </div>
+    </NotificationProvider>
   );
 };
 

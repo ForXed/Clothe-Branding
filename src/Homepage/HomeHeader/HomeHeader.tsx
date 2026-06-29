@@ -1,6 +1,8 @@
 import React, { useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import styles from "./HomeHeader.module.css";
+import { useNotifications } from "../../Notification/NotificationContext";
+import { buyerNotifications } from "../../Notification/notification";
 
 interface HomeHeaderProps {
   setActiveTab: (tab: string) => void;
@@ -23,6 +25,16 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const { notifications, initializeNotifications } = useNotifications();
+
+  //initializing notifications
+  useEffect(() => {
+    initializeNotifications(buyerNotifications);
+  }, [initializeNotifications]);
+
+  // Adding notifications
+
+  notificationCount = notifications.length || 0;
 
   // Keyboard Shortcut (⌘ + K)
   useEffect(() => {
@@ -156,9 +168,9 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
                     <circle cx="12" cy="7" r="4" />
                   </svg>
                 )}
-                {notificationCount > 0 && (
+                {/* {notificationCount > 0 && (
                   <span className={styles.badge}>{notificationCount}</span>
-                )}
+                )} */}
               </div>
               <span className={styles.actionLabel}>Profile</span>
             </button>

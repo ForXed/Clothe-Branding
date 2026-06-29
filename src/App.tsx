@@ -43,6 +43,7 @@ import Preloader from "./Homepage/Preloader/Preloader";
 import FloatingMessage from "./Notification/FloatingMessage";
 import MakerApplication from "./Form/MakerApplication";
 import TwoFactorSetup from "./Form/TwoFactorSetup";
+import { NotificationProvider } from "./Notification/NotificationContext";
 
 // --- Type Definitions ---
 interface NotificationState {
@@ -153,7 +154,9 @@ const App: React.FC = () => {
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
-              <MakerStudio />
+              <NotificationProvider>
+                <MakerStudio />
+              </NotificationProvider>
             )
           }
         />

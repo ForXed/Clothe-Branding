@@ -1,8 +1,8 @@
 .container {
-  max-width: 600px;
+  /* max-width: 600px; */
   margin: 0 auto;
-  background: var(--brut-card);
-  border: 1px solid var(--brut-border);
+  /* background: var(--brut-card); */
+  /* border: 1px solid var(--brut-border); */
   border-radius: 16px;
   overflow: hidden;
 }
@@ -12,7 +12,8 @@
   justify-content: space-between;
   align-items: center;
   padding: 20px 24px;
-  border-bottom: 1px solid var(--brut-border);
+  padding-bottom: 0;
+  /* border-bottom: 1px solid var(--brut-border); */
   flex-wrap: wrap;
   gap: 12px;
 }
@@ -44,6 +45,7 @@
 .actions {
   display: flex;
   gap: 8px;
+  /* margin: 16px 0; */
 }
 
 .actionBtn {
@@ -64,11 +66,15 @@
   border-color: var(--brut-text);
 }
 
+.tabs::-webkit-scrollbar {
+  display: none;
+}
+
 .tabs {
   display: flex;
   gap: 8px;
-  padding: 12px 24px;
-  border-bottom: 1px solid var(--brut-border);
+  padding: 16px 24px;
+  /* border-bottom: 1px solid var(--brut-border); */
   overflow-x: auto;
 }
 
@@ -96,8 +102,9 @@
 }
 
 .list {
-  max-height: 500px;
-  overflow-y: auto;
+  /* max-height: 500px; */
+  /* overflow-y: auto; */
+  width: 100%;
 }
 
 .list::-webkit-scrollbar {
@@ -118,6 +125,8 @@
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
+  width: 100%;
+  /* background-color: red; */
 }
 
 .item:hover {
@@ -133,6 +142,7 @@
 }
 
 .icon {
+  position: relative;
   width: 40px;
   height: 40px;
   border-radius: 10px;
@@ -148,12 +158,19 @@
   flex: 1;
   min-width: 0;
 }
+._dot {
+  margin: 0 4px;
+  color: #666;
+}
 
 .row {
   display: flex;
-  justify-content: space-between;
+
+  /* justify-content: space-between; */
+  /* gap: 8px; */
   align-items: center;
   margin-bottom: 4px;
+  /* background: rebeccapurple; */
 }
 
 .type {
@@ -172,8 +189,9 @@
 .title {
   font-size: 0.95rem;
   font-weight: 700;
-  margin: 0 0 4px 0;
+  /* margin: 0 0 4px 0; */
   color: var(--brut-text);
+  letter-spacing: normal;
 }
 
 .message {
@@ -189,6 +207,8 @@
   border-radius: 8px;
   border: none;
   background: transparent;
+  align-self: center;
+  /* background-color: pink; */
   color: #666;
   display: flex;
   align-items: center;
@@ -210,8 +230,9 @@
 
 .dot {
   position: absolute;
-  top: 20px;
-  left: 12px;
+  top: 0px;
+  /* left: 12px; */
+  right: 0;
   width: 8px;
   height: 8px;
   background: #3b82f6;
@@ -251,15 +272,15 @@
   .header {
     padding: 16px;
   }
-  
+
   .tabs {
     padding: 12px 16px;
   }
-  
+
   .item {
     padding: 16px;
   }
-  
+
   .deleteBtn {
     opacity: 1;
   }
