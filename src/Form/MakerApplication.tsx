@@ -16,38 +16,20 @@ interface MakerApplicationProps {
 }
 
 interface FormData {
+  // Step 1: Basic Info
   studioName: string;
   specialty: string;
-  experience: string;
-  capacity: string;
-  moq: string;
-  leadTime: string;
   fullName: string;
   email: string;
   phone: string;
-  address: string;
-  city: string;
-  state: string;
-  country: string;
-  idType: string;
-  idNumber: string;
+  // Step 2: Profile
   profileImage: string | null;
   bio: string;
-  languages: string;
-  workingHours: string;
 }
 
 interface FormErrors {
   [key: string]: string;
 }
-
-const NIGERIAN_STATES = [
-  'Abia', 'Adamawa', 'Akwa Ibom', 'Anambra', 'Bauchi', 'Bayelsa', 'Benue', 'Borno',
-  'Cross River', 'Delta', 'Ebonyi', 'Edo', 'Ekiti', 'Enugu', 'FCT - Abuja', 'Gombe',
-  'Imo', 'Jigawa', 'Kaduna', 'Kano', 'Katsina', 'Kebbi', 'Kogi', 'Kwara', 'Lagos',
-  'Nasarawa', 'Niger', 'Ogun', 'Ondo', 'Osun', 'Oyo', 'Plateau', 'Rivers', 'Sokoto',
-  'Taraba', 'Yobe', 'Zamfara'
-];
 
 const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
   const navigate = useNavigate();
@@ -63,23 +45,11 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
   const [formData, setFormData] = useState<FormData>({
     studioName: '',
     specialty: '',
-    experience: '',
-    capacity: '',
-    moq: '',
-    leadTime: '',
     fullName: '',
     email: '',
     phone: '',
-    address: '',
-    city: '',
-    state: 'Lagos',
-    country: 'Nigeria',
-    idType: '',
-    idNumber: '',
     profileImage: null,
-    bio: '',
-    languages: 'English',
-    workingHours: ''
+    bio: ''
   });
 
   const phrases: string[] = [
@@ -186,20 +156,8 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
       if (!formData.specialty) {
         newErrors.specialty = 'Please select your specialty';
       }
-      if (!formData.experience) {
-        newErrors.experience = 'Please specify your experience';
-      }
-      if (formData.capacity && (isNaN(Number(formData.capacity)) || Number(formData.capacity) < 0)) {
-        newErrors.capacity = 'Please enter a valid number';
-      }
-      if (formData.moq && (isNaN(Number(formData.moq)) || Number(formData.moq) < 1)) {
-        newErrors.moq = 'Please enter a valid number (minimum 1)';
-      }
-    }
-
-    if (step === 2) {
       if (!formData.fullName.trim()) {
-        newErrors.fullName = 'Full legal name is required';
+        newErrors.fullName = 'Full name is required';
       } else if (formData.fullName.trim().length < 3) {
         newErrors.fullName = 'Name must be at least 3 characters';
       }
@@ -213,33 +171,16 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
       } else if (!validatePhone(formData.phone)) {
         newErrors.phone = 'Enter valid Nigerian phone (e.g., +2348123456789)';
       }
-      if (!formData.address.trim()) {
-        newErrors.address = 'Street address is required';
-      }
-      if (!formData.city.trim()) {
-        newErrors.city = 'City is required';
-      }
-      if (!formData.state) {
-        newErrors.state = 'Please select your state';
-      }
-      if (!formData.idType) {
-        newErrors.idType = 'Please select ID type';
-      }
-      if (!formData.idNumber.trim()) {
-        newErrors.idNumber = 'ID number is required';
-      } else if (formData.idType === 'nin' && formData.idNumber.replace(/\D/g, '').length !== 11) {
-        newErrors.idNumber = 'NIN must be exactly 11 digits';
-      }
     }
 
-    if (step === 3) {
+    if (step === 2) {
       if (!formData.profileImage) {
         newErrors.profileImage = 'Profile picture is required';
       }
       if (!formData.bio.trim()) {
-        newErrors.bio = 'Studio description is required';
-      } else if (formData.bio.trim().length < 20) {
-        newErrors.bio = 'Please write at least 20 characters about your studio';
+        newErrors.bio = 'Short bio is required';
+      } else if (formData.bio.trim().length < 10) {
+        newErrors.bio = 'Please write at least 10 characters about your studio';
       }
       if (!termsAccepted) {
         newErrors.terms = 'You must accept the terms to continue';
@@ -278,7 +219,7 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
     }
 
     if (notify) {
-      notify('Application submitted! We will review within 48h.', 'success');
+      notify('Application submitted! We\'ll review and get back to you within 48h.', 'success');
     }
     navigate('/platform/settings');
   };
@@ -299,9 +240,10 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
             <p>Join the Brutige network of verified producers.</p>
           </div>
 
+          {/* Progress Bar - Now 2 steps */}
           <div className={styles.progress}>
             <div className={styles.bar}>
-              <div className={styles.barFill} style={{ width: `${(step / 3) * 100}%` }}></div>
+              <div className={styles.barFill} style={{ width: `${(step / 2) * 100}%` }}></div>
             </div>
             <div className={styles.progressSteps}>
               <div className={`${styles.stepDot} ${step >= 1 ? styles.active : ''} ${step > 1 ? styles.completed : ''}`}>
@@ -312,29 +254,20 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                     </svg>
                   ) : '1'}
                 </span>
-                <label>Studio</label>
+                <label>Basic Info</label>
               </div>
-              <div className={`${styles.stepDot} ${step >= 2 ? styles.active : ''} ${step > 2 ? styles.completed : ''}`}>
-                <span>
-                  {step > 2 ? (
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20 6 9 17 4 12"/>
-                    </svg>
-                  ) : '2'}
-                </span>
-                <label>Security</label>
-              </div>
-              <div className={`${styles.stepDot} ${step >= 3 ? styles.active : ''}`}>
-                <span>3</span>
+              <div className={`${styles.stepDot} ${step >= 2 ? styles.active : ''}`}>
+                <span>2</span>
                 <label>Profile</label>
               </div>
             </div>
           </div>
 
+          {/* Step 1: Basic Info */}
           {step === 1 && (
             <div className={styles.step}>
-              <h3>Studio Information</h3>
-              <p className={styles.stepDesc}>Tell us about your production capabilities.</p>
+              <h3>Basic Information</h3>
+              <p className={styles.stepDesc}>Tell us about you and your studio. You can add more details later.</p>
 
               <div className={`${styles.formGroup} ${errors.studioName ? styles.hasError : ''}`}>
                 <label>Studio / Brand Name *</label>
@@ -374,100 +307,13 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                 {errors.specialty && <span className={styles.errorMsg}>{errors.specialty}</span>}
               </div>
 
-              <div className={`${styles.formGroup} ${errors.experience ? styles.hasError : ''}`}>
-                <label>Years of Experience *</label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    name="experience"
-                    value={formData.experience}
-                    onChange={handleChange}
-                  >
-                    <option value="" disabled>Select experience level...</option>
-                    <option value="1-2">1-2 years</option>
-                    <option value="3-5">3-5 years</option>
-                    <option value="6-10">6-10 years</option>
-                    <option value="10+">10+ years</option>
-                  </select>
-                  <span className={styles.chevron}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </span>
-                </div>
-                {errors.experience && <span className={styles.errorMsg}>{errors.experience}</span>}
-              </div>
-
-              <div className={styles.formRow}>
-                <div className={`${styles.formGroup} ${errors.capacity ? styles.hasError : ''}`}>
-                  <label>Monthly Capacity (Units)</label>
-                  <input
-                    name="capacity"
-                    type="number"
-                    value={formData.capacity}
-                    onChange={handleChange}
-                    placeholder="e.g. 500"
-                  />
-                  {errors.capacity && <span className={styles.errorMsg}>{errors.capacity}</span>}
-                </div>
-
-                <div className={`${styles.formGroup} ${errors.moq ? styles.hasError : ''}`}>
-                  <label>Min. Order Quantity</label>
-                  <input
-                    name="moq"
-                    type="number"
-                    value={formData.moq}
-                    onChange={handleChange}
-                    placeholder="e.g. 50"
-                  />
-                  {errors.moq && <span className={styles.errorMsg}>{errors.moq}</span>}
-                </div>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Average Lead Time</label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    name="leadTime"
-                    value={formData.leadTime}
-                    onChange={handleChange}
-                  >
-                    <option value="" disabled>Select typical lead time...</option>
-                    <option value="1-3">1-3 days</option>
-                    <option value="4-7">4-7 days</option>
-                    <option value="1-2w">1-2 weeks</option>
-                    <option value="2-4w">2-4 weeks</option>
-                    <option value="1-2m">1-2 months</option>
-                    <option value="2m+">2+ months</option>
-                  </select>
-                  <span className={styles.chevron}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </span>
-                </div>
-                <span className={styles.hint}>How long it typically takes to complete an order</span>
-              </div>
-
-              <div className={styles.btnRow}>
-                <button className={styles.btnPrimary} onClick={handleNext}>
-                  Continue to Security &rarr;
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === 2 && (
-            <div className={styles.step}>
-              <h3>Security & Verification</h3>
-              <p className={styles.stepDesc}>We verify all makers. Your information is encrypted & secure.</p>
-
               <div className={`${styles.formGroup} ${errors.fullName ? styles.hasError : ''}`}>
-                <label>Full Legal Name *</label>
+                <label>Full Name *</label>
                 <input
                   name="fullName"
                   value={formData.fullName}
                   onChange={handleChange}
-                  placeholder="As it appears on your ID"
+                  placeholder="Your full name"
                 />
                 {errors.fullName && <span className={styles.errorMsg}>{errors.fullName}</span>}
               </div>
@@ -496,118 +342,16 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                 {errors.phone && <span className={styles.errorMsg}>{errors.phone}</span>}
               </div>
 
-              <div className={`${styles.formGroup} ${errors.address ? styles.hasError : ''}`}>
-                <label>Studio/Workshop Address *</label>
-                <input
-                  name="address"
-                  value={formData.address}
-                  onChange={handleChange}
-                  placeholder="e.g. 15 Allen Avenue, Ikeja"
-                />
-                {errors.address && <span className={styles.errorMsg}>{errors.address}</span>}
-              </div>
-
-              <div className={styles.formRow}>
-                <div className={`${styles.formGroup} ${errors.city ? styles.hasError : ''}`}>
-                  <label>City *</label>
-                  <input
-                    name="city"
-                    value={formData.city}
-                    onChange={handleChange}
-                    placeholder="e.g. Lagos"
-                  />
-                  {errors.city && <span className={styles.errorMsg}>{errors.city}</span>}
-                </div>
-                <div className={`${styles.formGroup} ${errors.state ? styles.hasError : ''}`}>
-                  <label>State *</label>
-                  <div className={styles.selectWrapper}>
-                    <select
-                      name="state"
-                      value={formData.state}
-                      onChange={handleChange}
-                    >
-                      <option value="" disabled>Select state...</option>
-                      {NIGERIAN_STATES.map(state => (
-                        <option key={state} value={state}>{state}</option>
-                      ))}
-                    </select>
-                    <span className={styles.chevron}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </span>
-                  </div>
-                  {errors.state && <span className={styles.errorMsg}>{errors.state}</span>}
-                </div>
-              </div>
-
-              {/* 🔒 Country field - Locked to Nigeria */}
-              <div className={styles.formGroup}>
-                <label>Country</label>
-                <div className={styles.lockedField}>
-                  <span className={styles.lockedValue}>🇳🇬 Nigeria</span>
-                  <span className={styles.lockIcon}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
-                    </svg>
-                  </span>
-                </div>
-                <span className={styles.hint}>Brutige is currently Nigeria-only. We're expanding soon.</span>
-              </div>
-
-              <div className={styles.securityNote}>
+              <div className={styles.infoNote}>
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                  <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
                 </svg>
-                <span>ID verification required. We accept Nigerian ID documents.</span>
-              </div>
-
-              <div className={styles.formRow}>
-                <div className={`${styles.formGroup} ${errors.idType ? styles.hasError : ''}`}>
-                  <label>ID Type *</label>
-                  <div className={styles.selectWrapper}>
-                    <select
-                      name="idType"
-                      value={formData.idType}
-                      onChange={handleChange}
-                    >
-                      <option value="" disabled>Select ID type...</option>
-                      <option value="nin">NIN</option>
-                      <option value="nin-slip">NIN Slip</option>
-                      <option value="passport">International Passport</option>
-                      <option value="drivers">Driver's License</option>
-                      <option value="voters">Voter's Card (PVC)</option>
-                    </select>
-                    <span className={styles.chevron}>
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <polyline points="6 9 12 15 18 9" />
-                      </svg>
-                    </span>
-                  </div>
-                  {errors.idType && <span className={styles.errorMsg}>{errors.idType}</span>}
-                </div>
-                <div className={`${styles.formGroup} ${errors.idNumber ? styles.hasError : ''}`}>
-                  <label>ID Number *</label>
-                  <input
-                    name="idNumber"
-                    value={formData.idNumber}
-                    onChange={handleChange}
-                    placeholder={
-                      formData.idType === 'nin' ? '11-digit NIN' :
-                      formData.idType === 'passport' ? 'e.g. A12345678' :
-                      formData.idType === 'drivers' ? 'e.g. ABC-20250101-12345' :
-                      formData.idType === 'voters' ? '909...12 (on your PVC)' :
-                      'Enter ID number'
-                    }
-                  />
-                  {errors.idNumber && <span className={styles.errorMsg}>{errors.idNumber}</span>}
-                </div>
+                <span>After approval, you'll set up your full profile with production details, ID verification, and more.</span>
               </div>
 
               <div className={styles.btnRow}>
-                <button className={styles.btnText} onClick={handleBack}>&larr; Back</button>
                 <button className={styles.btnPrimary} onClick={handleNext}>
                   Continue to Profile &rarr;
                 </button>
@@ -615,10 +359,11 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
             </div>
           )}
 
-          {step === 3 && (
+          {/* Step 2: Profile */}
+          {step === 2 && (
             <div className={styles.step}>
-              <h3>Profile Setup</h3>
-              <p className={styles.stepDesc}>Set up your public profile. You can edit these later in settings.</p>
+              <h3>Your Profile</h3>
+              <p className={styles.stepDesc}>Add a picture and tell customers about your studio.</p>
 
               <div className={`${styles.formGroup} ${errors.profileImage ? styles.hasError : ''}`}>
                 <label>Profile / Studio Picture *</label>
@@ -666,36 +411,14 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                 <label>About Your Studio *</label>
                 <textarea
                   name="bio"
-                  rows={5}
+                  rows={4}
                   value={formData.bio}
                   onChange={handleChange}
-                  placeholder="Tell customers about your team, expertise, and what makes your studio unique..."
-                  maxLength={500}
+                  placeholder="Briefly describe your studio, expertise, and what you offer..."
+                  maxLength={300}
                 />
-                <span className={styles.charCount}>{formData.bio.length}/500</span>
+                <span className={styles.charCount}>{formData.bio.length}/300</span>
                 {errors.bio && <span className={styles.errorMsg}>{errors.bio}</span>}
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Languages Spoken</label>
-                <input
-                  name="languages"
-                  value={formData.languages}
-                  onChange={handleChange}
-                  placeholder="e.g. English, Yoruba, Igbo, Pidgin"
-                />
-                <span className={styles.hint}>Helps customers communicate with you</span>
-              </div>
-
-              <div className={styles.formGroup}>
-                <label>Working Hours</label>
-                <input
-                  name="workingHours"
-                  value={formData.workingHours}
-                  onChange={handleChange}
-                  placeholder="e.g. Mon-Fri, 9AM-6PM (WAT)"
-                />
-                <span className={styles.hint}>Let customers know when you're available</span>
               </div>
 
               <div className={`${styles.termsBox} ${errors.terms ? styles.hasError : ''}`}>

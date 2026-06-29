@@ -280,19 +280,48 @@
   border-color: var(--brut-text);
 }
 
-/* Style the options properly */
+/* 🔧 Enhanced Dropdown Options Styling */
 .formGroup select option {
-  background: var(--brut-card);
-  color: var(--brut-text);
-  padding: 12px;
+  background: var(--brut-card, #161616);
+  color: var(--brut-text, #ededed);
+  padding: 14px 16px;
   font-size: 0.9rem;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 500;
+  border-bottom: 1px solid var(--brut-border, #333);
+  cursor: pointer;
 }
 
+.formGroup select option:last-child {
+  border-bottom: none;
+}
+
+.formGroup select option:hover,
+.formGroup select option:checked {
+  background: var(--brut-text, #ededed);
+  color: var(--brut-bg, #0a0a0a);
+  font-weight: 700;
+}
+
+/* Firefox specific styling */
+.formGroup select option:hover:not(:checked) {
+  background: var(--brut-hover, #2a2a2a);
+  color: var(--brut-text);
+}
+
+/* Disabled option (placeholder) styling */
 .formGroup select option:disabled {
   color: var(--brut-text);
   opacity: 0.4;
   background: var(--brut-bg);
   font-style: italic;
+  font-weight: 600;
+  cursor: not-allowed;
+}
+
+/* Chrome/Safari specific - when dropdown is open */
+.formGroup select:focus option {
+  padding: 12px 16px;
 }
 
 .hint {
@@ -392,7 +421,7 @@
   transform: scale(1.1);
 }
 
-/* Security Note */
+/* 🔒 Security Note (kept for later use if needed) */
 .securityNote {
   display: flex;
   align-items: flex-start;
@@ -411,6 +440,33 @@
   flex-shrink: 0;
   margin-top: 2px;
   color: var(--brut-blue, #3b82f6);
+}
+
+/* ℹ️ NEW: Info Note - Used in simplified form */
+.infoNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 14px 16px;
+  background: rgba(139, 92, 246, 0.08);
+  border: 1px solid rgba(139, 92, 246, 0.25);
+  border-radius: 10px;
+  margin: 20px 0;
+  font-size: 0.82rem;
+  color: var(--brut-text);
+  line-height: 1.5;
+}
+
+.infoNote svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  color: #8b5cf6;
+}
+
+[data-theme='light'] .infoNote,
+.light-mode .infoNote {
+  background: rgba(139, 92, 246, 0.06);
+  border-color: rgba(139, 92, 246, 0.2);
 }
 
 /* Terms Box */
@@ -562,7 +618,7 @@
   font-weight: 600;
 }
 
-/* 🔒 Locked Country Field */
+/* 🔒 Locked Country Field (kept for future use) */
 .lockedField {
   display: flex;
   align-items: center;

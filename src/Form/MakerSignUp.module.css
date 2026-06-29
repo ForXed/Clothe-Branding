@@ -1,10 +1,10 @@
 .mainWrapper {
     display: flex;
-    height: 100vh;
+    min-height: 100vh;  /* 🔧 FIX: Changed from height: 100vh */
     width: 100%;
     background: #fff;
     font-family: 'Outfit', sans-serif;
-    overflow: hidden;
+    overflow: hidden;   /* Desktop: no scroll needed */
 }
 
 /* --- FLOATING ERROR SYSTEM --- */
@@ -71,14 +71,9 @@
 
 .socialBtn img { width: 18px; transition: filter 0.3s; }
 
-/* Hover State: Black BG, White Text */
 .socialBtn:hover { background: #000; color: #fff; }
-
-/* Google: Keep Grayscale normally, remove on hover (optional, or keep grayscale) */
 .socialBtn:hover img:not(.appleIcon) { filter: grayscale(100%); }
 
-/* APPLE FIX: Force White on Hover */
-/* 1. Grayscale removes color -> 2. Brightness 0 makes it black -> 3. Invert 1 makes it white */
 .socialBtn:hover .appleIcon {
     filter: grayscale(100%) brightness(0) invert(1) !important;
 }
@@ -101,6 +96,7 @@
     background: transparent; 
     width: 100%;
     font-family: 'Outfit', sans-serif;
+    box-sizing: border-box;
 }
 
 /* Password Wrapper for Eye Icon */
@@ -111,7 +107,7 @@
 }
 
 .passwordWrapper input {
-    padding-right: 50px; /* Space for the icon */
+    padding-right: 50px;
 }
 
 .passwordToggle {
@@ -164,15 +160,42 @@
     .formSection { padding: 40px; }
 }
 
+/* 🔧 FIX: Mobile scroll issue */
 @media (max-width: 900px) {
-    .mainWrapper { flex-direction: column; overflow-y: auto; }
-    .brandSection { display: none; }
-    .formSection { width: 100%; padding: 40px 20px; height: auto; }
-    .formWrapper { margin: 0 auto; max-width: 100%; }
-    .floatingError { width: 90%; font-size: 0.8rem; bottom: 20px; }
+    .mainWrapper {
+        flex-direction: column;
+        height: auto;           /* 🔧 FIX: Allow content to grow */
+        min-height: 100vh;      /* 🔧 FIX: Minimum height, not fixed */
+        overflow-y: auto;       /* 🔧 FIX: Allow vertical scrolling */
+        overflow-x: hidden;     /* 🔧 FIX: Prevent horizontal scroll */
+    }
+    
+    .brandSection { 
+        display: none; 
+    }
+    
+    .formSection { 
+        width: 100%; 
+        padding: 40px 20px; 
+        height: auto;           /* 🔧 FIX: Let form section grow */
+        min-height: 100vh;      /* 🔧 FIX: At least full viewport */
+        overflow-y: visible;    /* 🔧 FIX: Parent handles scroll */
+    }
+    
+    .formWrapper { 
+        margin: 0 auto; 
+        max-width: 100%; 
+    }
+    
+    .floatingError { 
+        width: 90%; 
+        font-size: 0.8rem; 
+        bottom: 20px; 
+    }
 }
 
 @media (max-width: 480px) {
     .title { font-size: 2.2rem; }
     .socialGrid { grid-template-columns: 1fr; }
+    .formSection { padding: 30px 16px; }
 }
