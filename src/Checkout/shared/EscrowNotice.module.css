@@ -1,0 +1,75 @@
+.container {
+  margin: 20px 0;
+  padding: 15px;
+  background: rgba(45, 212, 191, 0.05);
+  border: 1px solid rgba(45, 212, 191, 0.2);
+  border-radius: 8px;
+}
+
+.label {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+  font-family: 'Outfit', sans-serif;
+}
+
+.label input {
+  display: none;
+}
+
+.checkmark {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #2dd4bf;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-top: 2px;
+  transition: all 0.2s;
+}
+
+.label input:checked + .checkmark {
+  background: #2dd4bf;
+}
+
+.label input:checked + .checkmark::after {
+  content: '✓';
+  color: #000;
+  font-weight: 900;
+  font-size: 14px;
+}
+
+.content {
+  display: flex;
+  gap: 12px;
+  flex: 1;
+}
+
+.icon {
+  color: #2dd4bf;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.text {
+  flex: 1;
+}
+
+.text strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--brut-text);
+  margin-bottom: 4px;
+}
+
+.text p {
+  font-size: 0.85rem;
+  line-height: 1.4;
+  color: var(--brut-text);
+  opacity: 0.8;
+  margin: 0;
+}

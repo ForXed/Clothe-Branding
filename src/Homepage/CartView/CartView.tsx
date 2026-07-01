@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './CartView.module.css';
-// Import core types from your Context file
 import { Product, CartItem } from '../BrutigeContext/BrutigeContext'; 
 
-// Extend CartItem for CartView-specific properties
 interface ExtendedCartItem extends CartItem {
   isCustom?: boolean;
   makerName?: string;
@@ -15,30 +13,61 @@ interface CartViewProps {
   updateQuantity: (id: number | string, size: string, newQuantity: number) => void;
   removeItem: (id: number | string, size: string) => void;
   toggleSaved: (product: Product) => void;
+  notify?: (message: string, type?: 'success' | 'error' | 'info') => void;
 }
 
-const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeItem, toggleSaved }) => {
+const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeItem, toggleSaved, notify }) => {
   const navigate = useNavigate();
   
   const [promoCode, setPromoCode] = useState<string>('');
-  const [discount, setDiscount] = useState<number>(0);
+  const [appliedPromo, setAppliedPromo] = useState<{ code: string; amount: number } | null>(null);
   const [mockupApproved, setMockupApproved] = useState<boolean>(false);
   const [isCheckingOut, setIsCheckingOut] = useState<boolean>(false);
   const [deleteMessage, setDeleteMessage] = useState<string | null>(null);
 
+  // ✅ Helper to format Naira cleanly (no decimals)
+  const formatNaira = (amount: number) => {
+    return `₦${Math.round(amount).toLocaleString('en-NG')}`;
+  };
+
   // --- CALCULATIONS ---
   const subtotal = cartItems.reduce((sum, item) => {
-    // Safely convert price to string in case it's already a number
-    const price = parseFloat(item.price.toString().replace('$', ''));
+    // ✅ FIX: Strip ₦, $, commas, and spaces so parseFloat works perfectly
+    const price = parseFloat(item.price.toString().replace(/[₦,$,\s]/g, ''));
     return sum + (price * item.quantity);
   }, 0);
 
-  const shipping = subtotal > 500 ? 0 : 45;
-  const tax = subtotal * 0.08;
+  // Nigerian shipping & tax
+  const shipping = subtotal > 100000 ? 0 : 5000; 
+  const tax = subtotal * 0.075; 
+  
+  // Calculate discount based on applied promo
+  const discount = appliedPromo ? appliedPromo.amount : 0;
   const total = subtotal + shipping + tax - discount;
 
+  // ✅ PROMO CODE LOGIC
   const applyPromo = () => {
-    if (promoCode.toUpperCase() === 'BRUTIGE10') setDiscount(subtotal * 0.1);
+    const code = promoCode.trim().toUpperCase();
+    
+    if (code === 'BRUTIGE10') {
+      const amount = subtotal * 0.1;
+      setAppliedPromo({ code, amount });
+      if (notify) notify('Promo applied: 10% off!', 'success');
+    } else if (code === 'BRUTIGE20') {
+      const amount = subtotal * 0.2;
+      setAppliedPromo({ code, amount });
+      if (notify) notify('Promo applied: 20% off!', 'success');
+    } else if (code === 'WELCOME' && subtotal >= 50000) {
+      setAppliedPromo({ code, amount: 5000 });
+      if (notify) notify('Welcome promo applied: ₦5,000 off!', 'success');
+    } else {
+      if (notify) notify('Invalid promo code', 'error');
+    }
+  };
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromoCode('');
   };
 
   const hasCustomItems = cartItems.some(item => item.isCustom);
@@ -46,18 +75,14 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
 
   // --- HANDLERS ---
   const handleIncrement = (item: ExtendedCartItem) => {
-    if (updateQuantity) {
-      updateQuantity(item.id, item.size, item.quantity + 1);
-    }
+    if (updateQuantity) updateQuantity(item.id, item.size, item.quantity + 1);
   };
 
   const handleDecrement = (item: ExtendedCartItem) => {
     if (item.quantity <= 1) {
       handleRemove(item);
     } else {
-      if (updateQuantity) {
-        updateQuantity(item.id, item.size, item.quantity - 1);
-      }
+      if (updateQuantity) updateQuantity(item.id, item.size, item.quantity - 1);
     }
   };
 
@@ -65,10 +90,7 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
     if (removeItem) {
       removeItem(item.id, item.size);
       setDeleteMessage(`${item.title} (${item.size}) removed from cart`);
-
-      setTimeout(() => {
-        setDeleteMessage(null);
-      }, 3000);
+      setTimeout(() => setDeleteMessage(null), 3000);
     }
   };
 
@@ -80,15 +102,8 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
     if (!canCheckout) return;
     setIsCheckingOut(true);
     setTimeout(() => {
-      navigate('/platform/checkout', { 
-        state: { 
-          items: cartItems, 
-          subtotal, 
-          shipping, 
-          tax, 
-          total,
-          formData: {} 
-        } 
+      navigate('/checkout', { 
+        state: { cartItems, subtotal, shipping, tax, total, formData: {} } 
       });
       setIsCheckingOut(false);
     }, 2000);
@@ -120,7 +135,7 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
           <div className={styles.preloaderContent}>
             <div className={styles.spinner}></div>
             <h3>Initializing Logistics...</h3>
-            <p>Calculating HS Codes & Generating Waybills</p>
+            <p>Calculating Shipping & Generating Waybills</p>
           </div>
         </div>
       )}
@@ -135,15 +150,7 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
         </div>
       )}
 
-      <div className={styles.checkoutSteps}>
-        {['Cart', 'Details', 'Logistics', 'Payment'].map((label, i) => (
-            <div key={label} className={`${styles.step} ${i === 0 ? styles.stepActive : ''}`}>
-                <span className={styles.stepNum}>{i + 1}</span>
-                <span className={styles.stepLabel}>{label}</span>
-                {i < 3 && <div className={styles.stepLine} />}
-            </div>
-        ))}
-      </div>
+      {/* ✅ REMOVED: The 4-step tracker. It's cleaner without it on the cart page! */}
 
       <div className={styles.cartLayout}>
         <div className={styles.itemsSection}>
@@ -151,7 +158,8 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
           
           <div className={styles.itemsList}>
             {cartItems.map((item, idx) => {
-              const price = parseFloat(item.price.toString().replace('$', ''));
+              // ✅ FIX: Same regex fix here for individual item prices
+              const price = parseFloat(item.price.toString().replace(/[₦,$,\s]/g, ''));
               let unitPrice = price;
               let discountPercent = 0;
               
@@ -179,13 +187,13 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
                     <div className={styles.priceRow}>
                       {discountPercent > 0 ? (
                         <>
-                          <span className={styles.oldPrice}>${price.toFixed(2)}</span>
-                          <span className={styles.newPrice}>${unitPrice.toFixed(2)}</span>
+                          <span className={styles.oldPrice}>{formatNaira(price)}</span>
+                          <span className={styles.newPrice}>{formatNaira(unitPrice)}</span>
                         </>
                       ) : (
-                        <span className={styles.newPrice}>${unitPrice.toFixed(2)}</span>
+                        <span className={styles.newPrice}>{formatNaira(unitPrice)}</span>
                       )}
-                      <span className={styles.lineTotal}>${lineTotal.toFixed(2)}</span>
+                      <span className={styles.lineTotal}>{formatNaira(lineTotal)}</span>
                     </div>
                   </div>
 
@@ -237,18 +245,38 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
               <p>Funds held in Escrow until delivery confirmation.</p>
             </div>
 
+            {/* ✅ PROMO SECTION: Shows input OR applied badge */}
             <div className={styles.promoSection}>
-              <input type="text" placeholder="Promo Code" value={promoCode} onChange={(e) => setPromoCode(e.target.value)} />
-              <button type="button" onClick={applyPromo}>Apply</button>
+              {appliedPromo ? (
+                <div className={styles.appliedPromo}>
+                  <span className={styles.promoBadge}>✓ {appliedPromo.code} Applied</span>
+                  <button type="button" className={styles.removePromoBtn} onClick={removePromo}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <input 
+                    type="text" 
+                    placeholder="Promo Code" 
+                    value={promoCode} 
+                    onChange={(e) => setPromoCode(e.target.value)} 
+                    onKeyDown={(e) => e.key === 'Enter' && applyPromo()}
+                  />
+                  <button type="button" onClick={applyPromo}>Apply</button>
+                </>
+              )}
             </div>
 
-            <div className={styles.summaryLine}><span>Subtotal</span><strong>${subtotal.toFixed(2)}</strong></div>
-            <div className={styles.summaryLine}><span>Global Shipping</span><strong>{shipping === 0 ? 'FREE' : `$${shipping.toFixed(2)}`}</strong></div>
-            <div className={styles.summaryLine}><span>Est. Taxes & Duties</span><strong>${tax.toFixed(2)}</strong></div>
-            {discount > 0 && <div className={`${styles.summaryLine} ${styles.discount}`}><span>Promo Discount</span><strong>-${discount.toFixed(2)}</strong></div>}
+            <div className={styles.summaryLine}><span>Subtotal</span><strong>{formatNaira(subtotal)}</strong></div>
+            <div className={styles.summaryLine}><span>Shipping</span><strong>{shipping === 0 ? 'FREE' : formatNaira(shipping)}</strong></div>
+            <div className={styles.summaryLine}><span>VAT (7.5%)</span><strong>{formatNaira(tax)}</strong></div>
+            {discount > 0 && <div className={`${styles.summaryLine} ${styles.discount}`}><span>Promo Discount</span><strong>-{formatNaira(discount)}</strong></div>}
 
             <div className={styles.divider} />
-            <div className={`${styles.summaryLine} ${styles.total}`}><span>Total Due</span><strong>${total.toFixed(2)}</strong></div>
+            <div className={`${styles.summaryLine} ${styles.total}`}><span>Total Due</span><strong>{formatNaira(total)}</strong></div>
 
             <button 
               type="button"
@@ -256,11 +284,11 @@ const CartView: React.FC<CartViewProps> = ({ cartItems, updateQuantity, removeIt
               disabled={!canCheckout || isCheckingOut}
               onClick={handleCheckout}
             >
-              {isCheckingOut ? 'Processing...' : (canCheckout ? 'Proceed to Logistics' : 'Approve Mockups to Continue')}
+              {isCheckingOut ? 'Processing...' : (canCheckout ? 'Proceed to Checkout' : 'Approve Mockups to Continue')}
             </button>
 
             <div className={styles.logisticsNote}>
-              <p>Automated Waybills & HS Codes generated at next step.</p>
+              <p>Secure payment via Paystack • Escrow protected</p>
             </div>
           </div>
         </div>

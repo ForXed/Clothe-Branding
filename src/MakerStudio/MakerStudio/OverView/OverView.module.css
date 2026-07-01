@@ -53,50 +53,23 @@
   margin: 0;
 }
 
-.headerRight {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-/* --- UPDATED PROFILE SECTION --- */
+/* 🎨 Simple Profile Section - No Dropdown */
 .profileSection {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 6px 6px 6px 12px;
+  padding: 8px 16px 8px 8px;
   background: var(--brut-card);
-  border: 1px solid var(--brut-border);
+  border: 1.5px solid var(--brut-border);
   border-radius: 50px;
   cursor: pointer;
   transition: all 0.2s ease;
-  text-align: left;
-  border: none; /* Reset button default */
-  font-family: inherit;
 }
 
 .profileSection:hover {
   border-color: var(--brut-text);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-}
-
-.profileInfo {
-  display: flex;
-  flex-direction: column;
-}
-
-.profileName {
-  font-size: 0.9rem;
-  font-weight: 700;
-  color: var(--brut-text);
-  line-height: 1.2;
-}
-
-.profileEmail {
-  font-size: 0.75rem;
-  color: #666;
-  margin-top: 2px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
 }
 
 .profileAvatar {
@@ -104,26 +77,79 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  overflow: hidden;
+  overflow: visible;
   flex-shrink: 0;
-  background: var(--brut-bg);
 }
 
 .avatarImg {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  border-radius: 50%;
+  border: 2px solid var(--brut-border);
 }
 
+/* Status dot with different colors */
 .statusDot {
   position: absolute;
   bottom: 2px;
   right: 2px;
-  width: 10px;
-  height: 10px;
-  background: #22c55e; /* Green online dot */
+  width: 12px;
+  height: 12px;
+  border: 2.5px solid var(--brut-card);
+  border-radius: 50%;
+}
+
+.statusDot.online {
+  background: #22c55e;
+}
+
+.statusDot.away {
+  background: #f59e0b;
+}
+
+.statusDot.offline {
+  background: #6b7280;
+}
+
+/* ✅ Verification badge */
+.verifiedBadge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 18px;
+  height: 18px;
+  background: #3b82f6;
   border: 2px solid var(--brut-card);
   border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.profileInfo {
+  display: flex;
+  flex-direction: column;
+  text-align: left;
+  min-width: 0;
+}
+
+.profileName {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--brut-text);
+  line-height: 1.2;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profileStatus {
+  font-size: 0.7rem;
+  color: #22c55e;
+  font-weight: 600;
+  margin-top: 2px;
 }
 
 /* Stats Grid */
@@ -140,11 +166,13 @@
   border-radius: 16px;
   padding: 24px;
   transition: all 0.3s ease;
+  cursor: pointer;
 }
 
 .statCard:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08);
+  border-color: var(--brut-text);
 }
 
 .statHeader {
@@ -284,6 +312,8 @@
 
 .chart {
   height: 240px;
+  overflow-x: auto;
+  overflow-y: hidden;
 }
 
 .chartBars {
@@ -292,6 +322,7 @@
   align-items: flex-end;
   height: 100%;
   padding-top: 20px;
+  min-width: 600px;
 }
 
 .barContainer {
@@ -337,6 +368,29 @@
   font-size: 0.8rem;
   font-weight: 600;
   color: #666;
+}
+
+/* Empty chart state */
+.emptyChart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 60px 20px;
+  color: var(--brut-text);
+  opacity: 0.5;
+  text-align: center;
+}
+
+.emptyChart svg {
+  margin-bottom: 16px;
+  opacity: 0.5;
+}
+
+.emptyChart p {
+  font-size: 0.9rem;
+  font-weight: 500;
+  margin: 0;
 }
 
 /* Two Column Layout */
@@ -418,6 +472,13 @@
   color: var(--brut-text);
 }
 
+.orderDate {
+  font-size: 0.75rem;
+  color: var(--brut-text);
+  opacity: 0.5;
+  margin-top: 2px;
+}
+
 .customer {
   font-size: 0.85rem;
   color: #666;
@@ -436,6 +497,13 @@
   border-radius: 8px;
   object-fit: cover;
   background: var(--brut-bg);
+}
+
+.productDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
 }
 
 .productName {
@@ -481,11 +549,24 @@
 }
 
 .emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
   padding: 40px;
   text-align: center;
   color: #666;
+}
+
+.emptyState svg {
+  margin-bottom: 12px;
+  opacity: 0.5;
+}
+
+.emptyState p {
   font-style: italic;
   font-size: 0.9rem;
+  margin: 0;
 }
 
 /* Quick Actions */
@@ -542,6 +623,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 0 6px;
 }
 
 /* Responsive */
@@ -564,9 +646,19 @@
     font-size: 1.4rem;
   }
   
+  /* Profile responsive */
   .profileSection {
-    width: 100%;
-    justify-content: space-between;
+    padding: 6px 12px 6px 6px;
+    gap: 8px;
+  }
+  
+  .profileAvatar {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .profileInfo {
+    display: none; /* Hide text on mobile, show only avatar */
   }
   
   .chartActions {

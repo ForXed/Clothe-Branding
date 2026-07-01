@@ -1,0 +1,233 @@
+/* Custom Select Wrapper */
+.customSelectWrapper {
+  position: relative;
+  width: 100%;
+  min-width: 0;
+}
+
+.customSelectTrigger {
+  width: 100%;
+  padding: 14px 16px;
+  padding-right: 40px;
+  border: 1.5px solid var(--brut-border);
+  border-radius: 10px;
+  background: var(--brut-card);
+  color: var(--brut-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  font-weight: 500;
+  outline: none;
+  transition: all 0.2s;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  text-align: left;
+  box-sizing: border-box;
+}
+
+.customSelectTrigger:focus {
+  border-color: var(--brut-text);
+  box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+}
+
+.customSelectTrigger:hover:not(:disabled) {
+  border-color: var(--brut-text);
+}
+
+.customSelectTrigger:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.selectedValue {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-right: 8px;
+  display: block;
+  max-width: 100%;
+}
+
+.selectChevron {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--brut-text);
+  opacity: 0.5;
+  transition: transform 0.2s ease;
+}
+
+.customSelectWrapper.open .selectChevron {
+  transform: translateY(-50%) rotate(180deg);
+}
+
+/* ✅ CRITICAL: Fixed position dropdown */
+.customDropdown {
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 12px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: slideDown 0.2s ease;
+  box-sizing: border-box;
+  max-height: 300px;
+}
+
+@keyframes slideDown {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdownSearch {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--brut-border);
+  background: var(--brut-card);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  flex-shrink: 0;
+}
+
+.dropdownSearch svg {
+  opacity: 0.5;
+  flex-shrink: 0;
+}
+
+.dropdownSearch input {
+  flex: 1;
+  border: none;
+  background: transparent;
+  padding: 0;
+  font-size: 0.95rem;
+  color: var(--brut-text);
+  outline: none;
+  font-family: 'Outfit', sans-serif;
+  min-width: 0;
+}
+
+/* ✅ Only internal scroll */
+.dropdownList {
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px;
+}
+
+/* Custom scrollbar */
+.dropdownList::-webkit-scrollbar {
+  width: 6px;
+}
+
+.dropdownList::-webkit-scrollbar-track {
+  background: var(--brut-bg);
+  border-radius: 3px;
+}
+
+.dropdownList::-webkit-scrollbar-thumb {
+  background: var(--brut-border);
+  border-radius: 3px;
+}
+
+.dropdownList::-webkit-scrollbar-thumb:hover {
+  background: var(--brut-text);
+  opacity: 0.5;
+}
+
+.dropdownOption {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.2s;
+  color: var(--brut-text);
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.95rem;
+  border-radius: 6px;
+  margin-bottom: 4px;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.dropdownOption:hover {
+  background: var(--brut-hover);
+}
+
+.dropdownOption:last-child {
+  margin-bottom: 0;
+}
+
+.activeOption {
+  background: var(--brut-text);
+  color: var(--brut-bg);
+}
+
+.activeOption:hover {
+  background: var(--brut-text);
+  opacity: 0.9;
+}
+
+.optionText {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.optionSub, .optionCode {
+  opacity: 0.6;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  margin-left: 8px;
+  white-space: nowrap;
+}
+
+.activeOption .optionSub, 
+.activeOption .optionCode {
+  opacity: 0.8;
+  color: var(--brut-bg);
+}
+
+.countryFlag {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+/* ✅ Mobile: Adjust size */
+@media (max-width: 480px) {
+  .customSelectTrigger {
+    padding: 12px 14px;
+    padding-right: 40px;
+    font-size: 16px;
+  }
+  
+  .customDropdown {
+    max-height: 70vh;
+  }
+  
+  .dropdownList {
+    max-height: 60vh;
+  }
+  
+  .dropdownOption {
+    font-size: 0.85rem;
+    padding: 10px;
+  }
+  
+  .optionSub, .optionCode {
+    font-size: 0.75rem;
+  }
+}

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 // Pages
 import LandingPage from './LandingPage/LandingPage';
@@ -11,9 +11,10 @@ import ForgottenPassword from './Form/ForgottenPassword';
 import VerifyPassword from './Form/VerifyPassword';
 import MakerStudio from './MakerStudio/MakerStudio/MakerStudio';
 
-// New Form Components
+// Form Components
 import ChangePasswordForm from './Form/ChangePasswordForm';
-import TwoStepSetup from './Form/TwoFactorSetup';
+import TwoFactorSetup from './Form/TwoFactorSetup';
+import MakerApplication from './Form/MakerApplication';
 
 // Hub Pages
 import HubLayout from './Hub/HubLayout';
@@ -36,8 +37,11 @@ import Pricing from './Pricing/Pricing';
 // Global Infrastructure Components
 import Preloader from './Homepage/Preloader/Preloader';
 import FloatingMessage from './Notification/FloatingMessage';
-import MakerApplication from './Form/MakerApplication';
-import TwoFactorSetup from './Form/TwoFactorSetup';
+
+// Checkout Components
+import CustomOrderCheckout from './Checkout/CustomOrderCheckout/CustomOrderCheckout';
+import CheckoutSuccess from './Checkout/CheckoutSuccess';
+import CheckoutView from './Checkout/RegularCheckout/CheckoutView/CheckoutView';
 
 // --- Type Definitions ---
 interface NotificationState {
@@ -54,41 +58,18 @@ export const validateEmail = (email: string): boolean => {
   return match !== null;
 };
 
-const App: React.FC = () => {
-  // --- GLOBAL STATE ---
+// ✅ NEW: Extracted component that uses useNavigate
+const AppRoutes: React.FC<{ notify: NotifyFunction }> = ({ notify }) => {
+  const navigate = useNavigate(); // ✅ Safe here - inside Router
+  const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('brutige_theme') === 'dark';
   });
-  const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
-  const [notification, setNotification] = useState<NotificationState>({ 
-    message: '', 
-    type: 'success', 
-    visible: false 
-  });
-
-  // --- THEME SYNC ---
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-    localStorage.setItem('brutige_theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
 
   const toggleTheme = (): void => setIsDarkMode(prev => !prev);
 
-  // --- NOTIFICATION HANDLER ---
-  const notify: NotifyFunction = (message, type = 'success') => {
-    setNotification({ message, type, visible: true });
-    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 4000);
-  };
-
   return (
-    <Router>
-      {/* Global Notification Layer */}
-      <FloatingMessage 
-        message={notification.message} 
-        type={notification.type} 
-        isVisible={notification.visible} 
-      />
-
+    <>
       <Routes>
         {/* Public Landing Page */}
         <Route path="/" element={<LandingPage />} />
@@ -96,7 +77,7 @@ const App: React.FC = () => {
         {/* Pricing Page */}
         <Route path="/pricing" element={<Pricing />} />
 
-        {/* Auth Flow - Only pass notify to components that accept it */}
+        {/* Auth Flow */}
         <Route path="/login" element={<SignInPage notify={notify} />} />
         <Route path="/signup" element={<SignUpPage notify={notify} />} />
         <Route path="/maker-signup" element={<MakerSignUp />} />
@@ -105,12 +86,29 @@ const App: React.FC = () => {
         <Route path="/maker-application" element={<MakerApplication notify={notify} />} />
         
         {/* Account Management Forms */}
-        <Route path="/change-password" element={<ChangePasswordForm notify={notify} onClose={function (): void {
-          throw new Error('Function not implemented.');
-        } } />} />
-        <Route path="/2fa-setup" element={<TwoFactorSetup onClose={function (): void {
-          throw new Error('Function not implemented.');
-        } } />} />
+        <Route 
+          path="/change-password" 
+          element={
+            <ChangePasswordForm 
+              notify={notify} 
+              onClose={() => navigate('/studio/settings')}
+            />
+          } 
+        />
+        <Route 
+          path="/2fa-setup" 
+          element={
+            <TwoFactorSetup 
+              onClose={() => navigate('/studio/settings')}
+              onSuccess={() => notify('2FA enabled successfully', 'success')}
+            />
+          } 
+        />
+
+        {/* CHECKOUT ROUTES */}
+        <Route path="/checkout" element={<CheckoutView notify={notify} />} />
+        <Route path="/checkout/custom/:quoteId" element={<CustomOrderCheckout notify={notify} />} />
+        <Route path="/checkout/success" element={<CheckoutSuccess notify={notify} />} />
 
         {/* MAKER STUDIO */}
         <Route 
@@ -131,7 +129,11 @@ const App: React.FC = () => {
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
-              <BrutigePlatform isDarkMode={isDarkMode} toggleTheme={toggleTheme} notify={notify as (message: string, type?: string) => void} />
+              <BrutigePlatform 
+                isDarkMode={isDarkMode} 
+                toggleTheme={toggleTheme} 
+                notify={notify as (message: string, type?: string) => void}
+              />
             )
           } 
         />
@@ -165,6 +167,45 @@ const App: React.FC = () => {
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+    </>
+  );
+};
+
+// ✅ Main App component - NO useNavigate here
+const App: React.FC = () => {
+  // --- GLOBAL STATE ---
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('brutige_theme') === 'dark';
+  });
+  const [notification, setNotification] = useState<NotificationState>({ 
+    message: '', 
+    type: 'success', 
+    visible: false 
+  });
+
+  // --- THEME SYNC ---
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    localStorage.setItem('brutige_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  // --- NOTIFICATION HANDLER ---
+  const notify: NotifyFunction = (message, type = 'success') => {
+    setNotification({ message, type, visible: true });
+    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 4000);
+  };
+
+  return (
+    <Router>
+      {/* Global Notification Layer */}
+      <FloatingMessage 
+        message={notification.message} 
+        type={notification.type} 
+        isVisible={notification.visible} 
+      />
+
+      {/* ✅ Routes are now in a child component */}
+      <AppRoutes notify={notify} />
     </Router>
   );
 };

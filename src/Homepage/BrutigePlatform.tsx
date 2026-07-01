@@ -9,7 +9,7 @@ import ChatRoom from './ChatRoom/ChatRoom';
 import ProfileView from './ProfileView/ProfileView';
 import ProfileSettings from './ProfileSettings/ProfileSettings';
 import CartView from './CartView/CartView';
-import CheckoutView from './CheckoutView/CheckoutView';
+import CheckoutView from '../Checkout/RegularCheckout/CheckoutView/CheckoutView';
 import OrdersView from './OrdersView/OrdersView';
 import OrderTracker from './OrderTracker/OrderTracker';
 import SavedView from './SavedView/SavedView';
