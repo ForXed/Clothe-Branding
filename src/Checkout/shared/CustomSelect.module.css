@@ -65,9 +65,16 @@
   transform: translateY(-50%) rotate(180deg);
 }
 
-/* ✅ BACKDROP - Hidden on desktop, shown on mobile */
+/* ✅ BACKDROP - Shown on desktop, hidden on mobile */
 .backdrop {
-  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 998;
+  animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
@@ -75,34 +82,35 @@
   to { opacity: 1; }
 }
 
-/* ✅ DROPDOWN - Toast style on desktop (position: absolute) */
+/* ✅ DROPDOWN - Centered modal on desktop */
 .customDropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  right: 0;
-  width: 100%;
-  max-height: 300px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 400px;
+  max-height: 70vh;
   background: var(--brut-card);
   border: 1px solid var(--brut-border);
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  z-index: 999;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  animation: slideDown 0.2s ease;
+  animation: slideUp 0.2s ease;
   box-sizing: border-box;
 }
 
-@keyframes slideDown {
+@keyframes slideUp {
   from { 
     opacity: 0; 
-    transform: translateY(-10px); 
+    transform: translate(-50%, -45%);
   }
   to { 
     opacity: 1; 
-    transform: translateY(0); 
+    transform: translate(-50%, -50%);
   }
 }
 
@@ -138,7 +146,8 @@
   overflow-y: auto;
   overflow-x: hidden;
   padding: 8px;
-  max-height: 240px;
+  max-height: 60vh;
+  -webkit-overflow-scrolling: touch;
 }
 
 .dropdownList::-webkit-scrollbar {
@@ -231,52 +240,44 @@
 }
 
 /* ============================================ */
-/* ✅ MOBILE - Switch to modal style */
+/* ✅ MOBILE - Switch to toast style (below trigger) */
 /* ============================================ */
 
 @media (max-width: 900px) {
-  /* Show backdrop on mobile */
+  /* Hide backdrop on mobile */
   .backdrop {
-    display: block;
-    position: fixed;
-    top: 0;
+    display: none;
+  }
+
+  /* Switch dropdown to absolute position (toast style) */
+  .customDropdown {
+    position: absolute;
+    top: calc(100% + 8px);
     left: 0;
     right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 998;
-    animation: fadeIn 0.2s ease;
+    transform: none;
+    width: 100%;
+    max-width: none;
+    max-height: 300px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    animation: slideDown 0.2s ease;
   }
 
-  /* Switch dropdown to centered modal */
-  .customDropdown {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 400px;
-    max-height: 70vh;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-    z-index: 999;
-    animation: slideUp 0.2s ease;
-  }
-
-  @keyframes slideUp {
+  @keyframes slideDown {
     from { 
       opacity: 0; 
-      transform: translate(-50%, -45%);
+      transform: translateY(-10px); 
     }
     to { 
       opacity: 1; 
-      transform: translate(-50%, -50%);
+      transform: translateY(0); 
     }
   }
 
   .dropdownList {
-    max-height: 60vh;
-    -webkit-overflow-scrolling: touch;
+    max-height: 240px;
   }
 
   .customSelectTrigger {
@@ -296,12 +297,18 @@
 }
 
 @media (max-width: 480px) {
-  .customDropdown {
-    width: 95%;
-    max-height: 75vh;
+  .customSelectTrigger {
+    padding: 12px 14px;
+    padding-right: 40px;
+    font-size: 16px;
   }
-
-  .dropdownList {
-    max-height: 65vh;
+  
+  .dropdownOption {
+    font-size: 0.85rem;
+    padding: 14px;
+  }
+  
+  .optionSub, .optionCode {
+    font-size: 0.75rem;
   }
 }

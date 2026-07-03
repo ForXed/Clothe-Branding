@@ -33,10 +33,24 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   const selectedOption = options.find(opt => opt.value === value);
 
-  // ✅ Close on outside click
+  // ✅ Lock scroll on desktop when modal is open
+  useEffect(() => {
+    const isDesktop = window.innerWidth > 900;
+    if (isOpen && isDesktop) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
+
+  // ✅ Close on outside click (desktop only)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
+      const isDesktop = window.innerWidth > 900;
+      if (isDesktop && wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm('');
       }
@@ -112,50 +126,61 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       </button>
 
       {isOpen && (
-        <div className={styles.customDropdown} role="listbox">
-          {searchable && (
-            <div className={styles.dropdownSearch}>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <circle cx="11" cy="11" r="8"/>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"/>
-              </svg>
-              <input
-                type="text"
-                placeholder="Search..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                autoFocus
-              />
-            </div>
-          )}
+        <>
+          {/* ✅ Backdrop - CSS hides on mobile, shows on desktop */}
+          <div 
+            className={styles.backdrop}
+            onClick={() => {
+              setIsOpen(false);
+              setSearchTerm('');
+            }}
+          />
           
-          <div className={styles.dropdownList}>
-            {filteredOptions.map(option => (
-              <button
-                key={option.value}
-                type="button"
-                className={`${styles.dropdownOption} ${option.value === value ? styles.activeOption : ''}`}
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                  setSearchTerm('');
-                }}
-                role="option"
-                aria-selected={option.value === value}
-              >
-                {option.flag && <span className={styles.countryFlag}>{option.flag}</span>}
-                <span className={styles.optionText}>{option.label}</span>
-                {option.sub && <span className={styles.optionSub}>{option.sub}</span>}
-              </button>
-            ))}
-            
-            {filteredOptions.length === 0 && (
-              <div className={styles.dropdownOption} style={{ opacity: 0.5, cursor: 'default' }}>
-                No options found
+          <div className={styles.customDropdown} role="listbox">
+            {searchable && (
+              <div className={styles.dropdownSearch}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"/>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  autoFocus
+                />
               </div>
             )}
+            
+            <div className={styles.dropdownList}>
+              {filteredOptions.map(option => (
+                <button
+                  key={option.value}
+                  type="button"
+                  className={`${styles.dropdownOption} ${option.value === value ? styles.activeOption : ''}`}
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                    setSearchTerm('');
+                  }}
+                  role="option"
+                  aria-selected={option.value === value}
+                >
+                  {option.flag && <span className={styles.countryFlag}>{option.flag}</span>}
+                  <span className={styles.optionText}>{option.label}</span>
+                  {option.sub && <span className={styles.optionSub}>{option.sub}</span>}
+                </button>
+              ))}
+              
+              {filteredOptions.length === 0 && (
+                <div className={styles.dropdownOption} style={{ opacity: 0.5, cursor: 'default' }}>
+                  No options found
+                </div>
+              )}
+            </div>
           </div>
-        </div>
+        </>
       )}
     </div>
   );
