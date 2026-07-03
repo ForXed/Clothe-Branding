@@ -24,6 +24,7 @@
   justify-content: space-between;
   text-align: left;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* ✅ Remove tap highlight on mobile */
 }
 
 .customSelectTrigger:focus {
@@ -64,7 +65,7 @@
   transform: translateY(-50%) rotate(180deg);
 }
 
-/* ✅ BACKDROP - covers entire screen */
+/* ✅ BACKDROP - covers entire screen, lower z-index */
 .backdrop {
   position: fixed;
   top: 0;
@@ -72,7 +73,7 @@
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.4);
-  z-index: 999;
+  z-index: 998; /* ✅ Lower than dropdown */
   animation: fadeIn 0.2s ease;
 }
 
@@ -81,7 +82,7 @@
   to { opacity: 1; }
 }
 
-/* ✅ DROPDOWN - ALWAYS uses fixed positioning */
+/* ✅ DROPDOWN - ALWAYS centered modal, higher z-index */
 .customDropdown {
   position: fixed;
   top: 50%;
@@ -94,7 +95,7 @@
   border: 1px solid var(--brut-border);
   border-radius: 16px;
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-  z-index: 1000;
+  z-index: 999; /* ✅ Higher than backdrop */
   overflow: hidden;
   display: flex;
   flex-direction: column;
@@ -146,6 +147,7 @@
   overflow-x: hidden;
   padding: 8px;
   max-height: 60vh;
+  -webkit-overflow-scrolling: touch; /* ✅ Smooth scroll on iOS */
 }
 
 .dropdownList::-webkit-scrollbar {
@@ -185,10 +187,15 @@
   margin-bottom: 4px;
   min-width: 0;
   box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* ✅ Remove tap highlight */
 }
 
 .dropdownOption:hover {
   background: var(--brut-hover);
+}
+
+.dropdownOption:active {
+  background: var(--brut-hover); /* ✅ Show active state on touch */
 }
 
 .dropdownOption:last-child {
@@ -237,12 +244,21 @@
   .customSelectTrigger {
     padding: 12px 14px;
     padding-right: 40px;
-    font-size: 16px;
+    font-size: 16px; /* ✅ Prevents zoom on iOS */
+  }
+  
+  .customDropdown {
+    width: 95%; /* ✅ Wider on mobile */
+    max-height: 75vh; /* ✅ Taller on mobile */
+  }
+  
+  .dropdownList {
+    max-height: 65vh;
   }
   
   .dropdownOption {
     font-size: 0.85rem;
-    padding: 10px;
+    padding: 14px; /* ✅ Larger tap targets */
   }
   
   .optionSub, .optionCode {

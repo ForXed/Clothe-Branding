@@ -33,7 +33,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
   const selectedOption = options.find(opt => opt.value === value);
 
-  // ✅ SIMPLE scroll lock - just hide overflow, no position tricks
+  // ✅ Simple scroll lock
   useEffect(() => {
     if (isOpen) {
       document.body.style.overflow = 'hidden';
@@ -46,9 +46,9 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     };
   }, [isOpen]);
 
-  // Close on outside click
+  // ✅ Close on outside click/touch
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
+    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm('');
@@ -58,11 +58,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     if (isOpen) {
       setTimeout(() => {
         document.addEventListener('mousedown', handleClickOutside);
+        document.addEventListener('touchstart', handleClickOutside); // ✅ Added touch support
       }, 0);
     }
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isOpen]);
 
@@ -90,6 +92,13 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       )
     : options;
 
+  // ✅ Handle option click with touch support
+  const handleOptionClick = (optionValue: string) => {
+    onChange(optionValue);
+    setIsOpen(false);
+    setSearchTerm('');
+  };
+
   return (
     <div 
       className={`${styles.customSelectWrapper} ${isOpen ? styles.open : ''}`}
@@ -99,6 +108,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
         type="button"
         className={styles.customSelectTrigger}
         onClick={() => !disabled && setIsOpen(!isOpen)}
+        onTouchEnd={(e) => {
+          e.preventDefault(); // ✅ Prevent double firing
+          !disabled && setIsOpen(!isOpen);
+        }}
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -126,16 +139,21 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
       {isOpen && (
         <>
-          {/* ✅ Backdrop - covers entire screen */}
+          {/* ✅ Backdrop - lower z-index */}
           <div 
             className={styles.backdrop}
             onClick={() => {
               setIsOpen(false);
               setSearchTerm('');
             }}
+            onTouchEnd={(e) => {
+              e.preventDefault();
+              setIsOpen(false);
+              setSearchTerm('');
+            }}
           />
           
-          {/* ✅ Dropdown - uses fixed positioning */}
+          {/* ✅ Dropdown - higher z-index */}
           <div className={styles.customDropdown} role="listbox">
             {searchable && (
               <div className={styles.dropdownSearch}>
@@ -159,10 +177,10 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                   key={option.value}
                   type="button"
                   className={`${styles.dropdownOption} ${option.value === value ? styles.activeOption : ''}`}
-                  onClick={() => {
-                    onChange(option.value);
-                    setIsOpen(false);
-                    setSearchTerm('');
+                  onClick={() => handleOptionClick(option.value)}
+                  onTouchEnd={(e) => {
+                    e.preventDefault();
+                    handleOptionClick(option.value);
                   }}
                   role="option"
                   aria-selected={option.value === value}
