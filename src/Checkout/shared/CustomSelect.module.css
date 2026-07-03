@@ -65,17 +65,9 @@
   transform: translateY(-50%) rotate(180deg);
 }
 
-/* ✅ BACKDROP - hidden on desktop, visible on mobile */
+/* ✅ BACKDROP - Hidden on desktop, shown on mobile */
 .backdrop {
   display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 998;
-  animation: fadeIn 0.2s ease;
 }
 
 @keyframes fadeIn {
@@ -83,7 +75,7 @@
   to { opacity: 1; }
 }
 
-/* ✅ DROPDOWN - Toast style on desktop */
+/* ✅ DROPDOWN - Toast style on desktop (position: absolute) */
 .customDropdown {
   position: absolute;
   top: calc(100% + 8px);
@@ -238,12 +230,25 @@
   flex-shrink: 0;
 }
 
-/* ✅ MOBILE - Modal style with backdrop */
+/* ============================================ */
+/* ✅ MOBILE - Switch to modal style */
+/* ============================================ */
+
 @media (max-width: 900px) {
+  /* Show backdrop on mobile */
   .backdrop {
-    display: block; /* ✅ Show backdrop on mobile */
+    display: block;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 998;
+    animation: fadeIn 0.2s ease;
   }
-  
+
+  /* Switch dropdown to centered modal */
   .customDropdown {
     position: fixed;
     top: 50%;
@@ -254,9 +259,10 @@
     max-height: 70vh;
     border-radius: 16px;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+    z-index: 999;
     animation: slideUp 0.2s ease;
   }
-  
+
   @keyframes slideUp {
     from { 
       opacity: 0; 
@@ -267,24 +273,35 @@
       transform: translate(-50%, -50%);
     }
   }
-  
+
   .dropdownList {
     max-height: 60vh;
     -webkit-overflow-scrolling: touch;
   }
-  
+
   .customSelectTrigger {
     padding: 12px 14px;
     padding-right: 40px;
     font-size: 16px;
   }
-  
+
   .dropdownOption {
     font-size: 0.85rem;
     padding: 14px;
   }
-  
+
   .optionSub, .optionCode {
     font-size: 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .customDropdown {
+    width: 95%;
+    max-height: 75vh;
+  }
+
+  .dropdownList {
+    max-height: 65vh;
   }
 }
