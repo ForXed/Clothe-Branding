@@ -4,8 +4,7 @@
   border-radius: 16px;
   padding: 30px;
   height: fit-content;
-  /* position: sticky;
-  top: 100px; */
+  /* ✅ No sticky positioning */
 }
 
 .sidebar h3 {
@@ -38,6 +37,8 @@
   background: var(--brut-bg);
   border-radius: 6px;
   flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
 }
 
 .itemInfo {
@@ -100,6 +101,7 @@
   color: var(--brut-text);
 }
 
+/* Responsive */
 @media (max-width: 900px) {
   .sidebar {
     position: static;

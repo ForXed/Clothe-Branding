@@ -1,7 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import QuoteSummary from './components/QuoteSummary';
-import TimelineDisplay from './components/TimelineDisplay';
 import OrderSummary from '../shared/OrderSummary';
 import EscrowNotice from '../shared/EscrowNotice';
 import PaymentButton from '../shared/PaymentButton';
@@ -29,29 +27,19 @@ interface Quote {
   customerId: string;
   customerEmail: string;
   customerName: string;
-  
-  // Items
   items: QuoteItem[];
-  
-  // Pricing
   subtotal: number;
   tax: number;
   shipping: number;
   total: number;
-  
-  // Timeline
   productionDays: number;
   startDate: string;
   estimatedDelivery: string;
-  
-  // Metadata
   status: 'pending' | 'accepted' | 'declined' | 'expired';
   createdAt: string;
   expiresAt?: string;
   notes?: string;
   terms?: string;
-  
-  // Shipping (from quote)
   shippingMethod?: string;
   shippingAddress?: {
     fullName: string;
@@ -73,7 +61,6 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
   const { quoteId } = useParams<{ quoteId: string }>();
   const [searchParams] = useSearchParams();
   
-  // Support both URL param and query string
   const actualQuoteId = quoteId || searchParams.get('quoteId');
   
   const [quote, setQuote] = useState<Quote | null>(null);
@@ -82,7 +69,6 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
   const [processing, setProcessing] = useState<boolean>(false);
   const [error, setError] = useState<string>('');
 
-  // Load quote from localStorage (later: from API)
   useEffect(() => {
     if (!actualQuoteId) {
       setError('Quote ID is missing');
@@ -101,14 +87,12 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
     try {
       const parsedQuote: Quote = JSON.parse(savedQuote);
       
-      // Check if quote is expired
       if (parsedQuote.expiresAt && new Date(parsedQuote.expiresAt) < new Date()) {
         setError('This quote has expired. Please request a new one from the maker.');
         setLoading(false);
         return;
       }
       
-      // Check if quote is already processed
       if (parsedQuote.status === 'declined') {
         setError('This quote was declined.');
         setLoading(false);
@@ -131,7 +115,6 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
     
     if (notify) notify('Processing your custom order...', 'success');
     
-    // Create order from quote
     const order = {
       id: generateOrderId('CUST'),
       type: 'custom' as const,
@@ -162,14 +145,11 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
       createdAt: new Date().toISOString()
     };
     
-    // Save order to localStorage
     localStorage.setItem(`order_${order.id}`, JSON.stringify(order));
     
-    // Mark quote as processed
     const updatedQuote = { ...quote, status: 'accepted' as const };
     localStorage.setItem(`accepted_quote_${quote.id}`, JSON.stringify(updatedQuote));
     
-    // Add to orders list
     const ordersList = JSON.parse(localStorage.getItem('brutige_orders_list') || '[]');
     ordersList.push(order.id);
     localStorage.setItem('brutige_orders_list', JSON.stringify(ordersList));
@@ -186,6 +166,16 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
 
   const handleBackToChat = () => {
     navigate('/platform/messages');
+  };
+
+  // Format date helper
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-NG', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    });
   };
 
   // Loading state
@@ -242,8 +232,40 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
     title: item.productName,
     quantity: item.quantity,
     price: item.unitPrice,
-    img: '' // Custom orders don't have product images
+    img: ''
   }));
+
+  // Timeline steps
+  const timelineSteps = [
+    {
+      icon: '💰',
+      title: 'Payment Confirmed',
+      description: 'Funds secured in escrow',
+      date: formatDate(quote.startDate),
+      status: 'current'
+    },
+    {
+      icon: '🏭',
+      title: 'Production',
+      description: `${quote.productionDays} days manufacturing`,
+      date: `Starts ${formatDate(quote.startDate)}`,
+      status: 'upcoming'
+    },
+    {
+      icon: '✅',
+      title: 'Quality Check',
+      description: 'Final inspection & packaging',
+      date: 'Before shipping',
+      status: 'upcoming'
+    },
+    {
+      icon: '📦',
+      title: 'Delivery',
+      description: 'Shipped to your address',
+      date: formatDate(quote.estimatedDelivery),
+      status: 'upcoming'
+    }
+  ];
 
   return (
     <div className={styles.container}>
@@ -268,17 +290,111 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
 
       <div className={styles.contentWrapper}>
         <div className={styles.mainForm}>
-          {/* Quote Summary */}
-          <QuoteSummary quote={quote} />
+          
+          {/* ✅ INLINED: Quote Summary */}
+          <div className={styles.section}>
+            <div className={styles.quoteSummaryHeader}>
+              <div className={styles.quoteSummaryTitle}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                  <polyline points="14 2 14 8 20 8"/>
+                  <line x1="16" y1="13" x2="8" y2="13"/>
+                  <line x1="16" y1="17" x2="8" y2="17"/>
+                </svg>
+                <div>
+                  <h3>Quote Details</h3>
+                  <p>Created on {formatDate(quote.createdAt)}</p>
+                </div>
+              </div>
+              <div className={styles.quoteBadge}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <polyline points="20 6 9 17 4 12"/>
+                </svg>
+                <span>Accepted</span>
+              </div>
+            </div>
 
-          {/* Production Timeline */}
-          <TimelineDisplay 
-            startDate={quote.startDate}
-            productionDays={quote.productionDays}
-            estimatedDelivery={quote.estimatedDelivery}
-          />
+            {/* Items Table */}
+            <div className={styles.quoteItemsTable}>
+              <div className={styles.quoteTableHeader}>
+                <span className={styles.colItem}>Item</span>
+                <span className={styles.colQty}>Qty</span>
+                <span className={styles.colPrice}>Unit Price</span>
+                <span className={styles.colTotal}>Total</span>
+              </div>
+              
+              {quote.items.map((item) => (
+                <div key={item.id} className={styles.quoteTableRow}>
+                  <div className={styles.colItem}>
+                    <strong>{item.productName}</strong>
+                    {item.notes && <p className={styles.itemNotes}>{item.notes}</p>}
+                  </div>
+                  <span className={styles.colQty}>{item.quantity}</span>
+                  <span className={styles.colPrice}>{formatNaira(item.unitPrice)}</span>
+                  <span className={styles.colTotal}>{formatNaira(item.subtotal)}</span>
+                </div>
+              ))}
+            </div>
 
-          {/* Shipping Address (from quote) */}
+            {/* Quote Notes */}
+            {quote.notes && (
+              <div className={styles.quoteNotes}>
+                <h4>Maker's Notes</h4>
+                <p>{quote.notes}</p>
+              </div>
+            )}
+          </div>
+
+          {/* ✅ INLINED: Production Timeline */}
+          <div className={styles.section}>
+            <div className={styles.timelineHeader}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <polyline points="12 6 12 12 16 14"/>
+              </svg>
+              <div>
+                <h3>Production Timeline</h3>
+                <p>Estimated completion: <strong>{formatDate(quote.estimatedDelivery)}</strong></p>
+              </div>
+            </div>
+
+            <div className={styles.timeline}>
+              {timelineSteps.map((step, index) => (
+                <div 
+                  key={index} 
+                  className={`${styles.timelineItem} ${step.status === 'current' ? styles.current : ''}`}
+                >
+                  <div className={styles.timelineIcon}>
+                    <span>{step.icon}</span>
+                  </div>
+                  
+                  {index < timelineSteps.length - 1 && (
+                    <div className={styles.timelineLine}></div>
+                  )}
+                  
+                  <div className={styles.timelineContent}>
+                    <h4>{step.title}</h4>
+                    <p>{step.description}</p>
+                    <span className={styles.timelineDate}>{step.date}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className={styles.timelineNotice}>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <circle cx="12" cy="12" r="10"/>
+                <line x1="12" y1="16" x2="12" y2="12"/>
+                <line x1="12" y1="8" x2="12.01" y2="8"/>
+              </svg>
+              <p>
+                Production times are estimates. The maker will notify you of any delays 
+                or changes to the timeline.
+              </p>
+            </div>
+          </div>
+
+          {/* Shipping Address */}
           {quote.shippingAddress && (
             <div className={styles.section}>
               <h3>Shipping Address</h3>
@@ -297,7 +413,7 @@ const CustomOrderCheckout: React.FC<CustomOrderCheckoutProps> = ({ notify }) => 
             </div>
           )}
 
-          {/* Terms & Notes */}
+          {/* Terms */}
           {quote.terms && (
             <div className={styles.section}>
               <h3>Terms & Conditions</h3>

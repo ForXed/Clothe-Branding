@@ -24,7 +24,6 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   vat = 0, 
   total 
 }) => {
-  // ✅ Safe formatNaira that handles undefined/null/NaN
   const formatNaira = (amount: number | undefined | null): string => {
     if (amount === undefined || amount === null || isNaN(amount)) {
       return '₦0';
@@ -33,22 +32,23 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
   };
 
   return (
-    <div className={styles.summarySidebar}>
+    <div className={styles.sidebar}> {/* ✅ Fixed: was summarySidebar */}
       <h3>Order Summary</h3>
       
-      <div className={styles.summaryItems}>
+      <div className={styles.items}>
         {items.slice(0, 3).map((item, i) => (
-          <div key={i} className={styles.miniItem}>
+          <div key={i} className={styles.item}>
             {item.img && (
               <div 
-                className={styles.miniImg} 
+                className={styles.itemImg} 
                 style={{ backgroundImage: `url(${item.img})`, backgroundSize: 'cover' }}
               />
             )}
             <div className={styles.itemInfo}>
-              <p>{item.title}</p>
-              <span>Qty: {item.quantity}</span>
+              <p className={styles.itemTitle}>{item.title}</p>
+              <span className={styles.itemQty}>Qty: {item.quantity}</span>
             </div>
+            <span className={styles.itemPrice}>{formatNaira(item.price * item.quantity)}</span>
           </div>
         ))}
         {items.length > 3 && (
@@ -73,7 +73,7 @@ const OrderSummary: React.FC<OrderSummaryProps> = ({
             <span>{formatNaira(vat)}</span>
           </div>
         )}
-        <div className={styles.rowTotal}>
+        <div className={styles.totalRow}>
           <span>Total</span>
           <span>{formatNaira(total)}</span>
         </div>
