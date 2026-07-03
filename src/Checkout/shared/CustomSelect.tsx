@@ -30,6 +30,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const isTouchingRef = useRef(false);
 
   const selectedOption = options.find(opt => opt.value === value);
 
@@ -46,9 +47,12 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     };
   }, [isOpen]);
 
-  // ✅ Close on outside click/touch
+  // ✅ Close on outside click - ONLY for mouse, not touch
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent | TouchEvent) => {
+    const handleClickOutside = (event: MouseEvent) => {
+      // Ignore if we're currently touching (prevents scroll from closing)
+      if (isTouchingRef.current) return;
+      
       if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
         setIsOpen(false);
         setSearchTerm('');
@@ -58,15 +62,34 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
     if (isOpen) {
       setTimeout(() => {
         document.addEventListener('mousedown', handleClickOutside);
-        document.addEventListener('touchstart', handleClickOutside); // ✅ Added touch support
-      }, 0);
+      }, 100); // ✅ Delay to prevent immediate close
     }
     
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isOpen]);
+
+  // Track touch state
+  useEffect(() => {
+    const handleTouchStart = () => {
+      isTouchingRef.current = true;
+    };
+    
+    const handleTouchEnd = () => {
+      setTimeout(() => {
+        isTouchingRef.current = false;
+      }, 300); // ✅ Reset after 300ms
+    };
+    
+    document.addEventListener('touchstart', handleTouchStart);
+    document.addEventListener('touchend', handleTouchEnd);
+    
+    return () => {
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
 
   // Close on escape
   useEffect(() => {
@@ -92,11 +115,18 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       )
     : options;
 
-  // ✅ Handle option click with touch support
+  // ✅ Handle option click - prevent double firing
   const handleOptionClick = (optionValue: string) => {
     onChange(optionValue);
     setIsOpen(false);
     setSearchTerm('');
+  };
+
+  // ✅ Handle trigger click - prevent double firing on mobile
+  const handleTriggerClick = () => {
+    if (!disabled) {
+      setIsOpen(!isOpen);
+    }
   };
 
   return (
@@ -107,11 +137,7 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
       <button
         type="button"
         className={styles.customSelectTrigger}
-        onClick={() => !disabled && setIsOpen(!isOpen)}
-        onTouchEnd={(e) => {
-          e.preventDefault(); // ✅ Prevent double firing
-          !disabled && setIsOpen(!isOpen);
-        }}
+        onClick={handleTriggerClick}
         disabled={disabled}
         aria-haspopup="listbox"
         aria-expanded={isOpen}
@@ -139,21 +165,16 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
 
       {isOpen && (
         <>
-          {/* ✅ Backdrop - lower z-index */}
+          {/* ✅ Backdrop - only on mobile */}
           <div 
             className={styles.backdrop}
             onClick={() => {
               setIsOpen(false);
               setSearchTerm('');
             }}
-            onTouchEnd={(e) => {
-              e.preventDefault();
-              setIsOpen(false);
-              setSearchTerm('');
-            }}
           />
           
-          {/* ✅ Dropdown - higher z-index */}
+          {/* ✅ Dropdown - toast style on desktop, modal on mobile */}
           <div className={styles.customDropdown} role="listbox">
             {searchable && (
               <div className={styles.dropdownSearch}>
@@ -178,10 +199,6 @@ const CustomSelect: React.FC<CustomSelectProps> = ({
                   type="button"
                   className={`${styles.dropdownOption} ${option.value === value ? styles.activeOption : ''}`}
                   onClick={() => handleOptionClick(option.value)}
-                  onTouchEnd={(e) => {
-                    e.preventDefault();
-                    handleOptionClick(option.value);
-                  }}
                   role="option"
                   aria-selected={option.value === value}
                 >
