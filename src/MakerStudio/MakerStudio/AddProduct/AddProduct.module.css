@@ -694,6 +694,214 @@
   animation: spin 0.8s linear infinite;
 }
 
+/* --- CAROUSEL STYLES --- */
+.carouselContainer {
+  margin-top: 20px;
+  position: relative;
+}
+
+.carousel {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--brut-bg);
+  border: 1px solid var(--brut-border);
+}
+
+.carouselImage {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: opacity 0.3s ease;
+}
+
+.carouselRemoveBtn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 36px;
+  height: 36px;
+  background: rgba(239, 68, 68, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+}
+
+.carouselRemoveBtn:hover {
+  background: var(--brut-danger);
+  transform: scale(1.1);
+}
+
+.carouselArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  background: rgba(255, 255, 255, 0.9);
+  border: none;
+  border-radius: 50%;
+  color: var(--brut-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.carouselArrow:hover {
+  background: white;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.carouselArrowLeft {
+  left: 12px;
+}
+
+.carouselArrowRight {
+  right: 12px;
+}
+
+.carouselDots {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.carouselDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--brut-border);
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  padding: 0;
+}
+
+.carouselDot:hover {
+  background: var(--brut-text);
+  opacity: 0.7;
+}
+
+.carouselDot.active {
+  background: var(--brut-text);
+  transform: scale(1.2);
+}
+
+.carouselCounter {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 10;
+}
+
+/* --- SIZE SYSTEM TOGGLE --- */
+.sizeSystemToggle {
+  display: inline-flex;
+  background: var(--brut-bg);
+  border: 1.5px solid var(--brut-border);
+  border-radius: 100px;
+  padding: 4px;
+  gap: 2px;
+}
+
+.sizeSystemToggle button {
+  background: none;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 100px;
+  font-family: 'Outfit', sans-serif;
+  font-weight: 700;
+  font-size: 0.8rem;
+  color: var(--brut-text);
+  opacity: 0.5;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 0.5px;
+}
+
+.sizeSystemToggle button:hover {
+  opacity: 0.8;
+}
+
+.sizeSystemToggle button.activeToggle {
+  background: var(--brut-text) !important;
+  color: var(--brut-bg) !important;
+  opacity: 1 !important;
+}
+
+/* --- SIZE EQUIVALENT --- */
+.sizeEquivalent {
+  display: block;
+  font-size: 0.7rem;
+  opacity: 0.5;
+  margin-top: 4px;
+  font-weight: 500;
+}
+
+/* --- SELECTED SIZES INFO --- */
+.selectedSizesInfo {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  color: var(--brut-text);
+  opacity: 0.7;
+  font-weight: 600;
+}
+
+/* --- CAROUSEL RESPONSIVE --- */
+/* Hide arrows on mobile (use swipe instead) */
+@media (max-width: 768px) {
+  .carouselArrow {
+    display: none;
+  }
+  
+  .carousel {
+    touch-action: pan-y;
+  }
+  
+  .carouselRemoveBtn {
+    width: 32px;
+    height: 32px;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .carouselCounter {
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    bottom: 10px;
+    left: 10px;
+  }
+  
+  .carouselDots {
+    margin-top: 12px;
+    gap: 6px;
+  }
+  
+  .carouselDot {
+    width: 8px;
+    height: 8px;
+  }
+}
+
 /* --- RESPONSIVE --- */
 @media (max-width: 1100px) {
   .form {
@@ -732,5 +940,73 @@
   
   .actions {
     flex-direction: column;
+  }
+  
+  /* ✅ Carousel adjustments for small screens */
+  .carousel {
+    border-radius: 12px;
+  }
+  
+  .carouselContainer {
+    margin-top: 16px;
+  }
+  
+  .carouselRemoveBtn {
+    width: 28px;
+    height: 28px;
+    top: 8px;
+    right: 8px;
+  }
+  
+  .carouselRemoveBtn svg {
+    width: 14px;
+    height: 14px;
+  }
+  
+  .carouselCounter {
+    font-size: 0.7rem;
+    padding: 3px 8px;
+    bottom: 8px;
+    left: 8px;
+  }
+  
+  .carouselDots {
+    gap: 5px;
+    margin-top: 10px;
+  }
+  
+  .carouselDot {
+    width: 7px;
+    height: 7px;
+  }
+  
+  /* Make image upload area smaller on mobile */
+  .imageUpload {
+    padding: 24px;
+  }
+  
+  .imageUpload svg {
+    width: 36px;
+    height: 36px;
+  }
+  
+  .imageUpload p {
+    font-size: 0.85rem;
+  }
+}
+
+/* ✅ NEW: Extra small screens (iPhone SE, etc.) */
+@media (max-width: 380px) {
+  .carousel {
+    aspect-ratio: 1 / 1.1;
+  }
+  
+  .carouselDot {
+    width: 6px;
+    height: 6px;
+  }
+  
+  .carouselDots {
+    gap: 4px;
   }
 }

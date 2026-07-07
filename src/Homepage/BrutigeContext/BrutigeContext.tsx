@@ -2,11 +2,30 @@ import React, { createContext, useState, useContext, useEffect, ReactNode } from
 import styles from './BrutigeContext.module.css';
 
 // --- CORE TYPESCRIPT INTERFACES (Exported for the whole app) ---
+
+// ✅ NEW: Color variant image structure
+export interface ColorVariantImage {
+  id: number;
+  preview: string;
+  url: string;
+  file?: File;
+}
+
+// ✅ NEW: Color variant structure
+export interface ColorVariant {
+  id: number;
+  name: string;
+  hex: string;
+  images: ColorVariantImage[];
+}
+
 export interface Product {
   id: number | string;
   title: string;
   price: string;
   img: string;
+  images?: string[]; // ✅ Multiple images for carousel
+  variants?: ColorVariant[]; // ✅ Color variants with images
   
   // 👇 MADE THESE OPTIONAL so components with "small" products don't throw errors
   category?: string;
@@ -15,9 +34,15 @@ export interface Product {
   totalCapacity?: number;
   brandsBuilt?: number;
   dateCreated?: string;
+  makerName?: string;
+  tags?: string[];
+  sizes?: string[];
+  sku?: string;
   
-  // 👇 REMOVED [key: string]: any; 
-  // (It was breaking TypeScript's Omit utility and causing the missing properties error!)
+  // ✅ NEW: Dynamic product specifications
+  composition?: string;      // "100% Organic Cotton"
+  weight?: string;           // "Heavyweight (300 GSM)"
+  origin?: string;           // "Made in Lagos, Nigeria"
 }
 
 export interface CartItem extends Product {
@@ -84,22 +109,102 @@ export const BrutigeProvider: React.FC<BrutigeProviderProps> = ({ children }) =>
     const savedProducts = localStorage.getItem('brut_products');
     return savedProducts ? JSON.parse(savedProducts) : [
         { 
-          id: 1, title: "Oversized 'Brut' Tee", price: "$45.00", category: "Essentials", 
+          id: 1, 
+          title: "Oversized 'Brut' Tee", 
+          price: "₦35,000", 
+          category: "Tops", 
           description: "Heavyweight 300GSM organic cotton with a boxy architectural silhouette.",
-          stock: 12, totalCapacity: 50, brandsBuilt: 124, 
-          img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500" 
+          stock: 12, 
+          totalCapacity: 50, 
+          brandsBuilt: 124, 
+          img: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500",
+          images: [
+            "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500",
+            "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500"
+          ],
+          variants: [
+            {
+              id: 1,
+              name: 'Black',
+              hex: '#000000',
+              images: [
+                { id: 1, preview: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500", url: "https://images.unsplash.com/photo-1523381210434-271e8be1f52b?w=500" },
+                { id: 2, preview: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500", url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=500" }
+              ]
+            },
+            {
+              id: 2,
+              name: 'White',
+              hex: '#ffffff',
+              images: [
+                { id: 3, preview: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=500", url: "https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?w=500" }
+              ]
+            }
+          ],
+          // ✅ NEW: Dynamic specifications
+          composition: "100% Organic Cotton",
+          weight: "Heavyweight (300 GSM)",
+          origin: "Made in Lagos, Nigeria"
         },
         { 
-          id: 2, title: "Infrastructure Hoodie", price: "$85.00", category: "Layering", 
+          id: 2, 
+          title: "Infrastructure Hoodie", 
+          price: "₦75,000", 
+          category: "Tops", 
           description: "450GSM French Terry. Double-stitched seams for maximum structural integrity.",
-          stock: 5, totalCapacity: 20, brandsBuilt: 89, 
-          img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500" 
+          stock: 5, 
+          totalCapacity: 20, 
+          brandsBuilt: 89, 
+          img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500",
+          images: [
+            "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500",
+            "https://images.unsplash.com/photo-1578768079470-0a4536e2b2c3?w=500"
+          ],
+          variants: [
+            {
+              id: 1,
+              name: 'Grey',
+              hex: '#2A2A2A',
+              images: [
+                { id: 4, preview: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500", url: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=500" },
+                { id: 5, preview: "https://images.unsplash.com/photo-1578768079470-0a4536e2b2c3?w=500", url: "https://images.unsplash.com/photo-1578768079470-0a4536e2b2c3?w=500" }
+              ]
+            }
+          ],
+          // ✅ NEW: Dynamic specifications
+          composition: "80% Cotton, 20% Polyester",
+          weight: "Heavyweight (450 GSM)",
+          origin: "Made in Abuja, Nigeria"
         },
         { 
-          id: 3, title: "Architectural Coat", price: "$210.00", category: "Outerwear", 
+          id: 3, 
+          title: "Architectural Coat", 
+          price: "₦210,000", 
+          category: "Outerwear", 
           description: "Wool-blend minimalist overcoat featuring hidden hardware and sharp lines.",
-          stock: 2, totalCapacity: 10, brandsBuilt: 12, 
-          img: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=500" 
+          stock: 2, 
+          totalCapacity: 10, 
+          brandsBuilt: 12, 
+          img: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=500",
+          images: [
+            "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=500",
+            "https://images.unsplash.com/photo-1539533113208-f6df8cc8b543?w=500"
+          ],
+          variants: [
+            {
+              id: 1,
+              name: 'Black',
+              hex: '#000000',
+              images: [
+                { id: 6, preview: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=500", url: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=500" },
+                { id: 7, preview: "https://images.unsplash.com/photo-1539533113208-f6df8cc8b543?w=500", url: "https://images.unsplash.com/photo-1539533113208-f6df8cc8b543?w=500" }
+              ]
+            }
+          ],
+          // ✅ NEW: Dynamic specifications
+          composition: "70% Wool, 30% Cashmere",
+          weight: "Medium-Heavy (380 GSM)",
+          origin: "Made in Lagos, Nigeria"
         }
     ];
   });

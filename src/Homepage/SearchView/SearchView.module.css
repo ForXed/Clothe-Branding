@@ -23,7 +23,7 @@
     border: 2px solid var(--brut-border);
     background: var(--brut-card);
     padding: 8px 12px 8px 20px;
-    border-radius: 100px; /* Fully rounded pill */
+    border-radius: 100px;
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
 }
 
@@ -210,6 +210,13 @@
     background: var(--brut-hover);
 }
 
+/* ✅ NEW: Keyboard navigation highlight */
+.suggestionItemHighlighted {
+    background: var(--brut-hover) !important;
+    outline: 2px solid var(--brut-text);
+    outline-offset: -2px;
+}
+
 .suggestionImg {
     width: 44px;
     height: 44px;
@@ -229,6 +236,29 @@
     font-size: 0.75rem;
     margin: 0;
     color: #888;
+}
+
+/* ✅ NEW: Keyboard hint at bottom of dropdown */
+.keyboardHint {
+    display: flex;
+    gap: 12px;
+    padding: 8px 12px;
+    border-top: 1px solid var(--brut-border);
+    font-size: 0.7rem;
+    color: #888;
+    justify-content: center;
+    margin-top: 8px;
+}
+
+.keyboardHint span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.keyboardHint span::before {
+    content: '⌨';
+    opacity: 0.5;
 }
 
 /* --- FILTER MODAL --- */
@@ -285,10 +315,26 @@
     border-bottom: 1px solid var(--brut-border);
 }
 
+/* ✅ NEW: Modal header with filter count */
+.modalHeaderContent {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
 .modalHeader h3 {
     font-size: 1.25rem;
     font-weight: 800;
     margin: 0;
+}
+
+.modalFilterCount {
+    background: var(--brut-text);
+    color: var(--brut-bg);
+    padding: 4px 10px;
+    border-radius: 100px;
+    font-size: 0.75rem;
+    font-weight: 700;
 }
 
 .modalClose {
@@ -312,6 +358,90 @@
     padding: 20px 24px;
     overflow-y: auto;
     flex: 1;
+}
+
+/* ✅ NEW: Filter search input */
+.filterSearchWrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--brut-bg);
+    border: 1px solid var(--brut-border);
+    border-radius: 100px;
+    padding: 8px 16px;
+    margin-bottom: 16px;
+    transition: border-color 0.2s;
+}
+
+.filterSearchWrapper:focus-within {
+    border-color: var(--brut-text);
+}
+
+.filterSearchWrapper svg {
+    color: var(--brut-text);
+    opacity: 0.5;
+    flex-shrink: 0;
+}
+
+.filterSearchInput {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.9rem;
+    color: var(--brut-text);
+}
+
+.filterSearchInput::placeholder {
+    color: var(--brut-text);
+    opacity: 0.4;
+}
+
+.filterSearchClear {
+    background: none;
+    border: none;
+    color: var(--brut-text);
+    cursor: pointer;
+    padding: 4px;
+    display: flex;
+    align-items: center;
+    opacity: 0.5;
+    transition: opacity 0.2s;
+}
+
+.filterSearchClear:hover {
+    opacity: 1;
+}
+
+/* ✅ NEW: Quick action buttons */
+.filterQuickActions {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 16px;
+}
+
+.filterQuickBtn {
+    background: none;
+    border: 1px solid var(--brut-border);
+    color: var(--brut-text);
+    padding: 6px 14px;
+    border-radius: 100px;
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.filterQuickBtn:hover:not(:disabled) {
+    border-color: var(--brut-text);
+    background: var(--brut-hover);
+}
+
+.filterQuickBtn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
 }
 
 .filterSection h4 {
@@ -374,6 +504,16 @@
     transform: rotate(45deg);
 }
 
+/* ✅ NEW: Category image preview in filter */
+.filterCategoryImage {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    object-fit: cover;
+    border: 1px solid var(--brut-border);
+    flex-shrink: 0;
+}
+
 .filterLabel {
     font-size: 0.95rem;
     font-weight: 600;
@@ -388,6 +528,14 @@
     font-weight: 500;
     width: auto;
     height: auto;
+}
+
+/* ✅ NEW: Filter empty state */
+.filterEmptyState {
+    text-align: center;
+    padding: 24px;
+    color: #888;
+    font-size: 0.9rem;
 }
 
 .modalFooter {
@@ -745,5 +893,29 @@
     .productCard:hover, .categoryCard:hover {
         transform: none;
         box-shadow: none;
+    }
+    
+    /* ✅ NEW: Mobile filter modal improvements */
+    .modalHeaderContent h3 {
+        font-size: 1.1rem;
+    }
+    
+    .filterCategoryImage {
+        width: 28px;
+        height: 28px;
+    }
+    
+    .filterQuickActions {
+        gap: 6px;
+    }
+    
+    .filterQuickBtn {
+        padding: 5px 12px;
+        font-size: 0.75rem;
+    }
+    
+    .keyboardHint {
+        font-size: 0.65rem;
+        gap: 8px;
     }
 }

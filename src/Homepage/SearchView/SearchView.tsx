@@ -1,18 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './SearchView.module.css';
+import { productAPI } from '../../services/ProductService';
+import { Product } from '../BrutigeContext/BrutigeContext';
 
-// --- TypeScript Interfaces (Backend-ready) ---
-export interface Product {
-  id: number | string;
-  title: string;
-  price: string;
-  img: string;
-  category: string;
-  description?: string;
-  stock?: number;
-}
-
+// --- TypeScript Interfaces ---
 export interface Category {
   id: string;
   name: string;
@@ -27,62 +19,90 @@ export interface Maker {
   avatar: string;
 }
 
-// --- Mock API Service (Replace with real backend calls later) ---
-// When connecting to backend, just swap these implementations with fetch() calls
-const searchAPI = {
-  async searchProducts(query: string, filters: string[]): Promise<Product[]> {
-    // TODO: Replace with: return fetch(`/api/products?q=${query}&categories=${filters.join(',')}`).then(r => r.json())
-    await new Promise(r => setTimeout(r, 300)); // Simulate network delay
-    const allProducts: Product[] = [
-      { id: 1, title: "450GSM Heavyweight Tee", price: "$89", img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=400", category: "Tees" },
-      { id: 2, title: "Techwear Cargo V2", price: "$145", img: "https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=400", category: "Bottoms" },
-      { id: 3, title: "Oversized Hoodie - Black", price: "$120", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400", category: "Hoodies" },
-      { id: 4, title: "Minimalist Shell Jacket", price: "$210", img: "https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=400", category: "Outerwear" },
-      { id: 5, title: "Structured Cap", price: "$45", img: "https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=400", category: "Accessories" },
-      { id: 6, title: "Heavyweight Crewneck", price: "$95", img: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=400", category: "Hoodies" },
-      { id: 7, title: "Wide Leg Trousers", price: "$165", img: "https://images.unsplash.com/photo-1594938298603-c8148c4dae35?w=400", category: "Bottoms" },
-      { id: 8, title: "Wool Overcoat", price: "$320", img: "https://images.unsplash.com/photo-1539533018447-63fcce2678e3?w=400", category: "Outerwear" },
-    ];
-    
-    return allProducts.filter(p => {
-      const matchesQuery = !query || p.title.toLowerCase().includes(query.toLowerCase()) || p.category.toLowerCase().includes(query.toLowerCase());
-      const matchesFilter = filters.length === 0 || filters.includes(p.category);
-      return matchesQuery && matchesFilter;
-    });
-  },
+// ✅ NEW: Search Analytics Interface
+interface SearchAnalytics {
+  query: string;
+  timestamp: string;
+  resultCount: number;
+  clicked: boolean;
+}
 
-  async getCategories(): Promise<Category[]> {
-    // TODO: Replace with real API call
-    return [
-      { id: 'tees', name: 'Tees', count: 124, image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300' },
-      { id: 'hoodies', name: 'Hoodies', count: 89, image: 'https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=300' },
-      { id: 'outerwear', name: 'Outerwear', count: 56, image: 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=300' },
-      { id: 'bottoms', name: 'Bottoms', count: 78, image: 'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=300' },
-      { id: 'accessories', name: 'Accessories', count: 142, image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=300' },
-    ];
-  },
+// --- Helper Functions ---
+const getCategories = async (): Promise<Category[]> => {
+  const allProducts = await productAPI.getAllProducts();
+  const categoryMap = new Map<string, number>();
+  
+  allProducts.forEach(product => {
+    const category = product.category || 'Uncategorized';
+    categoryMap.set(category, (categoryMap.get(category) || 0) + 1);
+  });
+  
+  const categoryImages: Record<string, string> = {
+    'Tops': 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=300',
+    'Bottoms': 'https://images.unsplash.com/photo-1552902865-b72c031ac5ea?w=300',
+    'Outerwear': 'https://images.unsplash.com/photo-1551488831-00ddcb6c6bd3?w=300',
+    'Accessories': 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=300',
+    'Footwear': 'https://images.unsplash.com/photo-1549298916-b41d501d3772?w=300'
+  };
+  
+  return Array.from(categoryMap.entries()).map(([name, count]) => ({
+    id: name.toLowerCase(),
+    name,
+    count,
+    image: categoryImages[name] || 'https://via.placeholder.com/300x200?text=Category'
+  }));
+};
 
-  async getMakers(): Promise<Maker[]> {
-    // TODO: Replace with real API call
-    return [
-      { id: 'm1', name: 'Julian V. Studio', location: 'Berlin, DE', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
-      { id: 'm2', name: 'Tokyo Atelier', location: 'Tokyo, JP', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100' },
-      { id: 'm3', name: 'London Cut', location: 'London, UK', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100' },
-    ];
-  },
+const getMakers = async (): Promise<Maker[]> => {
+  return [
+    { id: 'lagos-atelier', name: 'Lagos Atelier', location: 'Lagos, NG', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100' },
+    { id: 'abuja-studio', name: 'Abuja Studio', location: 'Abuja, NG', avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?w=100' },
+    { id: 'kano-craft', name: 'Kano Craft Co.', location: 'Kano, NG', avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=100' },
+  ];
+};
 
-  async getRecentSearches(): Promise<string[]> {
-    // TODO: Could fetch from backend or use localStorage
-    const stored = localStorage.getItem('brut_recent_searches');
-    return stored ? JSON.parse(stored) : ['Oversized Hoodie', 'Techwear', 'Cargo Pants', 'Winter Coats'];
-  },
+const getRecentSearches = async (): Promise<string[]> => {
+  const stored = localStorage.getItem('brut_recent_searches');
+  return stored ? JSON.parse(stored) : [];
+};
 
-  async saveRecentSearch(query: string): Promise<void> {
-    // TODO: Save to backend or localStorage
-    const current = await searchAPI.getRecentSearches();
-    const updated = [query, ...current.filter(s => s !== query)].slice(0, 8);
-    localStorage.setItem('brut_recent_searches', JSON.stringify(updated));
-  }
+const saveRecentSearch = async (query: string): Promise<void> => {
+  const current = await getRecentSearches();
+  const updated = [query, ...current.filter(s => s !== query)].slice(0, 8);
+  localStorage.setItem('brut_recent_searches', JSON.stringify(updated));
+};
+
+// ✅ NEW: Search Analytics Functions
+const saveSearchAnalytics = (query: string, resultCount: number, clicked: boolean = false): void => {
+  const stored = localStorage.getItem('brut_search_analytics');
+  const analytics: SearchAnalytics[] = stored ? JSON.parse(stored) : [];
+  
+  const newEntry: SearchAnalytics = {
+    query,
+    timestamp: new Date().toISOString(),
+    resultCount,
+    clicked
+  };
+  
+  // Keep last 50 searches
+  const updated = [newEntry, ...analytics].slice(0, 50);
+  localStorage.setItem('brut_search_analytics', JSON.stringify(updated));
+};
+
+// ✅ NEW: Get popular searches (for admin/insights)
+export const getPopularSearches = (): { query: string; count: number }[] => {
+  const stored = localStorage.getItem('brut_search_analytics');
+  const analytics: SearchAnalytics[] = stored ? JSON.parse(stored) : [];
+  
+  const queryMap = new Map<string, number>();
+  analytics.forEach(entry => {
+    queryMap.set(entry.query, (queryMap.get(entry.query) || 0) + 1);
+  });
+  
+  return Array.from(queryMap.entries())
+    .map(([query, count]) => ({ query, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
 };
 
 interface SearchViewProps {
@@ -99,7 +119,13 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   
-  // --- Data (will come from backend) ---
+  // ✅ NEW: Keyboard navigation state
+  const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
+  
+  // ✅ NEW: Filter modal search
+  const [filterSearchQuery, setFilterSearchQuery] = useState('');
+  
+  // --- Data ---
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [makers, setMakers] = useState<Maker[]>([]);
@@ -113,9 +139,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
   useEffect(() => {
     const loadInitialData = async () => {
       const [cats, mks, recent] = await Promise.all([
-        searchAPI.getCategories(),
-        searchAPI.getMakers(),
-        searchAPI.getRecentSearches()
+        getCategories(),
+        getMakers(),
+        getRecentSearches()
       ]);
       setCategories(cats);
       setMakers(mks);
@@ -128,14 +154,51 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
   useEffect(() => {
     const performSearch = async () => {
       setIsLoading(true);
-      const results = await searchAPI.searchProducts(searchQuery, selectedFilters);
-      setProducts(results);
-      setIsLoading(false);
+      
+      try {
+        let results: Product[];
+        
+        if (selectedFilters.length > 0) {
+          const allResults = await Promise.all(
+            selectedFilters.map(filter => 
+              productAPI.getProductsByCategory(filter)
+            )
+          );
+          results = allResults.flat();
+          
+          results = results.filter((product, index, self) =>
+            index === self.findIndex(p => p.id === product.id)
+          );
+        } else {
+          results = await productAPI.getAllProducts();
+        }
+        
+        if (searchQuery.trim()) {
+          const query = searchQuery.toLowerCase();
+          results = results.filter(p => 
+            p.title.toLowerCase().includes(query) || 
+            (p.category && p.category.toLowerCase().includes(query)) ||
+            (p.description && p.description.toLowerCase().includes(query))
+          );
+        }
+        
+        setProducts(results);
+      } catch (error) {
+        console.error('Search failed:', error);
+        setProducts([]);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
-    const timeoutId = setTimeout(performSearch, 300); // Debounce
+    const timeoutId = setTimeout(performSearch, 300);
     return () => clearTimeout(timeoutId);
   }, [searchQuery, selectedFilters]);
+
+  // ✅ NEW: Reset highlighted index when query changes
+  useEffect(() => {
+    setHighlightedIndex(-1);
+  }, [searchQuery]);
 
   // --- Auto-focus & Click Outside ---
   useEffect(() => {
@@ -169,24 +232,109 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
     ? makers.filter(m => m.name.toLowerCase().includes(query) || m.location.toLowerCase().includes(query)).slice(0, 3)
     : [];
 
+  // ✅ NEW: Flattened suggestions for keyboard navigation
+  const flattenedSuggestions = useMemo(() => {
+    const items: Array<{
+      type: 'product' | 'category' | 'maker';
+      data: Product | Category | Maker;
+      id: string;
+    }> = [];
+    
+    suggestedProducts.forEach(p => items.push({ type: 'product', data: p, id: `p-${p.id}` }));
+    suggestedCategories.forEach(c => items.push({ type: 'category', data: c, id: `c-${c.id}` }));
+    suggestedMakers.forEach(m => items.push({ type: 'maker', data: m, id: `m-${m.id}` }));
+    
+    return items;
+  }, [suggestedProducts, suggestedCategories, suggestedMakers]);
+
+  // ✅ NEW: Filtered categories for filter modal search
+  const filteredCategories = useMemo(() => {
+    if (!filterSearchQuery.trim()) return categories;
+    const q = filterSearchQuery.toLowerCase();
+    return categories.filter(c => c.name.toLowerCase().includes(q));
+  }, [categories, filterSearchQuery]);
+
+  // ✅ NEW: Keyboard navigation handler
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (!showDropdown || flattenedSuggestions.length === 0) return;
+    
+    switch (e.key) {
+      case 'ArrowDown':
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          prev < flattenedSuggestions.length - 1 ? prev + 1 : 0
+        );
+        break;
+      
+      case 'ArrowUp':
+        e.preventDefault();
+        setHighlightedIndex(prev => 
+          prev > 0 ? prev - 1 : flattenedSuggestions.length - 1
+        );
+        break;
+      
+      case 'Enter':
+        e.preventDefault();
+        if (highlightedIndex >= 0 && highlightedIndex < flattenedSuggestions.length) {
+          const item = flattenedSuggestions[highlightedIndex];
+          handleSuggestionClick(item);
+        } else {
+          handleSearchSubmit(e as any);
+        }
+        break;
+      
+      case 'Escape':
+        e.preventDefault();
+        setIsFocused(false);
+        setHighlightedIndex(-1);
+        break;
+    }
+  };
+
+  // ✅ NEW: Handle suggestion click (unified)
+  const handleSuggestionClick = (item: { type: string; data: any }) => {
+    setIsFocused(false);
+    setHighlightedIndex(-1);
+    
+    if (item.type === 'product') {
+      saveSearchAnalytics(searchQuery, products.length, true);
+      navigate(`/platform/shop`, { state: { selectedProduct: item.data } });
+    } else if (item.type === 'category') {
+      setSearchQuery(item.data.name);
+    } else if (item.type === 'maker') {
+      navigate(`/platform/profile/${item.data.id}`);
+    }
+  };
+
   // --- Handlers ---
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      await searchAPI.saveRecentSearch(searchQuery.trim());
-      setRecentSearches(await searchAPI.getRecentSearches());
+      await saveRecentSearch(searchQuery.trim());
+      setRecentSearches(await getRecentSearches());
+      
+      // ✅ NEW: Save analytics
+      saveSearchAnalytics(searchQuery.trim(), products.length);
+      
       setIsFocused(false);
+      setHighlightedIndex(-1);
     }
   };
 
   const handleProductClick = (product: Product) => {
     setIsFocused(false);
+    setHighlightedIndex(-1);
+    
+    // ✅ NEW: Track analytics
+    saveSearchAnalytics(searchQuery, products.length, true);
+    
     navigate(`/platform/shop`, { state: { selectedProduct: product } });
   };
 
   const handleCategoryClick = (categoryName: string) => {
     setSearchQuery(categoryName);
     setIsFocused(false);
+    setHighlightedIndex(-1);
   };
 
   const handleToggleFilter = (categoryId: string) => {
@@ -195,6 +343,11 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
         ? prev.filter(id => id !== categoryId)
         : [...prev, categoryId]
     );
+  };
+
+  // ✅ NEW: Select/Deselect all filters
+  const handleSelectAllFilters = () => {
+    setSelectedFilters(categories.map(c => c.id));
   };
 
   const handleClearFilters = () => {
@@ -213,7 +366,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
     setRecentSearches(updated);
   };
 
-  // Get category name from ID for filter pills
   const getCategoryName = (id: string) => categories.find(c => c.id === id)?.name || id;
 
   const hasActiveFilters = selectedFilters.length > 0;
@@ -229,7 +381,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
             <path d="m21 21-4.3-4.3"/>
           </svg>
 
-          {/* Active Filter Pills (inside search bar) */}
           {hasActiveFilters && (
             <div className={styles.filterPills}>
               {selectedFilters.map(filterId => (
@@ -256,7 +407,12 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onFocus={() => setIsFocused(true)}
+            onKeyDown={handleKeyDown}
             autoComplete="off"
+            aria-label="Search products"
+            role="combobox"
+            aria-expanded={showDropdown}
+            aria-haspopup="listbox"
           />
 
           <div className={styles.searchActions}>
@@ -264,7 +420,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
               <button 
                 type="button" 
                 className={styles.clearBtn}
-                onClick={() => setSearchQuery('')}
+                onClick={() => { setSearchQuery(''); setHighlightedIndex(-1); }}
                 aria-label="Clear search"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -273,7 +429,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
               </button>
             )}
 
-            {/* Filter Button */}
             <button 
               type="button"
               className={`${styles.filterBtn} ${hasActiveFilters ? styles.filterBtnActive : ''}`}
@@ -294,62 +449,106 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
         </form>
 
         {/* --- LIVE SUGGESTIONS DROPDOWN --- */}
-        {showDropdown && (suggestedProducts.length > 0 || suggestedCategories.length > 0 || suggestedMakers.length > 0) && (
-          <div className={styles.suggestionsDropdown}>
+        {showDropdown && flattenedSuggestions.length > 0 && (
+          <div className={styles.suggestionsDropdown} role="listbox">
             {suggestedProducts.length > 0 && (
               <div className={styles.suggestionGroup}>
                 <div className={styles.suggestionTitle}>Products</div>
-                {suggestedProducts.map(product => (
-                  <div key={product.id} className={styles.suggestionItem} onClick={() => handleProductClick(product)}>
-                    <img src={product.img} alt={product.title} className={styles.suggestionImg} />
-                    <div className={styles.suggestionInfo}>
-                      <h4>{product.title}</h4>
-                      <p>{product.category} · {product.price}</p>
+                {suggestedProducts.map(product => {
+                  const flatIndex = flattenedSuggestions.findIndex(s => s.id === `p-${product.id}`);
+                  return (
+                    <div 
+                      key={product.id} 
+                      className={`${styles.suggestionItem} ${flatIndex === highlightedIndex ? styles.suggestionItemHighlighted : ''}`}
+                      onClick={() => handleSuggestionClick({ type: 'product', data: product })}
+                      onMouseEnter={() => setHighlightedIndex(flatIndex)}
+                      role="option"
+                      aria-selected={flatIndex === highlightedIndex}
+                    >
+                      <img src={product.img} alt={product.title} className={styles.suggestionImg} />
+                      <div className={styles.suggestionInfo}>
+                        <h4>{product.title}</h4>
+                        <p>{product.category} · {product.price}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {suggestedCategories.length > 0 && (
               <div className={styles.suggestionGroup}>
                 <div className={styles.suggestionTitle}>Categories</div>
-                {suggestedCategories.map(category => (
-                  <div key={category.id} className={styles.suggestionItem} onClick={() => handleCategoryClick(category.name)}>
-                    <img src={category.image} alt={category.name} className={styles.suggestionImg} />
-                    <div className={styles.suggestionInfo}>
-                      <h4>{category.name}</h4>
-                      <p>{category.count} items</p>
+                {suggestedCategories.map(category => {
+                  const flatIndex = flattenedSuggestions.findIndex(s => s.id === `c-${category.id}`);
+                  return (
+                    <div 
+                      key={category.id} 
+                      className={`${styles.suggestionItem} ${flatIndex === highlightedIndex ? styles.suggestionItemHighlighted : ''}`}
+                      onClick={() => handleSuggestionClick({ type: 'category', data: category })}
+                      onMouseEnter={() => setHighlightedIndex(flatIndex)}
+                      role="option"
+                      aria-selected={flatIndex === highlightedIndex}
+                    >
+                      <img src={category.image} alt={category.name} className={styles.suggestionImg} />
+                      <div className={styles.suggestionInfo}>
+                        <h4>{category.name}</h4>
+                        <p>{category.count} items</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
 
             {suggestedMakers.length > 0 && (
               <div className={styles.suggestionGroup}>
                 <div className={styles.suggestionTitle}>Makers</div>
-                {suggestedMakers.map(maker => (
-                  <div key={maker.id} className={styles.suggestionItem} onClick={() => navigate(`/platform/profile/${maker.id}`)}>
-                    <img src={maker.avatar} alt={maker.name} className={styles.suggestionImg} style={{ borderRadius: '50%' }} />
-                    <div className={styles.suggestionInfo}>
-                      <h4>{maker.name}</h4>
-                      <p>{maker.location}</p>
+                {suggestedMakers.map(maker => {
+                  const flatIndex = flattenedSuggestions.findIndex(s => s.id === `m-${maker.id}`);
+                  return (
+                    <div 
+                      key={maker.id} 
+                      className={`${styles.suggestionItem} ${flatIndex === highlightedIndex ? styles.suggestionItemHighlighted : ''}`}
+                      onClick={() => handleSuggestionClick({ type: 'maker', data: maker })}
+                      onMouseEnter={() => setHighlightedIndex(flatIndex)}
+                      role="option"
+                      aria-selected={flatIndex === highlightedIndex}
+                    >
+                      <img src={maker.avatar} alt={maker.name} className={styles.suggestionImg} style={{ borderRadius: '50%' }} />
+                      <div className={styles.suggestionInfo}>
+                        <h4>{maker.name}</h4>
+                        <p>{maker.location}</p>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
+
+            {/* ✅ NEW: Keyboard hint */}
+            <div className={styles.keyboardHint}>
+              <span>↑↓ Navigate</span>
+              <span>↵ Select</span>
+              <span>Esc Close</span>
+            </div>
           </div>
         )}
       </div>
 
-      {/* --- FILTER MODAL --- */}
+      {/* --- FILTER MODAL (IMPROVED) --- */}
       {showFilterModal && (
         <div className={styles.modalOverlay} onClick={() => setShowFilterModal(false)}>
           <div className={styles.filterModal} onClick={(e) => e.stopPropagation()}>
             <div className={styles.modalHeader}>
-              <h3>Filters</h3>
+              <div className={styles.modalHeaderContent}>
+                <h3>Filters</h3>
+                {hasActiveFilters && (
+                  <span className={styles.modalFilterCount}>
+                    {selectedFilters.length} selected
+                  </span>
+                )}
+              </div>
               <button 
                 type="button" 
                 className={styles.modalClose}
@@ -363,21 +562,78 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
             </div>
 
             <div className={styles.modalBody}>
+              {/* ✅ NEW: Search within filters */}
+              <div className={styles.filterSearchWrapper}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="11" cy="11" r="8"/>
+                  <path d="m21 21-4.3-4.3"/>
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search categories..."
+                  value={filterSearchQuery}
+                  onChange={(e) => setFilterSearchQuery(e.target.value)}
+                  className={styles.filterSearchInput}
+                />
+                {filterSearchQuery && (
+                  <button
+                    type="button"
+                    className={styles.filterSearchClear}
+                    onClick={() => setFilterSearchQuery('')}
+                    aria-label="Clear filter search"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </button>
+                )}
+              </div>
+
+              {/* ✅ NEW: Quick actions */}
+              <div className={styles.filterQuickActions}>
+                <button
+                  type="button"
+                  className={styles.filterQuickBtn}
+                  onClick={handleSelectAllFilters}
+                >
+                  Select All
+                </button>
+                <button
+                  type="button"
+                  className={styles.filterQuickBtn}
+                  onClick={handleClearFilters}
+                  disabled={!hasActiveFilters}
+                >
+                  Clear All
+                </button>
+              </div>
+
               <div className={styles.filterSection}>
                 <h4>Categories</h4>
                 <div className={styles.filterOptions}>
-                  {categories.map(category => (
-                    <label key={category.id} className={styles.filterOption}>
-                      <input 
-                        type="checkbox"
-                        checked={selectedFilters.includes(category.id)}
-                        onChange={() => handleToggleFilter(category.id)}
-                      />
-                      <span className={styles.filterCheckbox}></span>
-                      <span className={styles.filterLabel}>{category.name}</span>
-                      <span className={styles.filterCount}>({category.count})</span>
-                    </label>
-                  ))}
+                  {filteredCategories.length > 0 ? (
+                    filteredCategories.map(category => (
+                      <label key={category.id} className={styles.filterOption}>
+                        <input 
+                          type="checkbox"
+                          checked={selectedFilters.includes(category.id)}
+                          onChange={() => handleToggleFilter(category.id)}
+                        />
+                        <span className={styles.filterCheckbox}></span>
+                        <img 
+                          src={category.image} 
+                          alt={category.name} 
+                          className={styles.filterCategoryImage}
+                        />
+                        <span className={styles.filterLabel}>{category.name}</span>
+                        <span className={styles.filterCount}>({category.count})</span>
+                      </label>
+                    ))
+                  ) : (
+                    <div className={styles.filterEmptyState}>
+                      <p>No categories match "{filterSearchQuery}"</p>
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -396,7 +652,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
                 className={styles.applyFiltersBtn}
                 onClick={() => setShowFilterModal(false)}
               >
-                Show {products.length} Results
+                Show {products.length} {products.length === 1 ? 'Result' : 'Results'}
               </button>
             </div>
           </div>
@@ -406,7 +662,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
       {/* --- MAIN CONTENT --- */}
       <div className={styles.mainContent}>
         
-        {/* DEFAULT VIEW (No search/filters active) */}
         {!isSearching ? (
           <>
             {recentSearches.length > 0 && (
@@ -466,8 +721,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
             </section>
           </>
         ) : (
-          
-          /* SEARCH RESULTS VIEW (Masonry Layout) */
           <section className={styles.section}>
             <div className={styles.resultsHeader}>
               <h3 className={styles.sectionTitle}>
@@ -488,7 +741,9 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
                     <div className={styles.productCard} onClick={() => handleProductClick(product)}>
                       <div className={styles.productImage}>
                         <img src={product.img} alt={product.title} />
-                        <span className={styles.productCategory}>{product.category}</span>
+                        {product.category && (
+                          <span className={styles.productCategory}>{product.category}</span>
+                        )}
                       </div>
                       <div className={styles.productInfo}>
                         <h4>{product.title}</h4>

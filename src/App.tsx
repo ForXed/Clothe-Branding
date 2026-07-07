@@ -58,15 +58,19 @@ export const validateEmail = (email: string): boolean => {
   return match !== null;
 };
 
-// ✅ NEW: Extracted component that uses useNavigate
-const AppRoutes: React.FC<{ notify: NotifyFunction }> = ({ notify }) => {
-  const navigate = useNavigate(); // ✅ Safe here - inside Router
-  const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    return localStorage.getItem('brutige_theme') === 'dark';
-  });
+// ✅ UPDATED: AppRoutes now receives theme state as props
+interface AppRoutesProps {
+  notify: NotifyFunction;
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+}
 
-  const toggleTheme = (): void => setIsDarkMode(prev => !prev);
+const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }) => {
+  const navigate = useNavigate();
+  const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
+
+  // ✅ REMOVED: Local isDarkMode state and toggleTheme function
+  // They now come from parent App component
 
   return (
     <>
@@ -171,7 +175,7 @@ const AppRoutes: React.FC<{ notify: NotifyFunction }> = ({ notify }) => {
   );
 };
 
-// ✅ Main App component - NO useNavigate here
+// ✅ Main App component - owns the theme state
 const App: React.FC = () => {
   // --- GLOBAL STATE ---
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
@@ -182,6 +186,11 @@ const App: React.FC = () => {
     type: 'success', 
     visible: false 
   });
+
+  // ✅ Toggle function lives HERE (single source of truth)
+  const toggleTheme = (): void => {
+    setIsDarkMode(prev => !prev);
+  };
 
   // --- THEME SYNC ---
   useEffect(() => {
@@ -204,8 +213,12 @@ const App: React.FC = () => {
         isVisible={notification.visible} 
       />
 
-      {/* ✅ Routes are now in a child component */}
-      <AppRoutes notify={notify} />
+      {/* ✅ Pass theme state down to AppRoutes */}
+      <AppRoutes 
+        notify={notify}
+        isDarkMode={isDarkMode}
+        toggleTheme={toggleTheme}
+      />
     </Router>
   );
 };

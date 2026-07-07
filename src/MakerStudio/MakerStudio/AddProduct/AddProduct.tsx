@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 // @ts-ignore
 import { productAPI } from '../../../services/ProductService'; 
+import CustomSelect from '../../../Checkout/shared/CustomSelect';
 import styles from './AddProduct.module.css';
 
 interface ImageItem {
@@ -16,6 +17,11 @@ interface ColorVariant {
   name: string;
   hex: string;
   images: ImageItem[];
+}
+
+interface SizeOption {
+  us: string;
+  uk: string;
 }
 
 interface ProductFormData {
@@ -41,15 +47,23 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
   const isEditMode = !!editId;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const carouselRef = useRef<HTMLDivElement>(null);
   
   const [images, setImages] = useState<ImageItem[]>([]);
+  const [currentImageIndex, setCurrentImageIndex] = useState<number>(0);
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  
   const [colorVariants, setColorVariants] = useState<ColorVariant[]>([
     { id: 1, name: 'Black', hex: '#1a1a1a', images: [] },
     { id: 2, name: 'White', hex: '#ffffff', images: [] }
   ]);
   const [activeColorId, setActiveColorId] = useState<number>(1);
-  const [sizes] = useState<string[]>(['S', 'M', 'L', 'XL']);
+  
+  // ✅ NEW: Size system toggle (US/UK)
+  const [sizeSystem, setSizeSystem] = useState<'US' | 'UK'>('US');
   const [selectedSizes, setSelectedSizes] = useState<string[]>(['M', 'L']);
+  
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showSuccess, setShowSuccess] = useState<boolean>(false);
   const [activeTab, setActiveTab] = useState<'details' | 'media' | 'variants'>('details');
@@ -58,11 +72,70 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
   
   const [formData, setFormData] = useState<ProductFormData>({
     name: '', description: '', price: '', comparePrice: '', sku: '',
-    category: 'T-Shirts', tags: '', inventory: '10', status: 'draft'
+    category: 'Tops', tags: '', inventory: '10', status: 'draft'
   });
 
-  const categories = ['T-Shirts', 'Hoodies', 'Sweatshirts', 'Jackets', 'Pants', 'Accessories', 'Footwear', 'Other'];
-  const allSizes = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '3XL'];
+  const categories = [
+    { value: 'Tops', label: 'Tops' },
+    { value: 'Bottoms', label: 'Bottoms' },
+    { value: 'Outerwear', label: 'Outerwear' },
+    { value: 'Accessories', label: 'Accessories' },
+    { value: 'Footwear', label: 'Footwear' }
+  ];
+  
+  // ✅ NEW: Size mapping with US/UK equivalents
+  const sizeOptions: SizeOption[] = [
+    { us: 'XS', uk: 'XXS' },
+    { us: 'S', uk: 'XS' },
+    { us: 'M', uk: 'S' },
+    { us: 'L', uk: 'M' },
+    { us: 'XL', uk: 'L' },
+    { us: 'XXL', uk: 'XL' },
+    { us: '3XL', uk: 'XXL' }
+  ];
+
+  // ✅ Auto-advance carousel every 5 seconds
+  useEffect(() => {
+    if (images.length <= 1) return;
+    
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 5000);
+    
+    return () => clearInterval(interval);
+  }, [images.length]);
+
+  // ✅ Swipe gesture handlers
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+  };
+
+  const handleTouchEnd = () => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > 50;
+    const isRightSwipe = distance < -50;
+    
+    if (isLeftSwipe && currentImageIndex < images.length - 1) {
+      setCurrentImageIndex(currentImageIndex + 1);
+    } else if (isRightSwipe && currentImageIndex > 0) {
+      setCurrentImageIndex(currentImageIndex - 1);
+    }
+  };
+
+  const goToPreviousImage = () => {
+    setCurrentImageIndex((prev) => (prev === 0 ? images.length - 1 : prev - 1));
+  };
+
+  const goToNextImage = () => {
+    setCurrentImageIndex((prev) => (prev + 1) % images.length);
+  };
 
   useEffect(() => {
     if (isEditMode) loadProductForEdit();
@@ -78,15 +151,21 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
         setFormData({
           name: productToEdit.title || productToEdit.name || '',
           description: productToEdit.description || '',
-          price: typeof productToEdit.price === 'string' ? productToEdit.price.replace('$', '') : productToEdit.price,
-          comparePrice: '', sku: productToEdit.sku || '',
-          category: productToEdit.category || 'T-Shirts',
+          price: typeof productToEdit.price === 'string' 
+            ? productToEdit.price.replace(/[₦$,\s]/g, '') 
+            : productToEdit.price,
+          comparePrice: '', 
+          sku: productToEdit.sku || '',
+          category: productToEdit.category || 'Tops',
           tags: Array.isArray(productToEdit.tags) ? productToEdit.tags.join(', ') : (productToEdit.tags || ''),
           inventory: productToEdit.stock?.toString() || '0',
           status: productToEdit.status || 'draft'
         });
 
-        if (productToEdit.img) setImages([{ id: Date.now(), preview: productToEdit.img, url: productToEdit.img }]);
+        if (productToEdit.img) {
+          setImages([{ id: Date.now(), preview: productToEdit.img, url: productToEdit.img }]);
+          setCurrentImageIndex(0);
+        }
         if (productToEdit.variants?.length > 0) setColorVariants(productToEdit.variants);
         if (productToEdit.sizes?.length > 0) setSelectedSizes(productToEdit.sizes);
         setActiveTab('details');
@@ -121,7 +200,13 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
         newImages.push({ id: Date.now() + Math.random(), file, preview: base64, url: base64 });
       } catch (err) { console.error("Error converting image", err); }
     }
-    setImages(prev => [...prev, ...newImages].slice(0, 10));
+    
+    const updatedImages = [...images, ...newImages].slice(0, 10);
+    setImages(updatedImages);
+    
+    if (images.length === 0 && updatedImages.length > 0) {
+      setCurrentImageIndex(0);
+    }
   };
 
   const handleColorImageUpload = async (e: Event, colorId: number) => {
@@ -142,7 +227,16 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     ));
   };
 
-  const removeImage = (imageId: number) => setImages(prev => prev.filter(img => img.id !== imageId));
+  const removeImage = (imageId: number) => {
+    setImages(prev => {
+      const filtered = prev.filter(img => img.id !== imageId);
+      if (currentImageIndex >= filtered.length) {
+        setCurrentImageIndex(Math.max(0, filtered.length - 1));
+      }
+      return filtered;
+    });
+  };
+
   const removeColorImage = (colorId: number, imageId: number) => {
     setColorVariants(prev => prev.map(color => 
       color.id === colorId ? { ...color, images: color.images.filter(img => img.id !== imageId) } : color
@@ -165,8 +259,20 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     if (activeColorId === id) setActiveColorId(colorVariants[0].id);
   };
 
-  const toggleSize = (size: string) => {
-    setSelectedSizes(prev => prev.includes(size) ? prev.filter(s => s !== size) : [...prev, size]);
+  // ✅ UPDATED: Toggle size based on current size system
+  const toggleSize = (size: SizeOption) => {
+    const sizeValue = sizeSystem === 'US' ? size.us : size.uk;
+    setSelectedSizes(prev => 
+      prev.includes(sizeValue) 
+        ? prev.filter(s => s !== sizeValue) 
+        : [...prev, sizeValue]
+    );
+  };
+
+  // ✅ Check if size is selected (in current system)
+  const isSizeSelected = (size: SizeOption): boolean => {
+    const sizeValue = sizeSystem === 'US' ? size.us : size.uk;
+    return selectedSizes.includes(sizeValue);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -198,13 +304,19 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     if (!isValid) { setIsSubmitting(false); return; }
 
     const productPayload = {
-      title: formData.name, description: formData.description,
-      price: `$${parseFloat(formData.price || '0').toFixed(2)}`,
-      category: formData.category, stock: parseInt(formData.inventory) || 0,
-      totalCapacity: (parseInt(formData.inventory) || 0) + 50, brandsBuilt: 0, status: status,
-      sizes: selectedSizes, variants: colorVariants,
+      title: formData.name, 
+      description: formData.description,
+      price: `₦${parseFloat(formData.price || '0').toLocaleString('en-NG')}`,
+      category: formData.category, 
+      stock: parseInt(formData.inventory) || 0,
+      totalCapacity: (parseInt(formData.inventory) || 0) + 50, 
+      brandsBuilt: 0, 
+      status: status,
+      sizes: selectedSizes, // ✅ Stores selected sizes (in current system)
+      variants: colorVariants,
       img: images.length > 0 ? images[0].url : "https://via.placeholder.com/500",
-      images: images.map(i => i.url), makerName: "Aura Studio",
+      images: images.map(i => i.url), 
+      makerName: "Aura Studio",
       tags: formData.tags.split(',').map(t => t.trim()).filter(t => t)
     };
 
@@ -216,8 +328,13 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
       } else {
         await productAPI.addProduct(productPayload);
         setShowSuccess(true);
-        setFormData({ name: '', description: '', price: '', comparePrice: '', sku: '', category: 'T-Shirts', tags: '', inventory: '10', status: 'draft' });
+        setFormData({ 
+          name: '', description: '', price: '', comparePrice: '', sku: '', 
+          category: 'Tops', tags: '', inventory: '10', status: 'draft' 
+        });
         setImages([]);
+        setCurrentImageIndex(0);
+        setSelectedSizes(['M', 'L']); // Reset to defaults
         setTimeout(() => { setShowSuccess(false); navigate('/studio/products'); }, 1500);
       }
       if (refreshProducts) refreshProducts();
@@ -230,13 +347,38 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
   };
 
   if (isLoadingData) {
-    return (<div className={styles.container}><div className={styles.loadingState}><div className={styles.spinner}></div><p>Loading Product Data...</p></div></div>);
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Loading Product Data...</p>
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className={styles.container}>
-      {showSuccess && (<div className={styles.successToast}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>{isEditMode ? 'Product Updated Successfully!' : 'Product Published Successfully!'}</div>)}
-      {error && (<div className={styles.errorToast}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{error}</div>)}
+      {showSuccess && (
+        <div className={styles.successToast}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+            <polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+          {isEditMode ? 'Product Updated Successfully!' : 'Product Published Successfully!'}
+        </div>
+      )}
+      
+      {error && (
+        <div className={styles.errorToast}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <circle cx="12" cy="12" r="10"/>
+            <line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+          {error}
+        </div>
+      )}
 
       <div className={styles.tabs}>
         <button type="button" className={`${styles.tab} ${activeTab === 'details' ? styles.active : ''}`} onClick={() => setActiveTab('details')}>Details</button>
@@ -248,38 +390,151 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
         <div className={styles.leftColumn}>
           {activeTab === 'details' && (
             <div className={styles.section}>
-              <div className={styles.sectionHeader}><h3 className={styles.sectionTitle}>Product Information</h3><p className={styles.sectionDesc}>Basic details about your product</p></div>
-              <div className={styles.inputGroup}><label>Product Name *</label><input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., 450GSM Heavyweight Tee" /></div>
-              <div className={styles.inputGroup}><label>Description</label><textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Describe fabric weight, fit, and origin..." rows={4} /></div>
-              <div className={styles.formGrid}>
-                <div className={styles.inputGroup}><label>Price *</label><div className={styles.inputWithPrefix}><span className={styles.prefix}>$</span><input type="number" name="price" value={formData.price} onChange={handleInputChange} placeholder="0.00" step="0.01" /></div></div>
-                <div className={styles.inputGroup}><label>Compare Price</label><div className={styles.inputWithPrefix}><span className={styles.prefix}>$</span><input type="number" name="comparePrice" value={formData.comparePrice} onChange={handleInputChange} placeholder="0.00" step="0.01" /></div></div>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>Product Information</h3>
+                <p className={styles.sectionDesc}>Basic details about your product</p>
               </div>
-              <div className={styles.formGrid}>
-                <div className={styles.inputGroup}><label>SKU</label><input type="text" name="sku" value={formData.sku} onChange={handleInputChange} placeholder="e.g., TEE-001" /></div>
-                <div className={styles.inputGroup}><label>Category</label><select name="category" value={formData.category} onChange={handleInputChange}>{categories.map(cat => (<option key={cat} value={cat}>{cat}</option>))}</select></div>
+              
+              <div className={styles.inputGroup}>
+                <label>Product Name *</label>
+                <input type="text" name="name" value={formData.name} onChange={handleInputChange} placeholder="e.g., 450GSM Heavyweight Tee" />
               </div>
-              <div className={styles.inputGroup}><label>Tags</label><input type="text" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="Comma separated tags" /></div>
-              <div className={styles.inputGroup}><label>Inventory Stock *</label><input type="number" name="inventory" value={formData.inventory} onChange={handleInputChange} placeholder="10" /></div>
+              
+              <div className={styles.inputGroup}>
+                <label>Description</label>
+                <textarea name="description" value={formData.description} onChange={handleInputChange} placeholder="Describe fabric weight, fit, and origin..." rows={4} />
+              </div>
+              
+              <div className={styles.formGrid}>
+                <div className={styles.inputGroup}>
+                  <label>Price *</label>
+                  <div className={styles.inputWithPrefix}>
+                    <span className={styles.prefix}>₦</span>
+                    <input type="number" name="price" value={formData.price} onChange={handleInputChange} placeholder="0.00" step="0.01" />
+                  </div>
+                </div>
+                <div className={styles.inputGroup}>
+                  <label>Compare Price</label>
+                  <div className={styles.inputWithPrefix}>
+                    <span className={styles.prefix}>₦</span>
+                    <input type="number" name="comparePrice" value={formData.comparePrice} onChange={handleInputChange} placeholder="0.00" step="0.01" />
+                  </div>
+                </div>
+              </div>
+              
+              <div className={styles.formGrid}>
+                <div className={styles.inputGroup}>
+                  <label>SKU</label>
+                  <input type="text" name="sku" value={formData.sku} onChange={handleInputChange} placeholder="e.g., TEE-001" />
+                </div>
+                
+                <div className={styles.inputGroup}>
+                  <label>Category *</label>
+                  <CustomSelect
+                    options={categories}
+                    value={formData.category}
+                    onChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                    placeholder="Select category"
+                  />
+                </div>
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label>Tags</label>
+                <input type="text" name="tags" value={formData.tags} onChange={handleInputChange} placeholder="Comma separated tags" />
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label>Inventory Stock *</label>
+                <input type="number" name="inventory" value={formData.inventory} onChange={handleInputChange} placeholder="10" />
+              </div>
             </div>
           )}
 
           {activeTab === 'media' && (
             <div className={styles.section}>
-              <div className={styles.sectionHeader}><h3 className={styles.sectionTitle}>Product Images</h3><p className={styles.sectionDesc}>Add up to 10 images</p></div>
+              <div className={styles.sectionHeader}>
+                <h3 className={styles.sectionTitle}>Product Images</h3>
+                <p className={styles.sectionDesc}>Add up to 10 images</p>
+              </div>
+              
               <div className={styles.imageUpload} onClick={() => fileInputRef.current?.click()}>
                 <input type="file" ref={fileInputRef} onChange={handleImageUpload} accept="image/*" multiple hidden />
-                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                  <circle cx="8.5" cy="8.5" r="1.5"/>
+                  <polyline points="21 15 16 10 5 21"/>
+                </svg>
                 <p>Click to upload images</p>
               </div>
+
               {images.length > 0 && (
-                <div className={styles.imageGrid}>
-                  {images.map(img => (
-                    <div key={img.id} className={styles.imagePreview}>
-                      <img src={img.preview} alt="Product" />
-                      <button type="button" className={styles.removeImage} onClick={() => removeImage(img.id)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                <div className={styles.carouselContainer}>
+                  <div 
+                    className={styles.carousel}
+                    ref={carouselRef}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                  >
+                    <img 
+                      src={images[currentImageIndex].preview} 
+                      alt={`Product image ${currentImageIndex + 1}`}
+                      className={styles.carouselImage}
+                    />
+                    
+                    <button 
+                      type="button" 
+                      className={styles.carouselRemoveBtn}
+                      onClick={() => removeImage(images[currentImageIndex].id)}
+                    >
+                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <line x1="18" y1="6" x2="6" y2="18"/>
+                        <line x1="6" y1="6" x2="18" y2="18"/>
+                      </svg>
+                    </button>
+
+                    {images.length > 1 && (
+                      <>
+                        <button 
+                          type="button" 
+                          className={`${styles.carouselArrow} ${styles.carouselArrowLeft}`}
+                          onClick={goToPreviousImage}
+                        >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="15 18 9 12 15 6"/>
+                          </svg>
+                        </button>
+                        <button 
+                          type="button" 
+                          className={`${styles.carouselArrow} ${styles.carouselArrowRight}`}
+                          onClick={goToNextImage}
+                        >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <polyline points="9 18 15 12 9 6"/>
+                          </svg>
+                        </button>
+                      </>
+                    )}
+                  </div>
+
+                  {images.length > 1 && (
+                    <div className={styles.carouselDots}>
+                      {images.map((_, index) => (
+                        <button
+                          key={index}
+                          type="button"
+                          className={`${styles.carouselDot} ${index === currentImageIndex ? styles.active : ''}`}
+                          onClick={() => setCurrentImageIndex(index)}
+                          aria-label={`Go to image ${index + 1}`}
+                        />
+                      ))}
                     </div>
-                  ))}
+                  )}
+
+                  <div className={styles.carouselCounter}>
+                    {currentImageIndex + 1} / {images.length}
+                  </div>
                 </div>
               )}
             </div>
@@ -288,24 +543,69 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
           {activeTab === 'variants' && (
             <>
               <div className={styles.section}>
-                <div className={styles.sectionHeader}><h3 className={styles.sectionTitle}>Color Variants</h3><button type="button" className={styles.addBtn} onClick={addColorVariant}>Add Color</button></div>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Color Variants</h3>
+                  <button type="button" className={styles.addBtn} onClick={addColorVariant}>Add Color</button>
+                </div>
                 <div className={styles.colorTabs}>
                   {colorVariants.map(color => (
-                    <button key={color.id} type="button" className={`${styles.colorTab} ${activeColorId === color.id ? styles.active : ''}`} onClick={() => setActiveColorId(color.id)} style={{ '--color': color.hex } as React.CSSProperties}>
+                    <button 
+                      key={color.id} 
+                      type="button" 
+                      className={`${styles.colorTab} ${activeColorId === color.id ? styles.active : ''}`} 
+                      onClick={() => setActiveColorId(color.id)} 
+                      style={{ '--color': color.hex } as React.CSSProperties}
+                    >
                       <span className={styles.colorSwatch} style={{ background: color.hex }} />
-                      <input type="text" value={color.name} onChange={(e) => updateColorVariant(color.id, 'name', e.target.value)} className={styles.colorName} onClick={(e) => e.stopPropagation()} />
-                      {colorVariants.length > 1 && (<button type="button" className={styles.removeColor} onClick={(e) => { e.stopPropagation(); removeColorVariant(color.id); }}><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>)}
+                      <input 
+                        type="text" 
+                        value={color.name} 
+                        onChange={(e) => updateColorVariant(color.id, 'name', e.target.value)} 
+                        className={styles.colorName} 
+                        onClick={(e) => e.stopPropagation()} 
+                      />
+                      {colorVariants.length > 1 && (
+                        <button 
+                          type="button" 
+                          className={styles.removeColor} 
+                          onClick={(e) => { e.stopPropagation(); removeColorVariant(color.id); }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      )}
                     </button>
                   ))}
                 </div>
                 {colorVariants.map(color => (
                   <div key={color.id} className={`${styles.colorSection} ${activeColorId === color.id ? styles.active : ''}`}>
                     <div className={styles.colorHeader}>
-                      <input type="color" value={color.hex} onChange={(e) => updateColorVariant(color.id, 'hex', e.target.value)} className={styles.colorPicker} />
+                      <input 
+                        type="color" 
+                        value={color.hex} 
+                        onChange={(e) => updateColorVariant(color.id, 'hex', e.target.value)} 
+                        className={styles.colorPicker} 
+                      />
                       <span>{color.name}</span>
                     </div>
-                    <div className={styles.colorImageUpload} onClick={() => { const input = document.createElement('input'); input.type = 'file'; input.accept = 'image/*'; input.multiple = true; input.onchange = (e) => handleColorImageUpload(e, color.id); input.click(); }}>
-                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                    <div 
+                      className={styles.colorImageUpload} 
+                      onClick={() => { 
+                        const input = document.createElement('input'); 
+                        input.type = 'file'; 
+                        input.accept = 'image/*'; 
+                        input.multiple = true; 
+                        input.onchange = (e) => handleColorImageUpload(e, color.id); 
+                        input.click(); 
+                      }}
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                      </svg>
                       <span>Add images for {color.name}</span>
                     </div>
                     {color.images.length > 0 && (
@@ -313,7 +613,16 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
                         {color.images.map(img => (
                           <div key={img.id} className={styles.imagePreview}>
                             <img src={img.preview} alt={color.name} />
-                            <button type="button" className={styles.removeImage} onClick={() => removeColorImage(color.id, img.id)}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+                            <button 
+                              type="button" 
+                              className={styles.removeImage} 
+                              onClick={() => removeColorImage(color.id, img.id)}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <line x1="18" y1="6" x2="6" y2="18"/>
+                                <line x1="6" y1="6" x2="18" y2="18"/>
+                              </svg>
+                            </button>
                           </div>
                         ))}
                       </div>
@@ -321,13 +630,51 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
                   </div>
                 ))}
               </div>
+              
+              {/* ✅ UPDATED: Size Options with US/UK Toggle */}
               <div className={styles.section}>
-                <div className={styles.sectionHeader}><h3 className={styles.sectionTitle}>Size Options</h3></div>
+                <div className={styles.sectionHeader}>
+                  <h3 className={styles.sectionTitle}>Size Options</h3>
+                  <div className={styles.sizeSystemToggle}>
+                    <button 
+                      type="button" 
+                      className={sizeSystem === 'US' ? styles.activeToggle : ''} 
+                      onClick={() => setSizeSystem('US')}
+                    >
+                      US
+                    </button>
+                    <button 
+                      type="button" 
+                      className={sizeSystem === 'UK' ? styles.activeToggle : ''} 
+                      onClick={() => setSizeSystem('UK')}
+                    >
+                      UK
+                    </button>
+                  </div>
+                </div>
+                <p className={styles.sectionDesc}>
+                  Select available sizes ({sizeSystem === 'US' ? 'US' : 'UK'} sizing)
+                </p>
                 <div className={styles.sizeGrid}>
-                  {allSizes.map(size => (
-                    <button key={size} type="button" className={`${styles.sizeBtn} ${selectedSizes.includes(size) ? styles.active : ''}`} onClick={() => toggleSize(size)}>{size}</button>
+                  {sizeOptions.map((size, idx) => (
+                    <button 
+                      key={idx} 
+                      type="button" 
+                      className={`${styles.sizeBtn} ${isSizeSelected(size) ? styles.active : ''}`} 
+                      onClick={() => toggleSize(size)}
+                    >
+                      {sizeSystem === 'US' ? size.us : size.uk}
+                      <span className={styles.sizeEquivalent}>
+                        {sizeSystem === 'US' ? size.uk : size.us}
+                      </span>
+                    </button>
                   ))}
                 </div>
+                {selectedSizes.length > 0 && (
+                  <p className={styles.selectedSizesInfo}>
+                    Selected: {selectedSizes.join(', ')}
+                  </p>
+                )}
               </div>
             </>
           )}
@@ -337,24 +684,69 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>Live Preview</h3>
             <div className={styles.previewCard}>
-              {images.length > 0 ? (<img src={images[0].preview} alt="Preview" className={styles.previewImage} />) : (<div className={styles.previewPlaceholder}><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg></div>)}
+              {images.length > 0 ? (
+                <img src={images[currentImageIndex].preview} alt="Preview" className={styles.previewImage} />
+              ) : (
+                <div className={styles.previewPlaceholder}>
+                  <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+                    <circle cx="8.5" cy="8.5" r="1.5"/>
+                    <polyline points="21 15 16 10 5 21"/>
+                  </svg>
+                </div>
+              )}
               <div className={styles.previewInfo}>
                 <h4>{formData.name || 'Product Name'}</h4>
-                <p className={styles.previewPrice}>${formData.price || '0'} {formData.comparePrice && <span className={styles.comparePrice}>${formData.comparePrice}</span>}</p>
-                <div className={styles.previewMeta}><span>{formData.category || 'Category'}</span><span>•</span><span>{formData.inventory || 0} in stock</span></div>
+                <p className={styles.previewPrice}>
+                  ₦{formData.price ? parseFloat(formData.price).toLocaleString('en-NG') : '0'}
+                  {formData.comparePrice && (
+                    <span className={styles.comparePrice}>
+                      ₦{parseFloat(formData.comparePrice).toLocaleString('en-NG')}
+                    </span>
+                  )}
+                </p>
+                <div className={styles.previewMeta}>
+                  <span>{formData.category || 'Category'}</span>
+                  <span>•</span>
+                  <span>{formData.inventory || 0} in stock</span>
+                </div>
               </div>
             </div>
           </div>
+          
           <div className={styles.section}>
             <h3 className={styles.sectionTitle}>Visibility</h3>
             <div className={styles.statusOptions}>
-              <label className={styles.statusOption}><input type="radio" name="status" value="active" checked={formData.status === 'active'} onChange={handleInputChange} /><span className={styles.statusDot} style={{ background: 'var(--brut-success)' }} /> Active</label>
-              <label className={styles.statusOption}><input type="radio" name="status" value="draft" checked={formData.status === 'draft'} onChange={handleInputChange} /><span className={styles.statusDot} style={{ background: '#666' }} /> Draft</label>
+              <label className={styles.statusOption}>
+                <input type="radio" name="status" value="active" checked={formData.status === 'active'} onChange={handleInputChange} />
+                <span className={styles.statusDot} style={{ background: 'var(--brut-success)' }} /> 
+                Active
+              </label>
+              <label className={styles.statusOption}>
+                <input type="radio" name="status" value="draft" checked={formData.status === 'draft'} onChange={handleInputChange} />
+                <span className={styles.statusDot} style={{ background: '#666' }} /> 
+                Draft
+              </label>
             </div>
           </div>
+          
           <div className={styles.actions}>
-            <button type="button" className={styles.saveDraft} onClick={() => handleSubmit('draft')} disabled={isSubmitting}>{isSubmitting ? 'Saving...' : (isEditMode ? 'Save Draft Changes' : 'Save as Draft')}</button>
-            <button type="button" className={styles.publish} onClick={() => handleSubmit('active')} disabled={isSubmitting}>{isSubmitting ? 'Processing...' : (isEditMode ? 'Update Product' : 'Publish Product')}</button>
+            <button 
+              type="button" 
+              className={styles.saveDraft} 
+              onClick={() => handleSubmit('draft')} 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Saving...' : (isEditMode ? 'Save Draft Changes' : 'Save as Draft')}
+            </button>
+            <button 
+              type="button" 
+              className={styles.publish} 
+              onClick={() => handleSubmit('active')} 
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Processing...' : (isEditMode ? 'Update Product' : 'Publish Product')}
+            </button>
           </div>
         </div>
       </div>
