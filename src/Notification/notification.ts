@@ -313,14 +313,25 @@ export interface NotificationContextType {
 export const formatTime = (timestamp: string): string => {
   const date = new Date(timestamp);
   const now = new Date();
-  const diff = now.getTime() - date.getTime();
 
-  if (diff < 60000) return "Just now";
-  if (diff < 3600000) return `${Math.floor(diff / 60000)}m`;
-  if (diff < 86400000) return `${Math.floor(diff / 3600000)}h`;
-  if (diff < 604800000) return `${Math.floor(diff / 86400000)}d`;
+  const isToday = date.toDateString() === now.toDateString();
+  if (isToday) {
+    return date.toLocaleTimeString("en-US", {
+      hour: "numeric",
+      minute: "2-digit",
+    });
+  }
 
-  return date.toLocaleDateString();
+  const isThisYear = date.getFullYear() === now.getFullYear();
+  if (isThisYear) {
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  }
+
+  return date.toLocaleDateString("en-US", {
+    month: "numeric",
+    day: "numeric",
+    year: "2-digit",
+  });
 };
 
 export const buyerNotifications: Notification[] = [

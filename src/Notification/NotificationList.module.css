@@ -11,7 +11,9 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  /* padding: 20px 24px; */
+  /* padding: 16px 24px; */
+  padding-top: 0;
   padding-bottom: 0;
   /* border-bottom: 1px solid var(--brut-border); */
   flex-wrap: wrap;
@@ -73,19 +75,22 @@
 .tabs {
   display: flex;
   gap: 8px;
-  padding: 16px 24px;
+
+  /* padding: 16px 24px; */
+  /* background: var(--brut-card); */
   /* border-bottom: 1px solid var(--brut-border); */
   overflow-x: auto;
 }
 
 .tab {
-  padding: 8px 16px;
+  padding: 8px 12px;
   background: transparent;
   border: 1px solid var(--brut-border);
   border-radius: 100px;
   color: var(--brut-text);
-  font-size: 0.85rem;
-  font-weight: 600;
+  /* background: red; */
+  font-size: 0.75rem;
+  /* font-weight: 600; */
   cursor: pointer;
   transition: all 0.2s ease;
   white-space: nowrap;
@@ -104,6 +109,9 @@
 .list {
   /* max-height: 500px; */
   /* overflow-y: auto; */
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
   width: 100%;
 }
 
@@ -121,16 +129,18 @@
   align-items: flex-start;
   gap: 16px;
   padding: 16px 24px;
-  border-bottom: 1px solid var(--brut-border);
+  /* border-bottom: 1px solid var(--brut-border); */
   cursor: pointer;
   transition: all 0.2s ease;
   position: relative;
   width: 100%;
-  /* background-color: red; */
+  background-color: #141414e1;
+  /* background-color: var(--brut-card); */
+  border-radius: 8px;
 }
 
 .item:hover {
-  background: var(--brut-hover);
+  /* background: var(--brut-hover); */
 }
 
 .item:last-child {
@@ -138,14 +148,14 @@
 }
 
 .unread {
-  background: rgba(59, 130, 246, 0.05);
+  /* background: rgba(59, 130, 246, 0.05); */
 }
 
 .icon {
   position: relative;
   width: 40px;
   height: 40px;
-  border-radius: 10px;
+  border-radius: 50%;
   background: var(--brut-hover);
   display: flex;
   align-items: center;
@@ -182,16 +192,32 @@
 }
 
 .time {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   color: #666;
 }
 
-.title {
-  font-size: 0.95rem;
-  font-weight: 700;
-  /* margin: 0 0 4px 0; */
+.title.unread,
+.time.unread {
   color: var(--brut-text);
+}
+
+.title {
+  font-size: 0.9rem;
+  /* background: red; */
+  /* font-weight: 500; */
+  /* margin: 0 0 4px 0; */
+  color: #666;
   letter-spacing: normal;
+  min-width: 0;
+  flex: 1;
+}
+.title,
+.message {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: block;
+  max-width: 100%;
 }
 
 .message {
@@ -270,11 +296,11 @@
 /* Responsive */
 @media (max-width: 768px) {
   .header {
-    padding: 16px;
+    /* padding: 16px; */
   }
 
   .tabs {
-    padding: 12px 16px;
+    padding: 16px 0;
   }
 
   .item {

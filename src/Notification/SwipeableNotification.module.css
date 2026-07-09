@@ -1,0 +1,38 @@
+.wrapper {
+  position: relative;
+  overflow: hidden;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.card {
+  position: relative;
+  z-index: 2;
+  touch-action: pan-y;
+  cursor: grab;
+}
+
+.card:active {
+  cursor: grabbing;
+}
+
+.action {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+  color: white;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.read {
+  justify-content: flex-start;
+  background: #16a34a;
+}
+
+.delete {
+  justify-content: flex-end;
+  background: #dc2626;
+}
