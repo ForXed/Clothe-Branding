@@ -75,6 +75,7 @@
 .tabs {
   display: flex;
   gap: 8px;
+  padding: 16px 0;
 
   /* padding: 16px 24px; */
   /* background: var(--brut-card); */
@@ -134,8 +135,8 @@
   transition: all 0.2s ease;
   position: relative;
   width: 100%;
-  background-color: #141414e1;
-  /* background-color: var(--brut-card); */
+  /* background-color: #141414e1; */
+  background-color: var(--brut-card);
   border-radius: 8px;
 }
 
@@ -227,33 +228,6 @@
   line-height: 1.4;
 }
 
-.deleteBtn {
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  border: none;
-  background: transparent;
-  align-self: center;
-  /* background-color: pink; */
-  color: #666;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  opacity: 0;
-  transition: all 0.2s ease;
-  flex-shrink: 0;
-}
-
-.item:hover .deleteBtn {
-  opacity: 1;
-}
-
-.deleteBtn:hover {
-  background: var(--brut-danger);
-  color: white;
-}
-
 .dot {
   position: absolute;
   top: 0px;
@@ -293,14 +267,97 @@
   margin: 0;
 }
 
+.item_pc {
+  display: none;
+}
+
+.content_pc {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: space-between;
+}
+
+.item_pc:hover {
+  background: var(--brut-hover);
+}
+
+.content_pc:hover .time {
+  display: none;
+}
+.content_pc:hover .actions_pc {
+  display: flex;
+  gap: 8px;
+}
+
+.actions_pc {
+  display: none;
+  /* margin: 16px 0; */
+  button:hover {
+    background: var(--brut-text);
+    color: var(--brut-bg);
+    border-color: var(--brut-text);
+  }
+
+  .deleteBtn:hover {
+    background: var(--brut-danger);
+    color: white;
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+    width: 32px;
+    height: 32px;
+    background-color: var(--brut-border);
+    color: #666;
+    /* color: var(--brut-border); */
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: 0;
+  }
+}
+.row_pc {
+}
+
+.row_pc {
+  /* display: flex; */
+  /* justify-content: space-between; */
+  /* align-items: center; */
+  gap: 8px;
+}
+
 /* Responsive */
+@media (min-width: 768px) {
+  .item {
+    display: none;
+  }
+  .item_pc {
+    display: flex;
+    background-color: var(--brut-card);
+    padding: 16px 24px;
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    position: relative;
+    width: 100%;
+    /* background-color: #141414e1; */
+    border-radius: 8px;
+  }
+}
+
 @media (max-width: 768px) {
   .header {
     /* padding: 16px; */
   }
 
-  .tabs {
-    padding: 16px 0;
+  /* .tabs {
+    
   }
 
   .item {
@@ -309,5 +366,5 @@
 
   .deleteBtn {
     opacity: 1;
-  }
+  } */
 }

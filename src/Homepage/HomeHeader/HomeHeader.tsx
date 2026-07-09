@@ -25,16 +25,6 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
 }) => {
   const navigate = useNavigate();
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const { notifications, initializeNotifications } = useNotifications();
-
-  //initializing notifications
-  useEffect(() => {
-    initializeNotifications(buyerNotifications);
-  }, [initializeNotifications]);
-
-  // Adding notifications
-
-  notificationCount = notifications.length || 0;
 
   // Keyboard Shortcut (⌘ + K)
   useEffect(() => {

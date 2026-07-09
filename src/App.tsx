@@ -168,11 +168,13 @@ const App: React.FC = () => {
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
-              <BrutigePlatform
-                isDarkMode={isDarkMode}
-                toggleTheme={toggleTheme}
-                notify={notify as (message: string, type?: string) => void}
-              />
+              <NotificationProvider>
+                <BrutigePlatform
+                  isDarkMode={isDarkMode}
+                  toggleTheme={toggleTheme}
+                  notify={notify as (message: string, type?: string) => void}
+                />
+              </NotificationProvider>
             )
           }
         />

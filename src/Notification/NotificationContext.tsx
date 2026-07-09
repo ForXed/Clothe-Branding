@@ -6,6 +6,8 @@ import React, {
   ReactNode,
 } from "react";
 import {
+  BuyerNotification,
+  MakerNotification,
   Notification,
   NotificationContextType,
   NotificationType,
@@ -21,22 +23,36 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   children,
 }) => {
   // const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  type AppNotification = BuyerNotification | MakerNotification;
+  const [notifications, setNotifications] = useState<AppNotification[]>([]);
   const [unreadCount, setUnreadCount] = useState<number>(0);
 
-  const addNotification = useCallback(
-    (notification: Omit<Notification, "id" | "timestamp" | "read">) => {
-      const newNotification: Notification = {
-        id: Date.now().toString(),
+  const addBuyerNotification = useCallback(
+    (notification: Omit<BuyerNotification, "id" | "timestamp" | "read">) => {
+      const newNotification: BuyerNotification = {
+        ...notification,
+        id: crypto.randomUUID(),
         timestamp: new Date().toISOString(),
         read: false,
-        ...notification,
       };
 
       setNotifications((prev) => [newNotification, ...prev]);
-      if (!newNotification.read) {
-        setUnreadCount((prev) => prev + 1);
-      }
+      setUnreadCount((prev) => prev + 1);
+    },
+    [],
+  );
+
+  const addMakerNotification = useCallback(
+    (notification: Omit<MakerNotification, "id" | "timestamp" | "read">) => {
+      const newNotification: MakerNotification = {
+        ...notification,
+        id: crypto.randomUUID(),
+        timestamp: new Date().toISOString(),
+        read: false,
+      };
+
+      setNotifications((prev) => [newNotification, ...prev]);
+      setUnreadCount((prev) => prev + 1);
     },
     [],
   );
@@ -91,7 +107,7 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
     [notifications],
   );
   const initializeNotifications = useCallback(
-    (initialNotifications: Notification[]) => {
+    (initialNotifications: AppNotification[]) => {
       setNotifications((prev) =>
         prev.length === 0 ? initialNotifications : prev,
       );
@@ -101,7 +117,8 @@ export const NotificationProvider: React.FC<NotificationProviderProps> = ({
   const value: NotificationContextType = {
     notifications,
     unreadCount,
-    addNotification,
+    addBuyerNotification,
+    addMakerNotification,
     markAsRead,
     markAllAsRead,
     removeNotification,
