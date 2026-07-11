@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import styles from './SearchView.module.css';
 import { productAPI } from '../../services/ProductService';
 import { Product } from '../BrutigeContext/BrutigeContext';
@@ -19,7 +19,6 @@ export interface Maker {
   avatar: string;
 }
 
-// ✅ NEW: Search Analytics Interface
 interface SearchAnalytics {
   query: string;
   timestamp: string;
@@ -72,7 +71,6 @@ const saveRecentSearch = async (query: string): Promise<void> => {
   localStorage.setItem('brut_recent_searches', JSON.stringify(updated));
 };
 
-// ✅ NEW: Search Analytics Functions
 const saveSearchAnalytics = (query: string, resultCount: number, clicked: boolean = false): void => {
   const stored = localStorage.getItem('brut_search_analytics');
   const analytics: SearchAnalytics[] = stored ? JSON.parse(stored) : [];
@@ -84,12 +82,10 @@ const saveSearchAnalytics = (query: string, resultCount: number, clicked: boolea
     clicked
   };
   
-  // Keep last 50 searches
   const updated = [newEntry, ...analytics].slice(0, 50);
   localStorage.setItem('brut_search_analytics', JSON.stringify(updated));
 };
 
-// ✅ NEW: Get popular searches (for admin/insights)
 export const getPopularSearches = (): { query: string; count: number }[] => {
   const stored = localStorage.getItem('brut_search_analytics');
   const analytics: SearchAnalytics[] = stored ? JSON.parse(stored) : [];
@@ -106,23 +102,23 @@ export const getPopularSearches = (): { query: string; count: number }[] => {
 };
 
 interface SearchViewProps {
-  onSelect?: (product: Product) => void;
+  onSelect: (product: Product) => void; // ✅ Now required
 }
 
 const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // ✅ Read initial search query from URL
+  const initialQuery = searchParams.get('q') || '';
   
   // --- State ---
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(initialQuery);
   const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [isFocused, setIsFocused] = useState(false);
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
-  
-  // ✅ NEW: Keyboard navigation state
   const [highlightedIndex, setHighlightedIndex] = useState<number>(-1);
-  
-  // ✅ NEW: Filter modal search
   const [filterSearchQuery, setFilterSearchQuery] = useState('');
   
   // --- Data ---
@@ -134,6 +130,15 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
   // --- Refs ---
   const inputRef = useRef<HTMLInputElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // ✅ Update URL when search query changes
+  useEffect(() => {
+    if (searchQuery) {
+      setSearchParams({ q: searchQuery }, { replace: true });
+    } else {
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchQuery, setSearchParams]);
 
   // --- Initial Data Load ---
   useEffect(() => {
@@ -195,12 +200,10 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
     return () => clearTimeout(timeoutId);
   }, [searchQuery, selectedFilters]);
 
-  // ✅ NEW: Reset highlighted index when query changes
   useEffect(() => {
     setHighlightedIndex(-1);
   }, [searchQuery]);
 
-  // --- Auto-focus & Click Outside ---
   useEffect(() => {
     if (inputRef.current) inputRef.current.focus();
   }, []);
@@ -232,7 +235,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
     ? makers.filter(m => m.name.toLowerCase().includes(query) || m.location.toLowerCase().includes(query)).slice(0, 3)
     : [];
 
-  // ✅ NEW: Flattened suggestions for keyboard navigation
   const flattenedSuggestions = useMemo(() => {
     const items: Array<{
       type: 'product' | 'category' | 'maker';
@@ -247,15 +249,23 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
     return items;
   }, [suggestedProducts, suggestedCategories, suggestedMakers]);
 
-  // ✅ NEW: Filtered categories for filter modal search
   const filteredCategories = useMemo(() => {
     if (!filterSearchQuery.trim()) return categories;
     const q = filterSearchQuery.toLowerCase();
     return categories.filter(c => c.name.toLowerCase().includes(q));
   }, [categories, filterSearchQuery]);
 
-  // ✅ NEW: Keyboard navigation handler
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      setIsFocused(false);
+      setHighlightedIndex(-1);
+      if (inputRef.current) {
+        inputRef.current.blur();
+      }
+      return;
+    }
+    
     if (!showDropdown || flattenedSuggestions.length === 0) return;
     
     switch (e.key) {
@@ -282,23 +292,17 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
           handleSearchSubmit(e as any);
         }
         break;
-      
-      case 'Escape':
-        e.preventDefault();
-        setIsFocused(false);
-        setHighlightedIndex(-1);
-        break;
     }
   };
 
-  // ✅ NEW: Handle suggestion click (unified)
+  // ✅ FIXED: Use onSelect prop instead of navigate
   const handleSuggestionClick = (item: { type: string; data: any }) => {
     setIsFocused(false);
     setHighlightedIndex(-1);
     
     if (item.type === 'product') {
       saveSearchAnalytics(searchQuery, products.length, true);
-      navigate(`/platform/shop`, { state: { selectedProduct: item.data } });
+      onSelect(item.data); // ✅ Call parent's onSelect
     } else if (item.type === 'category') {
       setSearchQuery(item.data.name);
     } else if (item.type === 'maker') {
@@ -306,29 +310,23 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
     }
   };
 
-  // --- Handlers ---
   const handleSearchSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
       await saveRecentSearch(searchQuery.trim());
       setRecentSearches(await getRecentSearches());
-      
-      // ✅ NEW: Save analytics
       saveSearchAnalytics(searchQuery.trim(), products.length);
-      
       setIsFocused(false);
       setHighlightedIndex(-1);
     }
   };
 
+  // ✅ FIXED: Use onSelect prop instead of navigate
   const handleProductClick = (product: Product) => {
     setIsFocused(false);
     setHighlightedIndex(-1);
-    
-    // ✅ NEW: Track analytics
     saveSearchAnalytics(searchQuery, products.length, true);
-    
-    navigate(`/platform/shop`, { state: { selectedProduct: product } });
+    onSelect(product); // ✅ Call parent's onSelect
   };
 
   const handleCategoryClick = (categoryName: string) => {
@@ -345,7 +343,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
     );
   };
 
-  // ✅ NEW: Select/Deselect all filters
   const handleSelectAllFilters = () => {
     setSelectedFilters(categories.map(c => c.id));
   };
@@ -373,7 +370,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
 
   return (
     <div className={styles.container} ref={containerRef}>
-      {/* --- SEARCH SECTION --- */}
       <div className={styles.searchSection}>
         <form onSubmit={handleSearchSubmit} className={styles.searchBar}>
           <svg className={styles.searchIcon} width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
@@ -448,7 +444,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
           </div>
         </form>
 
-        {/* --- LIVE SUGGESTIONS DROPDOWN --- */}
         {showDropdown && flattenedSuggestions.length > 0 && (
           <div className={styles.suggestionsDropdown} role="listbox">
             {suggestedProducts.length > 0 && (
@@ -526,7 +521,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
               </div>
             )}
 
-            {/* ✅ NEW: Keyboard hint */}
             <div className={styles.keyboardHint}>
               <span>↑↓ Navigate</span>
               <span>↵ Select</span>
@@ -536,7 +530,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
         )}
       </div>
 
-      {/* --- FILTER MODAL (IMPROVED) --- */}
       {showFilterModal && (
         <div className={styles.modalOverlay} onClick={() => setShowFilterModal(false)}>
           <div className={styles.filterModal} onClick={(e) => e.stopPropagation()}>
@@ -562,7 +555,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
             </div>
 
             <div className={styles.modalBody}>
-              {/* ✅ NEW: Search within filters */}
               <div className={styles.filterSearchWrapper}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <circle cx="11" cy="11" r="8"/>
@@ -589,7 +581,6 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
                 )}
               </div>
 
-              {/* ✅ NEW: Quick actions */}
               <div className={styles.filterQuickActions}>
                 <button
                   type="button"
@@ -659,9 +650,7 @@ const SearchView: React.FC<SearchViewProps> = ({ onSelect }) => {
         </div>
       )}
 
-      {/* --- MAIN CONTENT --- */}
       <div className={styles.mainContent}>
-        
         {!isSearching ? (
           <>
             {recentSearches.length > 0 && (

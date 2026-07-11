@@ -16,28 +16,32 @@ import SavedView from './SavedView/SavedView';
 import SearchView from './SearchView/SearchView';
 import styles from './BrutigePlatform.module.css';
 
-// 👇 IMPORT THE TYPES FROM THE CONTEXT INSTEAD OF DEFINING THEM HERE
 import { Product, CartItem, SavedItem } from './BrutigeContext/BrutigeContext';
 
 interface BrutigePlatformProps {
   isDarkMode: boolean;
   toggleTheme: () => void;
-  notify: (message: string, type: 'success' | 'error' | 'info' | string) => void;
+  notify: (message: string, type?: 'success' | 'error' | 'info' | string) => void;
 }
 
 interface ProfileWrapperProps {
   userAvatar: string | null;
   setUserAvatar: React.Dispatch<React.SetStateAction<string | null>>;
   setActiveTab: (tab: string) => void;
+  onProductSelect: (product: Product) => void;
 }
 
-// Wrapper component to handle URL params for Profile
-const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ userAvatar, setUserAvatar, setActiveTab }) => {
+const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ 
+  userAvatar, 
+  setUserAvatar, 
+  setActiveTab,
+  onProductSelect 
+}) => {
   const { makerId } = useParams<{ makerId: string }>();
   const navigate = useNavigate();
 
   const handleProductClick = (product: Product) => {
-    navigate(`/platform/shop`, { state: { selectedProduct: product } });
+    onProductSelect(product);
   };
 
   const handleMessageMaker = () => {
@@ -66,16 +70,15 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
-  
-  // --- STATE: Control Mobile Nav Visibility ---
   const [hideMobileNav, setHideMobileNav] = useState<boolean>(false);
+  
+  // ✅ Track where the user came from (full URL with query params)
+  const [previousRoute, setPreviousRoute] = useState<string>('/platform/shop');
 
-  // --- COLLECTIONS STATE ---
   const [collections, setCollections] = useState<string[]>(['All', 'Streetwear', 'Minimalist', 'Summer Drop', 'Blueprints']);
 
   // Handle product selection from navigation state
   useEffect(() => {
-    // Safely cast location.state to our expected shape
     const state = location.state as { selectedProduct?: Product } | null;
     if (state?.selectedProduct) {
       setSelectedProduct(state.selectedProduct);
@@ -83,18 +86,15 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
     }
   }, [location.state, navigate, location.pathname]);
 
-  // Load avatar from local storage
   useEffect(() => {
     const savedAvatar = localStorage.getItem('brut_avatar');
     if (savedAvatar) setUserAvatar(savedAvatar);
   }, []);
 
-  // Save avatar to local storage
   useEffect(() => {
     if (userAvatar) localStorage.setItem('brut_avatar', userAvatar);
   }, [userAvatar]);
 
-  // --- SAFEGUARD: Reset Mobile Nav when leaving Chat Tab ---
   useEffect(() => {
     if (currentTab !== 'chat') {
       setHideMobileNav(false);
@@ -111,7 +111,25 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
     navigate('/studio');
   };
 
-  // --- CART LOGIC ---
+  // ✅ Smart back handler
+  const handleProductBack = () => {
+    setSelectedProduct(null);
+    if (previousRoute && previousRoute !== '/platform/shop') {
+      navigate(previousRoute);
+    }
+  };
+
+  // ✅ UPDATED: Always use current location (includes query params)
+  const handleProductSelect = (product: Product) => {
+    // Save the FULL current URL (pathname + search params)
+    setPreviousRoute(location.pathname + location.search);
+    setSelectedProduct(product);
+    // Navigate to shop route if not already there
+    if (location.pathname !== '/platform/shop') {
+      navigate('/platform/shop');
+    }
+  };
+
   const addToCart = (product: Product, quantity: number = 1, size: string = 'M', color: string = 'Default') => {
     setCartItems(prev => {
       const existingIndex = prev.findIndex(item => item.id === product.id && item.size === size);
@@ -157,7 +175,6 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
     setCartItems([]);
   };
 
-  // --- COLLECTION HANDLERS ---
   const handleCreateCollection = (newName: string): boolean => {
     if (newName && !collections.includes(newName)) {
       setCollections([...collections, newName]);
@@ -176,7 +193,6 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
     if (notify) notify(`Item moved to ${targetCollection}`, 'success');
   };
 
-  // Determine if we should show header
   const showHeader = !selectedProduct && 
                      currentTab !== 'search' && 
                      currentTab !== 'chat' &&
@@ -214,14 +230,15 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
                selectedProduct ? (
                  <ProductDetail 
                     product={selectedProduct} 
-                    onBack={() => setSelectedProduct(null)} 
+                    onBack={handleProductBack}
                     addToCart={addToCart} 
                     isSaved={savedItems.some(i => i.id === selectedProduct.id)} 
                     toggleSaved={() => toggleSaved(selectedProduct)}
+                    notify={notify}
                  />
                ) : (
                  <MasonryFeed 
-                   onSelect={setSelectedProduct} 
+                   onSelect={handleProductSelect}
                    savedItems={savedItems} 
                    toggleSaved={toggleSaved} 
                    addToCart={addToCart} 
@@ -229,7 +246,11 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
                )
             } />
             
-            <Route path="search" element={<SearchView onSelect={setSelectedProduct} />} />
+            <Route path="search" element={
+              <SearchView 
+                onSelect={handleProductSelect}
+              />
+            } />
             
             <Route 
               path="chat" 
@@ -248,6 +269,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
                   userAvatar={userAvatar}
                   setUserAvatar={setUserAvatar}
                   setActiveTab={handleTabChange}
+                  onProductSelect={handleProductSelect}
                 />
               } 
             />
@@ -259,7 +281,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
                   makerId="me" 
                   userAvatar={userAvatar}
                   setUserAvatar={setUserAvatar}
-                  onProductClick={(p: Product) => console.log(p)}
+                  onProductClick={handleProductSelect}
                   onMessageMaker={() => navigate('/platform/chat')}
                 />
               } 
@@ -309,7 +331,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
                 collections={collections}
                 onCreateCollection={handleCreateCollection}
                 onMoveItem={handleMoveItem}
-                onSelect={setSelectedProduct} 
+                onSelect={handleProductSelect}
                 toggleSaved={toggleSaved} 
                 addToCart={addToCart}
               />

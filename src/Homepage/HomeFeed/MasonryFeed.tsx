@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import styles from './MasonryFeed.module.css';
 import PromoBanner from '../PromoBanner/PromoBanner';
 import { productAPI } from '../../services/ProductService';
@@ -24,6 +24,12 @@ const MasonryFeed: React.FC<MasonryFeedProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [hoveredCard, setHoveredCard] = useState<number | string | null>(null);
   const [cardImageIndexes, setCardImageIndexes] = useState<Record<string | number, number>>({});
+  
+  // ✅ NEW: Touch/swipe state
+  const [touchStart, setTouchStart] = useState<number | null>(null);
+  const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [isSwiping, setIsSwiping] = useState<boolean>(false);
+  const swipeThreshold = 50; // Minimum distance for swipe
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,6 +97,50 @@ const MasonryFeed: React.FC<MasonryFeedProps> = ({
     setCardImageIndex(productId, prevIndex);
   };
 
+  // ✅ NEW: Touch handlers for swipe
+  const handleTouchStart = (e: React.TouchEvent) => {
+    setTouchEnd(null);
+    setTouchStart(e.targetTouches[0].clientX);
+    setIsSwiping(false);
+  };
+
+  const handleTouchMove = (e: React.TouchEvent) => {
+    setTouchEnd(e.targetTouches[0].clientX);
+    
+    // Detect if user is swiping horizontally
+    if (touchStart && touchEnd) {
+      const distance = Math.abs(touchStart - touchEnd);
+      if (distance > 10) {
+        setIsSwiping(true);
+      }
+    }
+  };
+
+  const handleTouchEnd = (productId: string | number, imagesLength: number) => {
+    if (!touchStart || !touchEnd) return;
+    
+    const distance = touchStart - touchEnd;
+    const isLeftSwipe = distance > swipeThreshold;
+    const isRightSwipe = distance < -swipeThreshold;
+    
+    const currentIndex = getCardImageIndex(productId);
+    
+    if (isLeftSwipe && currentIndex < imagesLength - 1) {
+      setCardImageIndex(productId, currentIndex + 1);
+      setIsSwiping(true);
+    } else if (isRightSwipe && currentIndex > 0) {
+      setCardImageIndex(productId, currentIndex - 1);
+      setIsSwiping(true);
+    }
+    
+    // Reset touch state
+    setTouchStart(null);
+    setTouchEnd(null);
+    
+    // Reset swiping flag after a short delay
+    setTimeout(() => setIsSwiping(false), 100);
+  };
+
   const handleQuickAdd = (e: React.MouseEvent<HTMLButtonElement>, product: Product) => {
     e.stopPropagation();
     addToCart(product, 1, 'M');
@@ -107,6 +157,13 @@ const MasonryFeed: React.FC<MasonryFeedProps> = ({
 
   const handleImageError = (e: React.SyntheticEvent<HTMLImageElement>) => {
     e.currentTarget.src = "https://via.placeholder.com/500x625?text=No+Image";
+  };
+
+  // ✅ NEW: Handle card click (prevent if swiping)
+  const handleCardClick = (product: Product) => {
+    if (!isSwiping) {
+      onSelect(product);
+    }
   };
 
   if (isLoading && products.length === 0) {
@@ -181,10 +238,13 @@ const MasonryFeed: React.FC<MasonryFeedProps> = ({
                 className={styles.card} 
                 onMouseEnter={() => setHoveredCard(product.id)} 
                 onMouseLeave={() => setHoveredCard(null)} 
-                onClick={() => onSelect(product)}
+                onClick={() => handleCardClick(product)}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={() => handleTouchEnd(product.id, images.length)}
                 role="button"
                 tabIndex={0}
-                onKeyDown={(e) => e.key === 'Enter' && onSelect(product)}
+                onKeyDown={(e) => e.key === 'Enter' && handleCardClick(product)}
               >
                 <div className={styles.imageContainer}>
                   <div className={styles.imageInner}>
@@ -193,6 +253,7 @@ const MasonryFeed: React.FC<MasonryFeedProps> = ({
                       alt={product.title}
                       onError={handleImageError}
                       className={styles.cardImage}
+                      draggable={false}
                     />
                     
                     {product.category && (
