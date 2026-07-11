@@ -14,6 +14,7 @@ import {
   MakerNotification,
   BuyerCategory,
   MakerCategory,
+  AppNotification,
 } from "./notification";
 import SwipeableNotification from "./SwipeableNotification";
 import { Check, Trash2 } from "lucide-react";
@@ -30,6 +31,8 @@ import {
   Truck,
   type LucideIcon,
 } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import NotificationDetails from "./NotificationDetails";
 
 type NotificationCategory = BuyerCategory | MakerCategory;
 
@@ -53,6 +56,9 @@ export function getNotificationIcon(category: NotificationCategory) {
 }
 
 const NotificationList: React.FC = () => {
+  const [selectedNotification, setSelectedNotification] =
+    useState<AppNotification | null>(null);
+
   const {
     notifications,
     unreadCount,
@@ -63,6 +69,85 @@ const NotificationList: React.FC = () => {
     clearAll,
     getUnread,
   } = useNotifications();
+
+  const [open, setOpen] = useState(false);
+
+  const handleNotificationAction = (
+    notification: AppNotification,
+    navigate: (path: string) => void,
+  ) => {
+    markAsRead(notification.id);
+    switch (notification.eventType) {
+      // ---------------- Buyer ----------------
+
+      case "order_submitted":
+      case "order_accepted":
+      case "production_started":
+      case "order_shipped":
+      case "delivery_confirmation_needed":
+        // navigate(`/buyer/orders/${notification.orderId}`);
+        navigate(`/orders/track/${notification.orderId}`);
+        break;
+
+      // case "escrow_activated":
+      // case "escrow_released":
+      // break;
+      // case "escrow_auto_release_warning":
+      //   navigate("/buyer/payments/escrow");
+      //   break;
+
+      // case "pdf_generated":
+      //   navigate("/buyer/brand-vault/pdf");
+      //   break;
+
+      // case "vault_incomplete":
+      //   navigate("/buyer/brand-vault");
+      //   break;
+
+      case "new_message":
+        navigate("/platform/chat");
+        break;
+
+      // case "dispute_opened":
+      //   navigate(`/buyer/disputes/${notification.orderId}`);
+      //   break;
+
+      // ---------------- Maker ----------------
+
+      case "new_order":
+        navigate(`/maker/orders/${notification.orderId}`);
+        break;
+
+      case "brand_vault_attached":
+        navigate(`/maker/orders/${notification.orderId}/brand-vault`);
+        break;
+
+      case "escrow_secured":
+        navigate(`/maker/orders/${notification.orderId}`);
+        break;
+
+      case "deadline_approaching":
+      case "production_overdue":
+        navigate(`/maker/orders/${notification.orderId}`);
+        break;
+
+      case "delivery_confirmed":
+        navigate(`/maker/orders/${notification.orderId}`);
+        break;
+
+      case "verification_submitted":
+      case "verification_approved":
+        navigate("/maker/settings/verification");
+        break;
+
+      default:
+        setSelectedNotification(notification);
+        setOpen(true);
+        break;
+    }
+  };
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const unread = getUnread();
@@ -100,77 +185,95 @@ const NotificationList: React.FC = () => {
   }
 
   return (
-    <div>
-      <div className={styles.header}>
-        <div className={styles.titleRow}>
-          <h2>Notifications</h2>
+    <>
+      <NotificationDetails
+        open={open}
+        notification={selectedNotification}
+        onClose={() => setOpen(false)}
+      />
+      <div>
+        <div className={styles.header}>
+          <div className={styles.titleRow}>
+            <h2>Notifications</h2>
+          </div>
+        </div>
+
+        <div className={styles.tabs}>
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentFilter("all");
+            }}
+            className={` ${currentFilter == "all" && styles.active} ${styles.tab}`}
+          >
+            All
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setCurrentFilter("unread");
+            }}
+            className={` ${currentFilter == "unread" && styles.active} ${styles.tab}`}
+          >
+            Unread {getUnread().length > 0 && `(${getUnread().length})`}
+          </button>
+          <button
+            onClick={() => {
+              setCurrentFilter("order");
+            }}
+            type="button"
+            className={` ${currentFilter == "order" && styles.active} ${styles.tab}`}
+          >
+            Orders
+          </button>
+          <button
+            onClick={() => {
+              setCurrentFilter("message");
+            }}
+            type="button"
+            className={` ${currentFilter == "message" && styles.active} ${styles.tab}`}
+          >
+            Messages
+          </button>
+        </div>
+
+        <div className={styles.list}>
+          {filteredNotifications.map((notification) => (
+            <>
+              <NotificationCardPC
+                notification={notification}
+                markAsRead={markAsRead}
+                removeNotification={removeNotification}
+                navigate={navigate}
+                handleNotificationAction={handleNotificationAction}
+              />
+              <SwipeableNotification
+                key={notification.id}
+                onDelete={() => removeNotification(notification.id)}
+                onMarkAsRead={() => markAsRead(notification.id)}
+              >
+                <NotificationCard
+                  notification={notification}
+                  navigate={navigate}
+                  handleNotificationAction={handleNotificationAction}
+                />
+              </SwipeableNotification>
+            </>
+          ))}
         </div>
       </div>
-
-      <div className={styles.tabs}>
-        <button
-          type="button"
-          onClick={() => {
-            setCurrentFilter("all");
-          }}
-          className={` ${currentFilter == "all" && styles.active} ${styles.tab}`}
-        >
-          All
-        </button>
-        <button
-          type="button"
-          onClick={() => {
-            setCurrentFilter("unread");
-          }}
-          className={` ${currentFilter == "unread" && styles.active} ${styles.tab}`}
-        >
-          Unread {getUnread().length > 0 && `(${getUnread().length})`}
-        </button>
-        <button
-          onClick={() => {
-            setCurrentFilter("order");
-          }}
-          type="button"
-          className={` ${currentFilter == "order" && styles.active} ${styles.tab}`}
-        >
-          Orders
-        </button>
-        <button
-          onClick={() => {
-            setCurrentFilter("message");
-          }}
-          type="button"
-          className={` ${currentFilter == "message" && styles.active} ${styles.tab}`}
-        >
-          Messages
-        </button>
-      </div>
-
-      <div className={styles.list}>
-        {filteredNotifications.map((notification) => (
-          <>
-            <NotificationCardPC
-              notification={notification}
-              markAsRead={markAsRead}
-              removeNotification={removeNotification}
-            />
-            <SwipeableNotification
-              key={notification.id}
-              onDelete={() => removeNotification(notification.id)}
-              onMarkAsRead={() => markAsRead(notification.id)}
-            >
-              <NotificationCard notification={notification} />
-            </SwipeableNotification>
-          </>
-        ))}
-      </div>
-    </div>
+    </>
   );
 };
 
 const NotificationCard: React.FC<{
-  notification: BuyerNotification | MakerNotification;
-}> = ({ notification }) => {
+  notification: AppNotification;
+  navigate: (path: string) => void;
+  handleNotificationAction: (
+    notification: AppNotification,
+    navigate: (path: string) => void,
+  ) => void;
+}> = ({ notification, navigate, handleNotificationAction }) => {
   return (
     <div
       key={notification.id}
@@ -178,6 +281,9 @@ const NotificationCard: React.FC<{
       // onClick={() => markAsRead(notification.id)}
       role="button"
       tabIndex={0}
+      onClick={() => {
+        handleNotificationAction(notification, navigate);
+      }}
     >
       <div className={styles.icon}>
         {getNotificationIcon(notification.category)}
@@ -211,13 +317,27 @@ const NotificationCardPC: React.FC<{
   notification: BuyerNotification | MakerNotification;
   markAsRead: (id: string) => void;
   removeNotification: (id: string) => void;
-}> = ({ notification, markAsRead, removeNotification }) => {
+  navigate: (path: string) => void;
+  handleNotificationAction: (
+    notification: AppNotification,
+    navigate: (path: string) => void,
+  ) => void;
+}> = ({
+  notification,
+  markAsRead,
+  removeNotification,
+  navigate,
+  handleNotificationAction,
+}) => {
   return (
     <div
       key={notification.id}
       className={`${styles.item_pc} ${!notification.read ? styles.unread : ""}`}
       role="button"
       tabIndex={0}
+      onClick={() => {
+        handleNotificationAction(notification, navigate);
+      }}
     >
       <div className={styles.icon}>
         {getNotificationIcon(notification.category)}
@@ -241,12 +361,18 @@ const NotificationCardPC: React.FC<{
           <div className={styles.actions_pc}>
             <button
               className={styles.markRead}
-              onClick={() => markAsRead(notification.id)}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                markAsRead(notification.id);
+              }}
             >
               <Check size={16} />
             </button>
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 removeNotification(notification.id);
               }}
               className={styles.deleteBtn}
