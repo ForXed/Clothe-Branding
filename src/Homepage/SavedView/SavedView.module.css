@@ -2,7 +2,7 @@
 
 .container {
     padding: 40px 5% 120px;
-    background-color: var(--brut-bg); /* Pure Black */
+    background-color: var(--brut-bg);
     animation: fadeIn 0.5s ease;
 }
 
@@ -53,6 +53,7 @@
     cursor: pointer;
     font-size: 0.85rem;
     transition: 0.3s;
+    font-family: 'Outfit', sans-serif;
 }
 
 .actionBtn:hover {
@@ -71,6 +72,7 @@
     text-transform: uppercase;
     font-size: 0.8rem;
     transition: 0.3s;
+    font-family: 'Outfit', sans-serif;
 }
 
 .btnPrimary:hover {
@@ -86,7 +88,7 @@
     overflow-x: auto;
     padding-bottom: 10px;
     align-items: center;
-    scrollbar-width: none; /* Hide for Cleanliness */
+    scrollbar-width: none;
 }
 
 .collectionsBar::-webkit-scrollbar { display: none; }
@@ -102,12 +104,29 @@
     font-weight: 600;
     font-size: 0.85rem;
     transition: 0.3s;
+    font-family: 'Outfit', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.colCount {
+    background: var(--brut-hover);
+    padding: 2px 8px;
+    border-radius: 100px;
+    font-size: 0.7rem;
+    font-weight: 700;
 }
 
 .activeCol {
-    background: #474145; /* Purple Taupe Accent */
-    border-color: #474145;
+    background: var(--brut-accent, #474145);
+    border-color: var(--brut-accent, #474145);
     color: #ffffff;
+}
+
+.activeCol .colCount {
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
 }
 
 .addColBtn {
@@ -120,6 +139,8 @@
     cursor: pointer;
     font-size: 0.85rem;
     white-space: nowrap;
+    font-family: 'Outfit', sans-serif;
+    transition: 0.3s;
 }
 
 .addColBtn:hover {
@@ -137,8 +158,8 @@
 .card {
     display: flex;
     flex-direction: column;
-    animation: cardFadeIn 0.6s var(--spring-default);
-    position: relative; /* Ensure context for absolute children */
+    animation: cardFadeIn 0.6s ease;
+    position: relative;
 }
 
 @keyframes cardFadeIn {
@@ -167,7 +188,7 @@
 
 .card:hover .imageContainer img { transform: scale(1.08); }
 
-/* --- DYNAMIC ALERTS (Stock & Price) --- */
+/* --- DYNAMIC ALERTS (Stock) --- */
 .badges {
     position: absolute;
     top: 15px;
@@ -179,7 +200,7 @@
 }
 
 .stockAlert {
-    background: #ff4444;
+    background: var(--brut-error, #ff4444);
     color: #fff;
     padding: 5px 12px;
     border-radius: 100px;
@@ -189,8 +210,8 @@
     letter-spacing: 1px;
 }
 
-.priceDrop {
-    background: #16a34a;
+.soldOut {
+    background: #666;
     color: #fff;
     padding: 5px 12px;
     border-radius: 100px;
@@ -214,25 +235,24 @@
     z-index: 5;
 }
 
-.unsaveBtn:hover { background: #ff4444; border-color: #ff4444; }
+.unsaveBtn:hover { background: var(--brut-error, #ff4444); border-color: var(--brut-error, #ff4444); }
 
 .quickCartBtn {
     position: absolute;
     bottom: 15px; right: 15px;
-    background: var(--brut-text); /* White */
-    color: var(--brut-bg);       /* Black */
+    background: var(--brut-text);
+    color: var(--brut-bg);
     border: none;
     width: 42px; height: 42px;
     border-radius: 50%;
     display: flex; align-items: center; justify-content: center;
     cursor: pointer; opacity: 0; transform: translateY(10px);
-    transition: 0.3s var(--spring-default);
+    transition: 0.3s;
     z-index: 5;
 }
 
 .card:hover .quickCartBtn { opacity: 1; transform: translateY(0); }
 
-/* --- NEW: MOVE BUTTON STYLES --- */
 .moveBtn {
   position: absolute;
   bottom: 15px;
@@ -249,12 +269,12 @@
 }
 
 .card:hover .moveBtn { opacity: 1; transform: translateY(0); }
-.moveBtn:hover { background: #474145; border-color: #474145; }
+.moveBtn:hover { background: var(--brut-accent, #474145); border-color: var(--brut-accent, #474145); }
 
-/* --- NEW: MOVE DROPDOWN (Inside Card) --- */
+/* --- MOVE DROPDOWN --- */
 .moveDropdown {
   position: absolute;
-  bottom: 70px; /* Above the buttons */
+  bottom: 70px;
   left: 15px;
   width: 160px;
   background: var(--brut-card);
@@ -289,13 +309,14 @@
   cursor: pointer;
   border-radius: 6px;
   transition: 0.2s;
+  font-family: 'Outfit', sans-serif;
 }
 
 .dropdownItem:hover { background: var(--brut-hover); }
-.dropdownItem.activeItem { color: #474145; font-weight: 800; }
+.dropdownItem.activeItem { color: var(--brut-accent, #474145); font-weight: 800; }
 .dropdownItem:disabled { opacity: 0.5; cursor: not-allowed; }
 
-/* --- NEW: MODAL OVERLAY & CONTENT (Create Collection) --- */
+/* --- MODAL OVERLAY & CONTENT --- */
 .modalOverlay {
   position: fixed;
   top: 0; left: 0; right: 0; bottom: 0;
@@ -305,6 +326,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  padding: 20px;
   animation: fadeIn 0.2s ease;
 }
 
@@ -313,7 +335,7 @@
   border: 1px solid var(--brut-border);
   padding: 30px;
   border-radius: 20px;
-  width: 90%;
+  width: 100%;
   max-width: 400px;
   box-shadow: 0 20px 50px rgba(0,0,0,0.5);
   animation: scaleUp 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
@@ -324,6 +346,58 @@
   font-size: 1.5rem;
   color: var(--brut-text);
   text-align: center;
+  font-weight: 800;
+}
+
+/* --- CONFIRM MODAL --- */
+.confirmHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.confirmHeader svg {
+  color: var(--brut-error, #ff4444);
+}
+
+.confirmHeader h3 {
+  margin: 0;
+}
+
+.confirmMessage {
+  text-align: center;
+  color: var(--brut-text);
+  opacity: 0.7;
+  margin: 0 0 24px;
+  line-height: 1.5;
+  font-size: 0.95rem;
+}
+
+/* --- EXPORT MODAL --- */
+.exportHint {
+  text-align: center;
+  color: var(--brut-text);
+  opacity: 0.6;
+  margin: 0 0 20px;
+  font-size: 0.9rem;
+}
+
+.exportTextarea {
+  width: 100%;
+  padding: 16px;
+  background: var(--brut-bg);
+  border: 1px solid var(--brut-border);
+  border-radius: 12px;
+  color: var(--brut-text);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  margin-bottom: 20px;
+  outline: none;
+  box-sizing: border-box;
+  resize: none;
+  line-height: 1.5;
 }
 
 .modalInput {
@@ -337,10 +411,11 @@
   font-size: 1rem;
   margin-bottom: 20px;
   outline: none;
-  box-sizing: border-box; /* Fix padding issue */
+  box-sizing: border-box;
 }
 
 .modalInput:focus { border-color: var(--brut-text); }
+.modalInput:disabled { opacity: 0.5; }
 
 .modalActions {
   display: flex;
@@ -357,9 +432,11 @@
   font-weight: 700;
   cursor: pointer;
   transition: 0.2s;
+  font-family: 'Outfit', sans-serif;
 }
 
 .cancelBtn:hover { border-color: var(--brut-text); }
+.cancelBtn:disabled { opacity: 0.5; cursor: not-allowed; }
 
 .submitBtn {
   background: var(--brut-text);
@@ -370,10 +447,25 @@
   font-weight: 800;
   cursor: pointer;
   transition: 0.2s;
+  font-family: 'Outfit', sans-serif;
 }
 
 .submitBtn:hover { opacity: 0.9; transform: translateY(-2px); }
 .submitBtn:disabled { background: #333; color: #666; cursor: not-allowed; transform: none; }
+
+.dangerBtn {
+  background: var(--brut-error, #ff4444);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 100px;
+  font-weight: 800;
+  cursor: pointer;
+  transition: 0.2s;
+  font-family: 'Outfit', sans-serif;
+}
+
+.dangerBtn:hover { opacity: 0.9; transform: translateY(-2px); }
 
 @keyframes scaleUp {
   from { opacity: 0; transform: scale(0.9); }
@@ -466,6 +558,12 @@
     border: none;
     cursor: pointer;
     transition: 0.3s;
+    font-family: 'Outfit', sans-serif;
+}
+
+.browseBtn:hover {
+    opacity: 0.85;
+    transform: translateY(-2px);
 }
 
 /* --- RESPONSIVE ADJUSTMENTS --- */
@@ -480,12 +578,33 @@
     .grid { grid-template-columns: repeat(2, 1fr); gap: 15px; }
     .quickCartBtn, .moveBtn { opacity: 1; transform: none; }
     
-    /* Adjust dropdown position on mobile */
     .moveDropdown { left: auto; right: 15px; bottom: 70px; }
+    
+    .headerActions {
+        width: 100%;
+        flex-direction: column;
+    }
+    
+    .actionBtn, .btnPrimary {
+        width: 100%;
+        justify-content: center;
+    }
 }
 
 @media (max-width: 480px) {
     .grid { gap: 12px; }
     .itemMain h3 { font-size: 0.95rem; }
-    .metaRow { display: none; } /* Hide timestamps on smallest screens for space */
+    .metaRow { display: none; }
+    
+    .modalContent {
+        padding: 20px;
+    }
+    
+    .modalActions {
+        flex-direction: column;
+    }
+    
+    .cancelBtn, .submitBtn, .dangerBtn {
+        width: 100%;
+    }
 }

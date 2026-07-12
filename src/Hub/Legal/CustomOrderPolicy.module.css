@@ -1,0 +1,637 @@
+/* --- Container: Fits inside HubLayout.mainContent --- */
+.container {
+  padding: 60px 40px;
+  max-width: 1200px;
+  margin: 0 auto;
+  color: var(--hub-text);
+}
+
+/* --- Mobile TOC (Horizontal Scroll) --- */
+.tocNavMobile {
+  display: none;
+  overflow-x: auto;
+  gap: 12px;
+  padding-bottom: 15px;
+  margin-bottom: 30px;
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  white-space: nowrap;
+}
+.tocNavMobile::-webkit-scrollbar { display: none; }
+
+.tocLinkMobile {
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  padding: 10px 18px;
+  border-radius: 100px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--hub-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+}
+.tocLinkMobile.active {
+  background: var(--hub-text);
+  color: #fff;
+  border-color: var(--hub-text);
+}
+
+/* --- Desktop Layout (Internal Flex) --- */
+.content {
+  display: flex;
+  gap: 60px;
+  position: relative;
+}
+
+/* Desktop Sidebar (TOC) */
+.tocDesktop {
+  width: 240px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 100px;
+  height: fit-content;
+  border-right: 1px solid var(--hub-border);
+  padding-right: 30px;
+}
+
+.tocTitle {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  font-weight: 800;
+  color: var(--hub-text-muted);
+  margin-bottom: 20px;
+}
+
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tocLink {
+  background: none;
+  border: none;
+  text-align: left;
+  font-family: 'Outfit', sans-serif;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--hub-text-muted);
+  cursor: pointer;
+  padding: 8px 0;
+  transition: all 0.2s;
+  position: relative;
+}
+.tocLink:hover { color: var(--hub-text); transform: translateX(4px); }
+.tocLink.active {
+  color: var(--hub-text);
+  font-weight: 700;
+}
+.tocLink.active::before {
+  content: '';
+  position: absolute;
+  left: -12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 4px;
+  background-color: var(--hub-text);
+  border-radius: 50%;
+}
+
+/* Main Text Area */
+.mainText {
+  flex: 1;
+  min-width: 0;
+}
+
+/* --- Typography & Sections --- */
+.header {
+  margin-bottom: 60px;
+  border-bottom: 2px solid var(--hub-text);
+  padding-bottom: 40px;
+}
+
+.title {
+  font-size: 3rem;
+  font-weight: 900;
+  margin: 0 0 12px 0;
+  color: var(--hub-text);
+  letter-spacing: -1.5px;
+  line-height: 1.1;
+}
+
+.updated {
+  font-size: 0.9rem;
+  color: var(--hub-text-muted);
+  font-family: 'Courier New', monospace;
+  margin-bottom: 30px;
+}
+
+.alertBox {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid var(--hub-text);
+  border-radius: 4px;
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.08);
+  align-items: flex-start;
+}
+.alertBox svg { flex-shrink: 0; color: var(--hub-text); margin-top: 2px; }
+.alertBox p { margin: 0; font-size: 0.95rem; line-height: 1.6; color: var(--hub-text); }
+
+.section { margin-bottom: 70px; scroll-margin-top: 120px; }
+.section h2 {
+  font-size: 2rem;
+  font-weight: 800;
+  margin: 0 0 24px 0;
+  color: var(--hub-text);
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--hub-border);
+}
+.section h3 { 
+  font-size: 1.35rem; 
+  font-weight: 700; 
+  margin: 32px 0 16px 0; 
+  color: var(--hub-text); 
+}
+.section p { 
+  font-size: 1.05rem; 
+  line-height: 1.8; 
+  color: #333; 
+  margin-bottom: 20px; 
+}
+.section strong { 
+  font-weight: 700; 
+  color: var(--hub-text); 
+}
+
+/* --- Highlight Box --- */
+.highlightBox {
+  background: #fff;
+  border: 1px solid var(--hub-text);
+  border-left: 4px solid var(--hub-text);
+  padding: 20px;
+  border-radius: 4px;
+  margin: 24px 0;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--hub-text);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.08);
+}
+
+/* --- Warning Box --- */
+.warningBox {
+  display: flex;
+  gap: 16px;
+  padding: 20px;
+  background: #fff;
+  border: 1px solid #ef4444;
+  border-left: 4px solid #ef4444;
+  border-radius: 4px;
+  margin: 24px 0;
+  align-items: flex-start;
+  box-shadow: 4px 4px 0px rgba(239, 68, 68, 0.1);
+}
+.warningBox svg { 
+  flex-shrink: 0; 
+  color: #ef4444; 
+  margin-top: 2px; 
+}
+.warningBox p { 
+  margin: 0; 
+  font-size: 0.95rem; 
+  line-height: 1.6; 
+  color: var(--hub-text); 
+}
+
+/* --- Process Steps --- */
+.processSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.step {
+  display: flex;
+  gap: 24px;
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  padding: 28px;
+  border-radius: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.step:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.08);
+  border-color: var(--hub-text);
+}
+
+.stepNumber {
+  width: 48px;
+  height: 48px;
+  background: var(--hub-text);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+  font-family: 'Courier New', monospace;
+}
+
+.stepContent {
+  flex: 1;
+}
+.stepContent h3 {
+  margin: 0 0 8px 0;
+  font-size: 1.2rem;
+  color: var(--hub-text);
+}
+.stepContent p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #666;
+  line-height: 1.6;
+}
+
+/* --- Cancellation Table --- */
+.cancellationTable {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 30px 0;
+}
+
+.cancellationRow {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1.5fr;
+  gap: 20px;
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  padding: 20px;
+  border-radius: 8px;
+  align-items: center;
+  transition: transform 0.2s;
+}
+.cancellationRow:hover {
+  transform: translateX(4px);
+  border-color: var(--hub-text);
+}
+
+.cancellationStage {
+  font-weight: 700;
+  color: var(--hub-text);
+  font-size: 0.95rem;
+}
+
+.cancellationPenalty {
+  font-weight: 800;
+  color: #dc2626;
+  font-size: 0.95rem;
+  font-family: 'Courier New', monospace;
+}
+
+.cancellationNote {
+  font-size: 0.9rem;
+  color: #666;
+  line-height: 1.5;
+}
+
+/* --- Refund Scenarios --- */
+.refundScenarios {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  margin: 24px 0;
+}
+
+.refundCard {
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  padding: 24px;
+  border-radius: 8px;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.refundCard:hover {
+  transform: translateY(-4px);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.08);
+  border-color: var(--hub-text);
+}
+
+.refundCard h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 12px;
+  color: var(--hub-text);
+}
+
+.refundCard p {
+  font-size: 0.95rem;
+  margin: 0;
+  line-height: 1.6;
+  color: #666;
+}
+
+/* --- Dispute Steps --- */
+.disputeSteps {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin: 30px 0;
+}
+
+.disputeStep {
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  padding: 28px;
+  border-radius: 8px;
+  border-left: 4px solid var(--hub-text);
+}
+
+.disputeStep h3 {
+  margin: 0 0 12px 0;
+  font-size: 1.2rem;
+  color: var(--hub-text);
+}
+
+.disputeStep p {
+  margin: 0 0 8px 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #444;
+}
+.disputeStep p:last-child {
+  margin-bottom: 0;
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  color: var(--hub-text-muted);
+}
+
+/* --- Obligations List --- */
+.obligationsList {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 24px 0;
+}
+
+.obligation {
+  display: flex;
+  gap: 20px;
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  padding: 24px;
+  border-radius: 8px;
+  align-items: flex-start;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.obligation:hover {
+  transform: translateX(4px);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.08);
+  border-color: var(--hub-text);
+}
+
+.obligation svg {
+  flex-shrink: 0;
+  color: #22c55e;
+  margin-top: 2px;
+  background: #dcfce7;
+  padding: 6px;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+}
+
+.obligation strong {
+  display: block;
+  font-size: 1.05rem;
+  font-weight: 700;
+  margin-bottom: 6px;
+  color: var(--hub-text);
+}
+
+.obligation p {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: #666;
+}
+
+/* --- Timeline Table --- */
+.timelineTable {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 24px 0;
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.timelineRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+  padding: 16px 20px;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+.timelineRow:hover {
+  background: var(--hub-hover);
+}
+
+.timelinePhase {
+  font-weight: 700;
+  color: var(--hub-text);
+  font-size: 0.95rem;
+}
+
+.timelineDuration {
+  font-weight: 600;
+  color: var(--hub-text);
+  text-align: right;
+  font-family: 'Courier New', monospace;
+  font-size: 0.95rem;
+}
+
+/* --- Lists --- */
+.compensationList,
+.qualityList,
+.resolutionSteps {
+  margin: 24px 0;
+  padding-left: 24px;
+}
+
+.compensationList li,
+.qualityList li,
+.resolutionSteps li {
+  margin-bottom: 14px;
+  line-height: 1.7;
+  color: #333;
+  font-size: 1.05rem;
+}
+
+.compensationList li strong,
+.qualityList li strong {
+  color: var(--hub-text);
+  font-weight: 700;
+}
+
+/* --- Badges --- */
+.badge {
+  display: inline-block;
+  padding: 4px 10px;
+  border-radius: 100px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border: 1px solid currentColor;
+  white-space: nowrap;
+}
+.badge.before { color: #166534; background: #dcfce7; border-color: #22c55e; }
+.badge.during { color: #92400e; background: #fef3c7; border-color: #f59e0b; }
+.badge.after { color: #831843; background: #fce7f3; border-color: #ec4899; }
+.badge.critical { color: #991b1b; background: #fee2e2; border-color: #ef4444; }
+
+/* --- Action Area --- */
+.actionArea {
+  margin-top: 80px;
+  padding: 40px;
+  background: #fff;
+  border: 1px solid var(--hub-border);
+  border-radius: 12px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+}
+
+.actionArea h3 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  margin: 0 0 24px 0;
+  color: var(--hub-text);
+}
+
+.btnGroup {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.btnPrimary, .btnSecondary {
+  padding: 14px 32px;
+  border-radius: 100px;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-decoration: none;
+  transition: all 0.2s;
+  font-family: 'Outfit', sans-serif;
+  display: inline-block;
+  cursor: pointer;
+  white-space: normal;
+  word-wrap: break-word;
+}
+
+.btnPrimary {
+  background: var(--hub-text);
+  color: #fff;
+  border: 2px solid var(--hub-text);
+}
+.btnPrimary:hover {
+  transform: translateY(-2px);
+  box-shadow: 4px 4px 0px rgba(0,0,0,0.15);
+}
+
+.btnSecondary {
+  background: transparent;
+  color: var(--hub-text);
+  border: 2px solid var(--hub-border);
+}
+.btnSecondary:hover {
+  border-color: var(--hub-text);
+  background: var(--hub-hover);
+  transform: translateY(-2px);
+}
+
+/* --- Responsive Fixes --- */
+@media (max-width: 1024px) {
+  .container { padding: 40px 20px; }
+  .content { flex-direction: column; gap: 30px; }
+  
+  .tocDesktop {
+    display: none;
+  }
+  
+  .tocNavMobile {
+    display: flex;
+  }
+  
+  .title { font-size: 2.5rem; }
+  .section h2 { font-size: 1.75rem; }
+  
+  .cancellationRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .cancellationPenalty {
+    text-align: left;
+  }
+  
+  .refundScenarios {
+    grid-template-columns: 1fr;
+  }
+  
+  .timelineRow {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+  
+  .timelineDuration {
+    text-align: left;
+  }
+}
+
+@media (max-width: 768px) {
+  .container { padding: 20px 4%; }
+  .title { font-size: 2.2rem; }
+  .alertBox { flex-direction: column; gap: 12px; }
+  
+  .step {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .stepNumber {
+    width: 40px;
+    height: 40px;
+    font-size: 1.1rem;
+  }
+  
+  .warningBox {
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .btnGroup { flex-direction: column; width: 100%; }
+  .btnPrimary, .btnSecondary {
+    width: 100%;
+    text-align: center;
+    box-sizing: border-box;
+  }
+  
+  .actionArea { padding: 24px; }
+  
+  .obligation {
+    flex-direction: column;
+    gap: 12px;
+  }
+}

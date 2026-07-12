@@ -1,25 +1,4 @@
-/* ProfileSettings - Complete Responsive Styles (Fixed Grid & Alignment) */
-
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&display=swap');
-
-:root {
-  --brut-bg: #f5f5f5;
-  --brut-card: #ffffff;
-  --brut-text: #1a1a1a;
-  --brut-border: #e0e0e0;
-  --brut-hover: #f0f0f0;
-  --brut-success: #22c55e;
-  --brut-danger: #ef4444;
-  --brut-info: #3b82f6;
-}
-
-[data-theme="dark"] {
-  --brut-bg: #0a0a0a;
-  --brut-card: #1a1a1a;
-  --brut-text: #f5f5f5;
-  --brut-border: #333333;
-  --brut-hover: #2a2a2a;
-}
 
 /* CRITICAL FIX: Global Reset */
 *, *::before, *::after {
@@ -32,7 +11,7 @@
   background-color: var(--brut-bg);
   min-height: 100vh;
   font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
-  overflow-x: hidden; /* Prevent horizontal scroll */
+  overflow-x: hidden;
   width: 100%;
   position: relative;
 }
@@ -47,7 +26,7 @@
   position: fixed;
   top: 90px;
   right: 24px;
-  background: var(--brut-success);
+  background: var(--brut-success, #22c55e);
   color: white;
   padding: 16px 24px;
   border-radius: 12px;
@@ -67,30 +46,26 @@
   to { transform: translateX(0); opacity: 1; }
 }
 
-
-
+/* Layout */
 .settingsLayout {
-  display: flex;       /* Changed from grid to flex */
-  flex-direction: column; /* Stack vertically by default (Mobile) */
+  display: flex;
+  flex-direction: column;
   gap: 32px;
   max-width: 1200px;
   margin: 0 auto;
   width: 100%;
-  /* CRITICAL: Prevents children from forcing overflow */
-  min-width: 0; 
+  min-width: 0;
 }
 
 .settingsSidebar {
-  width: 100%; /* Full width on mobile */
+  width: 100%;
   flex-shrink: 0;
 }
 
 .settingsContent {
-  width: 100%; /* Full width on mobile */
-  min-width: 0; /* Allows content to shrink */
+  width: 100%;
+  min-width: 0;
 }
-
-
 
 .mainTitle {
   font-size: 2rem;
@@ -141,18 +116,6 @@
   opacity: 1;
 }
 
-.upgradeNav {
-  margin-top: 20px;
-  border: 1px dashed var(--brut-text);
-  opacity: 1;
-  color: var(--brut-text);
-}
-
-.upgradeNav:hover {
-  background: var(--brut-text);
-  color: var(--brut-bg);
-}
-
 /* Section Headers */
 .sectionHeader {
   margin-bottom: 24px;
@@ -170,8 +133,8 @@
 
 .sectionDesc {
   font-size: 0.95rem;
-  color: #474145;
-  opacity: 0.8;
+  color: var(--brut-text);
+  opacity: 0.6;
   display: block;
 }
 
@@ -196,7 +159,8 @@
 /* Avatar Section */
 .avatarSection {
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 32px;
 }
 
@@ -249,6 +213,14 @@
   opacity: 1;
 }
 
+.avatarHint {
+  margin-top: 12px;
+  font-size: 0.8rem;
+  color: var(--brut-text);
+  opacity: 0.5;
+  text-align: center;
+}
+
 /* Form Grid */
 .formGrid { 
   display: grid; 
@@ -284,14 +256,18 @@
   color: var(--brut-text); 
   opacity: 0.6; 
   letter-spacing: 0.5px;
-  white-space: nowrap;
 }
 
-/* Inputs & Custom Selects */
+/* ✅ Required marker */
+.required {
+  color: var(--brut-error, #ef4444);
+  margin-left: 4px;
+}
+
+/* Inputs */
 .formGroup input,
 .formGroupFull input,
-.formGroupFull textarea,
-.customSelectTrigger { 
+.formGroupFull textarea { 
   width: 100%;
   padding: 14px 16px; 
   border: 1.5px solid var(--brut-border); 
@@ -308,10 +284,14 @@
 
 .formGroup input:focus,
 .formGroupFull input:focus,
-.formGroupFull textarea:focus,
-.customSelectTrigger:focus {
+.formGroupFull textarea:focus {
   border-color: var(--brut-text);
-  box-shadow: 0 0 0 3px rgba(0,0,0,0.05);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.formGroup input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .textarea {
@@ -320,236 +300,68 @@
   line-height: 1.5;
 }
 
-/* Custom Select Wrapper */
-.customSelectWrapper {
-  position: relative;
-  width: 100%;
-  min-width: 0; 
-}
-
-.customSelectTrigger {
-  appearance: none;
-  cursor: pointer;
-  padding-right: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: var(--brut-bg);
-  text-align: left;
-  width: 100%;
-  min-width: 0;
-}
-
-.selectedValue {
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  margin-right: 8px;
-  display: block;
-  max-width: 100%;
-}
-
-/* Custom Dropdown Menu */
-.customDropdown {
-  position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  width: 100%;
-  max-height: 300px;
-  background: var(--brut-card);
-  border: 1px solid var(--brut-border);
-  border-radius: 12px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
-  z-index: 1000;
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-  animation: slideDown 0.2s ease;
-}
-
-@keyframes slideDown {
-  from { opacity: 0; transform: translateY(-10px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-.dropdownSearch {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--brut-border);
-  background: var(--brut-card);
-  position: sticky;
-  top: 0;
-  z-index: 2;
-  flex-shrink: 0;
-}
-
-.dropdownSearch svg {
+.hint {
+  font-size: 0.8rem;
+  color: var(--brut-text);
   opacity: 0.5;
-  flex-shrink: 0;
+  margin-top: 4px;
 }
 
-.dropdownSearch input {
+.errorText {
+  font-size: 0.8rem;
+  color: var(--brut-error, #ef4444);
+  margin-top: 4px;
+}
+
+/* ✅ Simplified Phone Input (No dropdown) */
+.phoneInputSimple {
+  display: flex;
+  align-items: center;
+  border: 1.5px solid var(--brut-border);
+  border-radius: 10px;
+  background: var(--brut-bg);
+  overflow: hidden;
+  transition: all 0.2s;
+}
+
+.phoneInputSimple:focus-within {
+  border-color: var(--brut-text);
+  box-shadow: 0 0 0 3px rgba(0, 0, 0, 0.05);
+}
+
+.phonePrefix {
+  padding: 14px 16px;
+  background: var(--brut-hover);
+  color: var(--brut-text);
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-right: 1.5px solid var(--brut-border);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.phonePrefix::before {
+  content: '🇳🇬';
+  font-size: 1rem;
+}
+
+.phoneInputSimple input {
   flex: 1;
   border: none;
   background: transparent;
-  padding: 0;
+  padding: 14px 16px;
   font-size: 0.95rem;
   color: var(--brut-text);
   outline: none;
   font-family: 'Outfit', sans-serif;
   min-width: 0;
-}
-
-.dropdownList {
-  max-height: 240px;
-  overflow-y: auto;
-  padding: 8px;
-}
-
-.dropdownOption {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px;
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  cursor: pointer;
-  transition: background 0.2s;
-  color: var(--brut-text);
-  font-family: 'Outfit', sans-serif;
-  font-size: 0.95rem;
-  border-radius: 6px;
-  margin-bottom: 4px;
-  min-width: 0;
-}
-
-.dropdownOption:hover {
-  background: var(--brut-hover);
-}
-
-.activeOption {
-  background: var(--brut-text);
-  color: var(--brut-bg);
-}
-
-.optionText {
-  flex: 1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  min-width: 0;
-}
-
-.optionSub, .optionCode {
-  opacity: 0.6;
-  font-size: 0.85rem;
-  flex-shrink: 0;
-  margin-left: 8px;
-  white-space: nowrap;
-}
-
-.activeOption .optionSub, 
-.activeOption .optionCode {
-  opacity: 0.8;
-  color: var(--brut-bg);
-}
-
-.countryFlag {
-  font-size: 1.2rem;
-  flex-shrink: 0;
-}
-
-.hint {
-  font-size: 0.8rem;
-  color: #474145;
-  opacity: 0.6;
-  margin-top: 4px;
-  white-space: normal;
-}
-
-.errorText {
-  font-size: 0.8rem;
-  color: var(--brut-danger);
-  margin-top: 4px;
-}
-
-/* Input with prefix (username) */
-.inputWithPrefix {
-  display: flex;
-  align-items: center;
-  border: 1.5px solid var(--brut-border);
-  border-radius: 10px;
-  background: var(--brut-bg);
-  overflow: hidden;
-  min-width: 0;
   width: 100%;
 }
 
-.inputWithPrefix:focus-within {
-  border-color: var(--brut-text);
-}
-
-.prefix {
-  padding: 14px 0 14px 16px;
-  font-weight: 600;
-  color: var(--brut-text);
-  opacity: 0.5;
-  flex-shrink: 0;
-}
-
-.inputWithPrefix input {
-  border: none;
-  background: transparent;
-  padding-left: 4px;
-  flex: 1;
-  min-width: 0;
-  width: 100%;
-}
-
-.inputWithPrefix input:focus {
+.phoneInputSimple input:focus {
   box-shadow: none;
-}
-
-/* Phone Input with Country Dropdown */
-.phoneInputWrapper {
-  display: flex;
-  gap: 8px;
-  position: relative;
-  width: 100%;
-  min-width: 0; 
-}
-
-.countryCodeBtn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 14px 12px;
-  border: 1.5px solid var(--brut-border);
-  border-radius: 10px;
-  background: var(--brut-bg);
-  color: var(--brut-text);
-  font-family: 'Outfit', sans-serif;
-  font-weight: 500;
-  font-size: 0.95rem;
-  cursor: pointer;
-  transition: all 0.2s;
-  white-space: nowrap;
-  flex-shrink: 0;
-  max-width: 140px;
-}
-
-.countryCodeBtn:hover {
-  border-color: var(--brut-text);
-}
-
-.phoneInput {
-  flex: 1;
-  min-width: 0;
-  width: 100%;
 }
 
 /* Location Input */
@@ -626,9 +438,11 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 8px;
   transition: all 0.2s ease;
   white-space: nowrap;
   flex-shrink: 0;
+  font-family: 'Outfit', sans-serif;
 }
 
 .btnPrimary:hover:not(:disabled) {
@@ -656,6 +470,7 @@
   transition: all 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  font-family: 'Outfit', sans-serif;
 }
 
 .btnSecondary:hover {
@@ -675,6 +490,7 @@
   transition: opacity 0.2s;
   white-space: nowrap;
   flex-shrink: 0;
+  font-family: 'Outfit', sans-serif;
 }
 
 .btnText:hover { 
@@ -887,6 +703,103 @@
   transform: rotate(45deg);
 }
 
+/* ✅ Notification Note */
+.notificationNote {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 14px 16px;
+  background: var(--brut-bg);
+  border: 1px solid var(--brut-border);
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--brut-text);
+  opacity: 0.7;
+  line-height: 1.5;
+}
+
+.notificationNote svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+  opacity: 0.6;
+}
+
+/* ✅ Orders Card */
+.ordersCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.ordersIcon {
+  width: 56px;
+  height: 56px;
+  background: var(--brut-bg);
+  border: 1px solid var(--brut-border);
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--brut-text);
+  flex-shrink: 0;
+}
+
+.ordersInfo {
+  flex: 1;
+  min-width: 0;
+}
+
+.ordersInfo h4 {
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: var(--brut-text);
+}
+
+.ordersInfo p {
+  font-size: 0.9rem;
+  color: var(--brut-text);
+  opacity: 0.6;
+  margin: 0;
+  line-height: 1.5;
+}
+
+/* ✅ Stats Grid */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.statCard {
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  text-align: center;
+}
+
+.statLabel {
+  font-size: 0.7rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--brut-text);
+  opacity: 0.5;
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 900;
+  color: var(--brut-text);
+  letter-spacing: -1px;
+}
+
 /* Billing */
 .cardHeaderRow {
   display: flex;
@@ -953,135 +866,21 @@
   flex-shrink: 0;
 }
 
-.billingList {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.billingItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 16px 0;
-  border-bottom: 1px solid var(--brut-border);
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.billingItem:last-child {
-  border-bottom: none;
-}
-
-.billingDesc {
-  font-weight: 700;
-  font-size: 0.95rem;
-  margin-bottom: 4px;
-  word-wrap: break-word;
-}
-
-.billingDate {
-  font-size: 0.85rem;
-  opacity: 0.5;
-}
-
-.billingAmount {
-  text-align: right;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.billingAmount span:first-child {
-  font-weight: 800;
-  font-size: 1.1rem;
-  white-space: nowrap;
-}
-
-.statusBadge {
-  font-size: 0.75rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  padding: 2px 8px;
-  border-radius: 100px;
-  background: var(--brut-border);
-  flex-shrink: 0;
-}
-
-.statusBadge.paid {
-  background: #d4edda;
-  color: #155724;
-}
-
-/* Upgrade Content */
-.upgradeContent {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+.emptyPayment {
   text-align: center;
-  padding: 40px;
-}
-
-.upgradeIcon {
+  padding: 32px 20px;
   color: var(--brut-text);
-  opacity: 0.3;
-  margin-bottom: 24px;
-}
-
-.upgradeContent h4 {
-  font-size: 1.5rem;
-  font-weight: 800;
-  margin: 0 0 12px;
-  color: var(--brut-text);
-}
-
-.upgradeContent p {
-  font-size: 1rem;
-  opacity: 0.7;
-  margin: 0 0 32px;
-  max-width: 500px;
-  line-height: 1.6;
-}
-
-.featureList {
-  list-style: none;
-  padding: 0;
-  margin: 0 0 32px;
-  text-align: left;
-  background: var(--brut-bg);
-  padding: 32px;
-  border-radius: 16px;
-  border: 1px solid var(--brut-border);
-  width: 100%;
-  box-sizing: border-box;
-}
-
-.featureList li {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 0;
-  font-size: 1rem;
-  font-weight: 500;
-  color: var(--brut-text);
-  border-bottom: 1px solid var(--brut-border);
-}
-
-.featureList li:last-child {
-  border-bottom: none;
-}
-
-.featureList li svg {
-  color: var(--brut-success);
-  flex-shrink: 0;
-}
-
-.upgradeNote {
-  font-size: 0.85rem;
   opacity: 0.5;
-  margin-top: 16px;
+}
+
+.emptyPayment p {
+  margin: 0 0 8px;
+  font-size: 0.95rem;
+}
+
+.emptySubtext {
+  font-size: 0.85rem;
+  opacity: 0.7;
 }
 
 /* Support Section */
@@ -1173,24 +972,23 @@
 
 @media (min-width: 1025px) {
   .settingsLayout {
-    flex-direction: row; /* Switch to horizontal */
+    flex-direction: row;
     gap: 60px;
-    align-items: flex-start; /* Prevents stretching */
+    align-items: flex-start;
   }
 
   .settingsSidebar {
-    width: 280px; /* Fixed width sidebar */
-    flex-shrink: 0; /* Don't shrink sidebar */
-    position: sticky; /* Optional: keeps sidebar visible */
+    width: 280px;
+    flex-shrink: 0;
+    position: sticky;
     top: 100px;
   }
 
   .settingsContent {
-    flex: 1; /* Content takes remaining space */
-    min-width: 0; /* CRITICAL: Allows content to shrink below flex basis */
+    flex: 1;
+    min-width: 0;
   }
   
-  /* Restore vertical nav for desktop */
   .navMenu { 
     flex-direction: column !important; 
   }
@@ -1200,16 +998,14 @@
   }
 }
 
-
 /* Tablet & Small Desktop */
 @media (max-width: 1024px) {
   .settingsLayout { 
-    /* Stack vertically on tablets */
     grid-template-columns: 1fr; 
     gap: 32px; 
   }
   
- .navMenu { 
+  .navMenu { 
     flex-direction: row; 
     overflow-x: auto; 
     padding-bottom: 8px;
@@ -1238,6 +1034,19 @@
   
   .notificationCategory p {
     display: none;
+  }
+
+  .statsGrid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .ordersCard {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .ordersCard .btnPrimary {
+    width: 100%;
   }
 }
 
@@ -1315,31 +1124,6 @@
     gap: 8px;
   }
 
-  .phoneInputWrapper {
-    flex-direction: column;
-  }
-
-  .countryCodeBtn {
-    width: 100%;
-    justify-content: space-between;
-    max-width: 100%;
-  }
-
-  /* MOBILE DROPDOWN OVERLAY */
-  .customDropdown {
-    position: fixed;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 90%;
-    max-width: 360px;
-    max-height: 70vh;
-    z-index: 3000;
-    border-radius: 16px;
-    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-    border: 1px solid var(--brut-border);
-  }
-
   .successToast {
     left: 16px;
     right: 16px;
@@ -1356,6 +1140,14 @@
   .btnText {
     width: 100%;
     justify-content: center;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .supportCard {
+    padding: 24px;
   }
 }
 
@@ -1377,23 +1169,23 @@
 
   .formGroup input,
   .formGroupFull input,
-  .formGroupFull textarea,
-  .customSelectTrigger {
+  .formGroupFull textarea {
     padding: 12px 14px;
     font-size: 16px; /* Prevents zoom on iOS */
   }
 
-  .supportCard {
-    padding: 24px;
+  .phoneInputSimple input {
+    padding: 12px 14px;
+    font-size: 16px;
+  }
+
+  .phonePrefix {
+    padding: 12px 14px;
+    font-size: 0.9rem;
   }
 
   .upgradeContent {
     padding: 24px;
-  }
-
-  .upgradeIcon svg {
-    width: 48px;
-    height: 48px;
   }
 
   .sessionItem {
@@ -1406,16 +1198,17 @@
     flex-wrap: wrap;
   }
 
-  .billingItem {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 8px;
+  .ordersCard {
+    gap: 16px;
   }
 
-  .billingAmount {
-    text-align: left;
-    justify-content: flex-start;
-    width: 100%;
+  .ordersIcon {
+    width: 48px;
+    height: 48px;
+  }
+
+  .statValue {
+    font-size: 1.5rem;
   }
 }
 
@@ -1466,14 +1259,6 @@
     font-size: 0.65rem;
   }
 
-  .formGroup input,
-  .formGroupFull input,
-  .formGroupFull textarea,
-  .customSelectTrigger {
-    padding: 10px 12px;
-    font-size: 0.85rem;
-  }
-
   .avatarWrapper {
     width: 80px;
     height: 80px;
@@ -1489,28 +1274,6 @@
     padding: 12px 20px;
     font-size: 0.85rem;
     border-radius: 50px;
-  }
-
-  .upgradeContent h4 {
-    font-size: 1.2rem;
-  }
-
-  .upgradeContent p {
-    font-size: 0.9rem;
-  }
-
-  .featureList {
-    padding: 20px;
-  }
-
-  .featureList li {
-    font-size: 0.9rem;
-    gap: 8px;
-  }
-
-  .featureList li svg {
-    width: 16px;
-    height: 16px;
   }
 
   .supportGrid {
@@ -1531,25 +1294,11 @@
     font-size: 0.75rem;
   }
 
-  .billingDesc {
-    font-size: 0.85rem;
+  .statCard {
+    padding: 16px;
   }
 
-  .billingAmount span:first-child {
-    font-size: 1rem;
-  }
-
-  .statusBadge {
-    font-size: 0.65rem;
-    padding: 2px 6px;
-  }
-  
-  .dropdownOption {
-    font-size: 0.85rem;
-    padding: 10px;
-  }
-  
-  .optionSub, .optionCode {
-    font-size: 0.75rem;
+  .statValue {
+    font-size: 1.25rem;
   }
 }

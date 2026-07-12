@@ -1,7 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-// @ts-ignore
-import { productAPI } from '../../../services/ProductService'; 
+import { productAPI } from '../../../services/ProductService';
 import CustomSelect from '../../../Checkout/shared/CustomSelect';
 import styles from './AddProduct.module.css';
 
@@ -60,7 +59,6 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
   ]);
   const [activeColorId, setActiveColorId] = useState<number>(1);
   
-  // ✅ NEW: Size system toggle (US/UK)
   const [sizeSystem, setSizeSystem] = useState<'US' | 'UK'>('US');
   const [selectedSizes, setSelectedSizes] = useState<string[]>(['M', 'L']);
   
@@ -83,7 +81,6 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     { value: 'Footwear', label: 'Footwear' }
   ];
   
-  // ✅ NEW: Size mapping with US/UK equivalents
   const sizeOptions: SizeOption[] = [
     { us: 'XS', uk: 'XXS' },
     { us: 'S', uk: 'XS' },
@@ -94,18 +91,24 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     { us: '3XL', uk: 'XXL' }
   ];
 
-  // ✅ Auto-advance carousel every 5 seconds
+  const ukToUs = (ukSize: string): string => {
+    const mapping = sizeOptions.find(s => s.uk === ukSize);
+    return mapping ? mapping.us : ukSize;
+  };
+
+  const usToUk = (usSize: string): string => {
+    const mapping = sizeOptions.find(s => s.us === usSize);
+    return mapping ? mapping.uk : usSize;
+  };
+
   useEffect(() => {
     if (images.length <= 1) return;
-    
     const interval = setInterval(() => {
       setCurrentImageIndex((prev) => (prev + 1) % images.length);
     }, 5000);
-    
     return () => clearInterval(interval);
   }, [images.length]);
 
-  // ✅ Swipe gesture handlers
   const handleTouchStart = (e: React.TouchEvent) => {
     setTouchEnd(null);
     setTouchStart(e.targetTouches[0].clientX);
@@ -117,11 +120,9 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
 
   const handleTouchEnd = () => {
     if (!touchStart || !touchEnd) return;
-    
     const distance = touchStart - touchEnd;
     const isLeftSwipe = distance > 50;
     const isRightSwipe = distance < -50;
-    
     if (isLeftSwipe && currentImageIndex < images.length - 1) {
       setCurrentImageIndex(currentImageIndex + 1);
     } else if (isRightSwipe && currentImageIndex > 0) {
@@ -145,29 +146,50 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     setIsLoadingData(true);
     try {
       const allProducts = await productAPI.getAllProducts();
-      const productToEdit = allProducts.find((p: any) => p.id === parseInt(editId || '0'));
+      const productId = parseInt(editId!, 10);
+      const productToEdit = allProducts.find(p => p.id === productId);
 
       if (productToEdit) {
+        const numericPrice = productToEdit.price.replace(/[₦,\s]/g, '');
+        
         setFormData({
-          name: productToEdit.title || productToEdit.name || '',
+          name: productToEdit.title,
           description: productToEdit.description || '',
-          price: typeof productToEdit.price === 'string' 
-            ? productToEdit.price.replace(/[₦$,\s]/g, '') 
-            : productToEdit.price,
+          price: numericPrice,
           comparePrice: '', 
           sku: productToEdit.sku || '',
           category: productToEdit.category || 'Tops',
-          tags: Array.isArray(productToEdit.tags) ? productToEdit.tags.join(', ') : (productToEdit.tags || ''),
+          tags: productToEdit.tags?.join(', ') || '',
           inventory: productToEdit.stock?.toString() || '0',
           status: productToEdit.status || 'draft'
         });
 
-        if (productToEdit.img) {
-          setImages([{ id: Date.now(), preview: productToEdit.img, url: productToEdit.img }]);
+        if (productToEdit.images && productToEdit.images.length > 0) {
+          const mainImages: ImageItem[] = productToEdit.images.map((img, idx) => ({
+            id: Date.now() + idx,
+            preview: img,
+            url: img
+          }));
+          setImages(mainImages);
+          setCurrentImageIndex(0);
+        } else if (productToEdit.img) {
+          setImages([{ 
+            id: Date.now(), 
+            preview: productToEdit.img, 
+            url: productToEdit.img 
+          }]);
           setCurrentImageIndex(0);
         }
-        if (productToEdit.variants?.length > 0) setColorVariants(productToEdit.variants);
-        if (productToEdit.sizes?.length > 0) setSelectedSizes(productToEdit.sizes);
+
+        if (productToEdit.variants && productToEdit.variants.length > 0) {
+          setColorVariants(productToEdit.variants);
+        }
+        
+        if (productToEdit.sizes && productToEdit.sizes.length > 0) {
+          const usSizes = productToEdit.sizes.map(size => ukToUs(size));
+          setSelectedSizes(usSizes);
+        }
+        
         setActiveTab('details');
       } else {
         setError("Product not found.");
@@ -209,21 +231,24 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     }
   };
 
-  const handleColorImageUpload = async (e: Event, colorId: number) => {
-    const input = e.target as HTMLInputElement;
-    if (!input.files) return;
-    const files = Array.from(input.files);
+  // ✅ FIXED: Accept FileList directly instead of React event
+  const handleColorImageUpload = async (files: FileList, colorId: number) => {
+    const fileArray = Array.from(files);
     const newImages: ImageItem[] = [];
 
-    for (const file of files) {
+    for (const file of fileArray) {
       try {
         const base64 = await fileToBase64(file);
         newImages.push({ id: Date.now() + Math.random(), preview: base64, url: base64 });
-      } catch (err) { console.error("Error converting image", err); }
+      } catch (err) { 
+        console.error("Error converting image", err); 
+      }
     }
     
     setColorVariants(prev => prev.map(color => 
-      color.id === colorId ? { ...color, images: [...color.images, ...newImages].slice(0, 5) } : color
+      color.id === colorId 
+        ? { ...color, images: [...color.images, ...newImages].slice(0, 5) } 
+        : color
     ));
   };
 
@@ -259,20 +284,17 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     if (activeColorId === id) setActiveColorId(colorVariants[0].id);
   };
 
-  // ✅ UPDATED: Toggle size based on current size system
   const toggleSize = (size: SizeOption) => {
-    const sizeValue = sizeSystem === 'US' ? size.us : size.uk;
+    const usSize = size.us;
     setSelectedSizes(prev => 
-      prev.includes(sizeValue) 
-        ? prev.filter(s => s !== sizeValue) 
-        : [...prev, sizeValue]
+      prev.includes(usSize) 
+        ? prev.filter(s => s !== usSize) 
+        : [...prev, usSize]
     );
   };
 
-  // ✅ Check if size is selected (in current system)
   const isSizeSelected = (size: SizeOption): boolean => {
-    const sizeValue = sizeSystem === 'US' ? size.us : size.uk;
-    return selectedSizes.includes(sizeValue);
+    return selectedSizes.includes(size.us);
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -301,28 +323,34 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
     setIsSubmitting(true);
     setError(null);
     const isValid = validateForm(status === 'draft');
-    if (!isValid) { setIsSubmitting(false); return; }
+    if (!isValid) { 
+      setIsSubmitting(false); 
+      return; 
+    }
 
+    const formattedPrice = `₦${parseFloat(formData.price || '0').toLocaleString('en-NG')}`;
+    
     const productPayload = {
       title: formData.name, 
       description: formData.description,
-      price: `₦${parseFloat(formData.price || '0').toLocaleString('en-NG')}`,
+      price: formattedPrice,
       category: formData.category, 
       stock: parseInt(formData.inventory) || 0,
       totalCapacity: (parseInt(formData.inventory) || 0) + 50, 
-      brandsBuilt: 0, 
-      status: status,
-      sizes: selectedSizes, // ✅ Stores selected sizes (in current system)
+      status: status as 'active' | 'draft',
+      sizes: selectedSizes,
       variants: colorVariants,
       img: images.length > 0 ? images[0].url : "https://via.placeholder.com/500",
       images: images.map(i => i.url), 
       makerName: "Aura Studio",
-      tags: formData.tags.split(',').map(t => t.trim()).filter(t => t)
+      tags: formData.tags.split(',').map(t => t.trim()).filter(t => t),
+      sku: formData.sku
     };
 
     try {
-      if (isEditMode) {
-        await productAPI.updateProduct(parseInt(editId || '0'), productPayload);
+      if (isEditMode && editId) {
+        const productId = parseInt(editId, 10);
+        await productAPI.updateProduct(productId, productPayload);
         setShowSuccess(true);
         setTimeout(() => navigate('/studio/products'), 1500);
       } else {
@@ -334,9 +362,13 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
         });
         setImages([]);
         setCurrentImageIndex(0);
-        setSelectedSizes(['M', 'L']); // Reset to defaults
-        setTimeout(() => { setShowSuccess(false); navigate('/studio/products'); }, 1500);
+        setSelectedSizes(['M', 'L']);
+        setTimeout(() => { 
+          setShowSuccess(false); 
+          navigate('/studio/products'); 
+        }, 1500);
       }
+      
       if (refreshProducts) refreshProducts();
     } catch (err) {
       console.error("Failed to save product", err);
@@ -359,16 +391,29 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
 
   return (
     <div className={styles.container}>
+      {/* ✅ FIXED: Success toast with close button */}
       {showSuccess && (
         <div className={styles.successToast}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
             <polyline points="22 4 12 14.01 9 11.01"/>
           </svg>
-          {isEditMode ? 'Product Updated Successfully!' : 'Product Published Successfully!'}
+          <span>{isEditMode ? 'Product Updated Successfully!' : 'Product Published Successfully!'}</span>
+          <button 
+            type="button" 
+            className={styles.toastClose}
+            onClick={() => setShowSuccess(false)}
+            aria-label="Close notification"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
       )}
       
+      {/* ✅ FIXED: Error toast with close button */}
       {error && (
         <div className={styles.errorToast}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -376,7 +421,18 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
             <line x1="12" y1="8" x2="12" y2="12"/>
             <line x1="12" y1="16" x2="12.01" y2="16"/>
           </svg>
-          {error}
+          <span>{error}</span>
+          <button 
+            type="button" 
+            className={styles.toastClose}
+            onClick={() => setError(null)}
+            aria-label="Close notification"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
         </div>
       )}
 
@@ -597,7 +653,13 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
                         input.type = 'file'; 
                         input.accept = 'image/*'; 
                         input.multiple = true; 
-                        input.onchange = (e) => handleColorImageUpload(e, color.id); 
+                        // ✅ FIXED: Properly handle native event and pass FileList
+                        input.onchange = (e: Event) => {
+                          const target = e.target as HTMLInputElement;
+                          if (target.files && target.files.length > 0) {
+                            handleColorImageUpload(target.files, color.id);
+                          }
+                        };
                         input.click(); 
                       }}
                     >
@@ -631,21 +693,20 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
                 ))}
               </div>
               
-              {/* ✅ UPDATED: Size Options with US/UK Toggle */}
               <div className={styles.section}>
                 <div className={styles.sectionHeader}>
                   <h3 className={styles.sectionTitle}>Size Options</h3>
                   <div className={styles.sizeSystemToggle}>
                     <button 
                       type="button" 
-                      className={sizeSystem === 'US' ? styles.activeToggle : ''} 
+                      className={`${styles.toggleBtn} ${sizeSystem === 'US' ? styles.activeToggle : ''}`} 
                       onClick={() => setSizeSystem('US')}
                     >
                       US
                     </button>
                     <button 
                       type="button" 
-                      className={sizeSystem === 'UK' ? styles.activeToggle : ''} 
+                      className={`${styles.toggleBtn} ${sizeSystem === 'UK' ? styles.activeToggle : ''}`} 
                       onClick={() => setSizeSystem('UK')}
                     >
                       UK
@@ -653,7 +714,7 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
                   </div>
                 </div>
                 <p className={styles.sectionDesc}>
-                  Select available sizes ({sizeSystem === 'US' ? 'US' : 'UK'} sizing)
+                  Select available sizes (showing {sizeSystem} sizing)
                 </p>
                 <div className={styles.sizeGrid}>
                   {sizeOptions.map((size, idx) => (
@@ -672,7 +733,7 @@ const AddProduct: React.FC<AddProductProps> = ({ refreshProducts }) => {
                 </div>
                 {selectedSizes.length > 0 && (
                   <p className={styles.selectedSizesInfo}>
-                    Selected: {selectedSizes.join(', ')}
+                    Selected ({selectedSizes.length}): {selectedSizes.map(s => sizeSystem === 'US' ? s : usToUk(s)).join(', ')}
                   </p>
                 )}
               </div>

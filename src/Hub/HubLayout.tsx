@@ -48,10 +48,12 @@ const HubLayout: React.FC = () => {
     { path: '/hub/support', label: 'Support' },
   ];
 
+  // ✅ UPDATED: Added Custom Order Policy to legal items
   const legalItems: NavItem[] = [
     { path: '/hub/privacy', label: 'Privacy' },
     { path: '/hub/terms', label: 'Terms' },
     { path: '/hub/cookies', label: 'Cookies' },
+    { path: '/hub/custom-order-policy', label: 'Custom Orders' },
   ];
 
   return (

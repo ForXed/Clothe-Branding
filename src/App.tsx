@@ -30,6 +30,8 @@ import Support from './Hub/Support/Support';
 import Privacy from './Hub/Legal/Privacy';
 import Terms from './Hub/Legal/Terms';
 import Cookies from './Hub/Legal/Cookies';
+// ✅ NEW: Custom Order Policy import
+import CustomOrderPolicy from './Hub/Legal/CustomOrderPolicy';
 
 // Pricing Page
 import Pricing from './Pricing/Pricing';
@@ -166,6 +168,8 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
           <Route path="privacy" element={<Privacy />} />
           <Route path="terms" element={<Terms />} />
           <Route path="cookies" element={<Cookies />} />
+          {/* ✅ NEW: Custom Order Policy route */}
+          <Route path="custom-order-policy" element={<CustomOrderPolicy />} />
         </Route>
 
         {/* Catch-all */}

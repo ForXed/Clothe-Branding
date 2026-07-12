@@ -31,6 +31,16 @@ interface ProfileWrapperProps {
   onProductSelect: (product: Product) => void;
 }
 
+// ✅ User Profile Interface
+interface UserProfile {
+  firstName?: string;
+  lastName?: string;
+  email?: string;
+  phoneNumber?: string;
+  location?: string;
+  avatar?: string | null;
+}
+
 const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ 
   userAvatar, 
   setUserAvatar, 
@@ -72,10 +82,42 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [hideMobileNav, setHideMobileNav] = useState<boolean>(false);
   
+  // ✅ NEW: User profile state
+  const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
+  
   // ✅ Track where the user came from (full URL with query params)
   const [previousRoute, setPreviousRoute] = useState<string>('/platform/shop');
 
   const [collections, setCollections] = useState<string[]>(['All', 'Streetwear', 'Minimalist', 'Summer Drop', 'Blueprints']);
+
+  // ✅ Load user profile from localStorage
+  useEffect(() => {
+    const savedProfile = localStorage.getItem('brutige_user_profile');
+    if (savedProfile) {
+      try {
+        setUserProfile(JSON.parse(savedProfile));
+      } catch (error) {
+        console.error('Failed to parse user profile:', error);
+      }
+    }
+  }, []);
+
+  // ✅ Listen for profile updates from ProfileSettings
+  useEffect(() => {
+    const handleProfileUpdate = () => {
+      const savedProfile = localStorage.getItem('brutige_user_profile');
+      if (savedProfile) {
+        try {
+          setUserProfile(JSON.parse(savedProfile));
+        } catch (error) {
+          console.error('Failed to parse user profile:', error);
+        }
+      }
+    };
+    
+    window.addEventListener('profileUpdated', handleProfileUpdate);
+    return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
+  }, []);
 
   // Handle product selection from navigation state
   useEffect(() => {
@@ -193,6 +235,15 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
     if (notify) notify(`Item moved to ${targetCollection}`, 'success');
   };
 
+  // ✅ Handle profile updates from ProfileSettings
+  const handleSetUserProfile = (data: Partial<UserProfile>) => {
+    setUserProfile(prev => {
+      const updated = { ...prev, ...data };
+      localStorage.setItem('brutige_user_profile', JSON.stringify(updated));
+      return updated;
+    });
+  };
+
   const showHeader = !selectedProduct && 
                      currentTab !== 'search' && 
                      currentTab !== 'chat' &&
@@ -218,7 +269,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
             setActiveTab={handleTabChange} 
             cartCount={cartItems.length}
             userAvatar={userAvatar}
-            userName="User"
+            userName={userProfile?.firstName || 'User'} // ✅ Use firstName from profile
           />
         )}
         
@@ -291,8 +342,9 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
               path="settings" 
               element={
                 <ProfileSettings 
-                  userProfile={{ avatar: userAvatar }}
-                  setUserProfile={(data: { avatar: string | null }) => setUserAvatar(data.avatar)}
+                  userProfile={userProfile} // ✅ Pass full profile
+                  setUserProfile={handleSetUserProfile} // ✅ Use new handler
+                  notify={notify} // ✅ Pass notify for toasts
                 />
               } 
             />
@@ -334,6 +386,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
                 onSelect={handleProductSelect}
                 toggleSaved={toggleSaved} 
                 addToCart={addToCart}
+                notify={notify} // ✅ Pass notify for toasts
               />
             } />
           </Routes>

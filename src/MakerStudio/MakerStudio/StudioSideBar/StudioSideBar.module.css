@@ -11,8 +11,8 @@
   flex-direction: column;
   padding: 24px 0;
   z-index: 1000;
-  /* Smooth, professional transition without bounce */
-  transition: width 0.3s ease-in-out;
+  /* ✅ FIXED: Smoother transition without bounce */
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
   box-sizing: border-box;
 }
@@ -32,7 +32,8 @@
   justify-content: space-between;
   padding: 0 20px;
   margin-bottom: 32px;
-  height: 40px; /* Fixed height for stability */
+  height: 40px;
+  min-height: 40px;
 }
 
 .logoBox {
@@ -40,7 +41,9 @@
   align-items: center;
   gap: 12px;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  /* ✅ FIXED: Smooth opacity and width transition */
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   white-space: nowrap;
   overflow: hidden;
 }
@@ -49,18 +52,20 @@
   transform: scale(1.02); 
 }
 
+/* ✅ NEW: Hide logo smoothly when collapsed */
+.logoHidden {
+  opacity: 0;
+  width: 0;
+  pointer-events: none;
+}
+
 .studioLabel {
   font-weight: 900;
   font-size: 0.75rem;
   letter-spacing: 2px;
   color: var(--brut-text);
   opacity: 1;
-  transition: opacity 0.2s ease;
-}
-
-.collapsed .studioLabel {
-  opacity: 0;
-  width: 0;
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .collapseToggle {
@@ -83,8 +88,14 @@
   border-color: var(--brut-text);
 }
 
+.collapseToggle:focus-visible {
+  outline: 2px solid var(--brut-text);
+  outline-offset: 2px;
+}
+
 .rotateIcon { 
   transform: rotate(180deg); 
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* --- NAV ITEMS --- */
@@ -97,7 +108,6 @@
   overflow-y: auto;
 }
 
-/* Hide scrollbar for clean look */
 .navStack::-webkit-scrollbar {
   display: none;
 }
@@ -118,6 +128,7 @@
   position: relative;
   white-space: nowrap;
   box-sizing: border-box;
+  font-family: 'Outfit', sans-serif;
 }
 
 .navBtn:hover {
@@ -125,12 +136,28 @@
   color: var(--brut-text);
 }
 
-/* Active State */
+.navBtn:focus-visible {
+  outline: 2px solid var(--brut-text);
+  outline-offset: 2px;
+}
+
 .active {
   background: var(--brut-text) !important;
   color: var(--brut-bg) !important;
   font-weight: 600;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.active::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 4px;
+  height: 24px;
+  background: var(--brut-accent, #8b5cf6);
+  border-radius: 0 4px 4px 0;
 }
 
 .active:hover {
@@ -151,19 +178,22 @@
   font-size: 0.9rem;
   font-weight: 500;
   opacity: 1;
-  transition: opacity 0.2s ease;
+  /* ✅ FIXED: Smooth transition for labels */
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.collapsed .navLabel {
+/* ✅ NEW: Hide labels smoothly when collapsed */
+.labelHidden {
   opacity: 0;
   width: 0;
   overflow: hidden;
 }
 
-/* --- TOOLTIP (Collapsed State) --- */
+/* --- TOOLTIP --- */
 .tooltip {
   position: absolute;
-  left: 90px;
+  left: calc(100% + 12px);
   top: 50%;
   transform: translateY(-50%);
   background: var(--brut-text);
@@ -174,7 +204,7 @@
   font-weight: 700;
   opacity: 0;
   pointer-events: none;
-  transition: all 0.2s ease;
+  transition: opacity 0.2s ease;
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
   white-space: nowrap;
   z-index: 1001;
@@ -182,7 +212,6 @@
 
 .navBtn:hover .tooltip {
   opacity: 1;
-  left: 85px;
 }
 
 /* --- BOTTOM UTILS --- */
@@ -192,7 +221,7 @@
   gap: 6px;
   padding: 20px 12px 12px;
   border-top: 1px solid var(--brut-border);
-  background: var(--brut-card); /* Ensure background covers border area */
+  background: var(--brut-card);
 }
 
 .proBtn {
@@ -213,6 +242,8 @@
   transition: all 0.2s ease;
   white-space: nowrap;
   box-shadow: 0 4px 12px rgba(245, 158, 11, 0.2);
+  position: relative;
+  font-family: 'Outfit', sans-serif;
 }
 
 .proBtn:hover {
@@ -221,13 +252,19 @@
   filter: brightness(1.1);
 }
 
+.proBtn:focus-visible {
+  outline: 2px solid #f59e0b;
+  outline-offset: 2px;
+}
+
 .proBtnCollapsed {
   justify-content: center;
   padding: 0;
 }
 
-.proBtnCollapsed span {
-  display: none;
+.proBtnLabel {
+  transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+              width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* Responsive */

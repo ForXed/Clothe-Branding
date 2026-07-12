@@ -52,17 +52,27 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
     navigate('/platform/search');
   };
 
+  // ✅ Format user name (show first name only)
+  const getFirstName = () => {
+    if (!userName || userName === 'User') return '';
+    return userName.split(' ')[0];
+  };
+
+  const firstName = getFirstName();
+
   return (
     <div className={styles.headerWrapper}>
       {/* 1. STUDIO TICKER */}
       <div className={styles.ticker}>
         <div className={styles.tickerTrack}>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Free shipping on orders over ₦50,000</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New makers joining daily from Lagos to Abuja</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Secure escrow payments protect every order</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Track your custom orders in real-time</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Free shipping on orders over ₦50,000</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New makers joining daily from Lagos to Abuja</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Secure escrow payments protect every order</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Track your custom orders in real-time</span>
         </div>
       </div>
 
@@ -100,7 +110,7 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
           {/* ACTIONS WITH LABELS */}
           <div className={styles.headerActions}>
             
-            {/* Profile */}
+            {/* ✅ UPDATED: Profile with actual name */}
             <button 
               type="button"
               className={`${styles.actionItem} ${activeTab === 'profile' ? styles.activeAction : ''}`} 
@@ -118,7 +128,9 @@ const HomeHeader: React.FC<HomeHeaderProps> = ({
                 )}
                 {notificationCount > 0 && <span className={styles.badge}>{notificationCount}</span>}
               </div>
-              <span className={styles.actionLabel}>Profile</span>
+              <span className={styles.actionLabel}>
+                {firstName || 'Profile'}
+              </span>
             </button>
 
             {/* Notifications */}
