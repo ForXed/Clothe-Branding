@@ -2,12 +2,12 @@ import React, { useState, useRef, useEffect } from 'react';
 import styles from './Messages.module.css';
 
 // Import chat components
-import AttachmentMenu from '../../../chat/AttachmentMenu';
-import VaultPicker from '../../../chat/VaultPicker';
-import QuoteCard from '../../../chat/QuoteCard';
-import QuoteForm from '../../../chat/QuoteForm';
-import type { Design } from '../../../chat/VaultPicker';
-import type { QuoteData } from '../../../chat/QuoteForm';
+import AttachmentMenu from '../../chat/AttachmentMenu';
+import VaultPicker from '../../chat/VaultPicker';
+import QuoteCard from '../../chat/QuoteCard';
+import QuoteForm from '../../chat/QuoteForm';
+import type { Design } from '../../chat/VaultPicker';
+import type { QuoteData } from '../../chat/QuoteForm';
 
 interface Chat {
   id: number;

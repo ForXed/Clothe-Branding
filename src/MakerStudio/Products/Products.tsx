@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { productAPI, Product } from '../../../services/ProductService';
+import { productAPI, Product } from '../../services/ProductService';
 import styles from './Products.module.css';
 
 const Products: React.FC = () => {
