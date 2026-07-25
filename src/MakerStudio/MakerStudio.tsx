@@ -13,7 +13,7 @@ import StudioSettings from './StudioSettings/StudioSettings';
 import Analytics from './Analytics/Analytics';
 import ProModal from './ProModal/ProModal';
 // @ts-ignore
-import useStudioData from '../../hooks/useStudioData';
+import useStudioData from '../hooks/useStudioData';
 import styles from './MakerStudio.module.css';
 
 const MakerStudio: React.FC = () => {
