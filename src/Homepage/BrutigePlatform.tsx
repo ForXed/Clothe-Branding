@@ -1,21 +1,32 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, useNavigate, useLocation, Navigate, useParams } from 'react-router-dom';
+
+// Sidebar & Nav
 import Sidebar from './DesktopSidebar/Sidebar';
 import MobileNav from './MobileNav/MobileNav';
 import HomeHeader from './HomeHeader/HomeHeader';
-import MasonryFeed from './HomeFeed/MasonryFeed';
-import ProductDetail from './ProductDetail/ProductDetail';
+
+// ✅ NEW: Transform Flow Components
+import MakerDiscoveryView from '../Transform/MakerDiscovery/MakerDiscoveryView';
+import BriefsView from '../Transform/Briefs/BriefsView'
+
+// Keep Components
 import ChatRoom from './ChatRoom/ChatRoom';
 import ProfileView from './ProfileView/ProfileView';
 import ProfileSettings from './ProfileSettings/ProfileSettings';
-import CartView from './CartView/CartView';
-import CheckoutView from '../Checkout/RegularCheckout/CheckoutView/CheckoutView';
 import OrdersView from './OrdersView/OrdersView';
 import OrderTracker from './OrderTracker/OrderTracker';
-import SavedView from './SavedView/SavedView';
 import SearchView from './SearchView/SearchView';
-import styles from './BrutigePlatform.module.css';
 
+// 🚫 ARCHIVED: We keep the imports so TypeScript doesn't complain, 
+// but we remove their routes below so they are unreachable.
+import CartView from './CartView/CartView';
+import CheckoutView from '../Checkout/RegularCheckout/CheckoutView/CheckoutView';
+import SavedView from './SavedView/SavedView';
+import MasonryFeed from './HomeFeed/MasonryFeed';
+import ProductDetail from './ProductDetail/ProductDetail';
+
+import styles from './BrutigePlatform.module.css';
 import { Product, CartItem, SavedItem } from './BrutigeContext/BrutigeContext';
 
 interface BrutigePlatformProps {
@@ -31,7 +42,6 @@ interface ProfileWrapperProps {
   onProductSelect: (product: Product) => void;
 }
 
-// ✅ User Profile Interface
 interface UserProfile {
   firstName?: string;
   lastName?: string;
@@ -74,7 +84,8 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
   const location = useLocation();
   
   const pathSegments = location.pathname.split('/');
-  const currentTab: string = pathSegments[2] || 'shop';
+  // ✅ UPDATED: Default tab is now 'discovery' instead of 'shop'
+  const currentTab: string = pathSegments[2] || 'discovery';
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
@@ -82,44 +93,33 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [hideMobileNav, setHideMobileNav] = useState<boolean>(false);
   
-  // ✅ NEW: User profile state
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
   
-  // ✅ Track where the user came from (full URL with query params)
-  const [previousRoute, setPreviousRoute] = useState<string>('/platform/shop');
+  // ✅ UPDATED: Default previous route is now discovery
+  const [previousRoute, setPreviousRoute] = useState<string>('/platform/discovery');
 
   const [collections, setCollections] = useState<string[]>(['All', 'Streetwear', 'Minimalist', 'Summer Drop', 'Blueprints']);
 
-  // ✅ Load user profile from localStorage
   useEffect(() => {
     const savedProfile = localStorage.getItem('brutige_user_profile');
     if (savedProfile) {
-      try {
-        setUserProfile(JSON.parse(savedProfile));
-      } catch (error) {
-        console.error('Failed to parse user profile:', error);
-      }
+      try { setUserProfile(JSON.parse(savedProfile)); } 
+      catch (error) { console.error('Failed to parse user profile:', error); }
     }
   }, []);
 
-  // ✅ Listen for profile updates from ProfileSettings
   useEffect(() => {
     const handleProfileUpdate = () => {
       const savedProfile = localStorage.getItem('brutige_user_profile');
       if (savedProfile) {
-        try {
-          setUserProfile(JSON.parse(savedProfile));
-        } catch (error) {
-          console.error('Failed to parse user profile:', error);
-        }
+        try { setUserProfile(JSON.parse(savedProfile)); } 
+        catch (error) { console.error('Failed to parse user profile:', error); }
       }
     };
-    
     window.addEventListener('profileUpdated', handleProfileUpdate);
     return () => window.removeEventListener('profileUpdated', handleProfileUpdate);
   }, []);
 
-  // Handle product selection from navigation state
   useEffect(() => {
     const state = location.state as { selectedProduct?: Product } | null;
     if (state?.selectedProduct) {
@@ -153,35 +153,28 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
     navigate('/studio');
   };
 
-  // ✅ Smart back handler
   const handleProductBack = () => {
     setSelectedProduct(null);
-    if (previousRoute && previousRoute !== '/platform/shop') {
+    if (previousRoute && previousRoute !== '/platform/discovery') {
       navigate(previousRoute);
     }
   };
 
-  // ✅ UPDATED: Always use current location (includes query params)
   const handleProductSelect = (product: Product) => {
-    // Save the FULL current URL (pathname + search params)
     setPreviousRoute(location.pathname + location.search);
     setSelectedProduct(product);
-    // Navigate to shop route if not already there
-    if (location.pathname !== '/platform/shop') {
-      navigate('/platform/shop');
+    // ✅ UPDATED: Navigate to discovery instead of shop
+    if (location.pathname !== '/platform/discovery') {
+      navigate('/platform/discovery');
     }
   };
 
   const addToCart = (product: Product, quantity: number = 1, size: string = 'M', color: string = 'Default') => {
     setCartItems(prev => {
       const existingIndex = prev.findIndex(item => item.id === product.id && item.size === size);
-      
       if (existingIndex >= 0) {
         const updated = [...prev];
-        updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: updated[existingIndex].quantity + quantity
-        };
+        updated[existingIndex] = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + quantity };
         return updated;
       } else {
         return [...prev, { ...product, quantity, size, color }];
@@ -193,16 +186,12 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
   const updateQuantity = (id: string | number, size: string, newQuantity: number) => {
     if (newQuantity < 1) return;
     setCartItems(prev => prev.map(item => 
-      (item.id === id && item.size === size) 
-        ? { ...item, quantity: newQuantity } 
-        : item
+      (item.id === id && item.size === size) ? { ...item, quantity: newQuantity } : item
     ));
   };
 
   const removeItem = (id: string | number, size: string) => {
-    setCartItems(prev => prev.filter(item => 
-      !(item.id === id && item.size === size)
-    ));
+    setCartItems(prev => prev.filter(item => !(item.id === id && item.size === size)));
   };
 
   const toggleSaved = (product: Product) => {
@@ -213,9 +202,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
     });
   };
 
-  const clearCart = () => {
-    setCartItems([]);
-  };
+  const clearCart = () => setCartItems([]);
 
   const handleCreateCollection = (newName: string): boolean => {
     if (newName && !collections.includes(newName)) {
@@ -228,14 +215,11 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
 
   const handleMoveItem = (itemId: string | number, targetCollection: string) => {
     setSavedItems(prev => prev.map(item => 
-      item.id === itemId 
-        ? { ...item, collection: targetCollection } 
-        : item
+      item.id === itemId ? { ...item, collection: targetCollection } : item
     ));
     if (notify) notify(`Item moved to ${targetCollection}`, 'success');
   };
 
-  // ✅ Handle profile updates from ProfileSettings
   const handleSetUserProfile = (data: Partial<UserProfile>) => {
     setUserProfile(prev => {
       const updated = { ...prev, ...data };
@@ -249,8 +233,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
                      currentTab !== 'chat' &&
                      !location.pathname.includes('/profile') &&
                      !location.pathname.includes('/settings') &&
-                     !location.pathname.includes('/orders/track') &&
-                     !location.pathname.includes('/checkout');
+                     !location.pathname.includes('/orders/track');
 
   return (
     <div className={styles.platformWrapper}>
@@ -269,126 +252,35 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
             setActiveTab={handleTabChange} 
             cartCount={cartItems.length}
             userAvatar={userAvatar}
-            userName={userProfile?.firstName || 'User'} // ✅ Use firstName from profile
+            userName={userProfile?.firstName || 'User'}
           />
         )}
         
         <div className={styles.viewport}>
           <Routes location={location}>
-            <Route path="/" element={<Navigate to="shop" replace />} />
+            {/* ✅ NEW: Default route is now discovery */}
+            <Route path="/" element={<Navigate to="discovery" replace />} />
             
-            <Route path="shop" element={
-               selectedProduct ? (
-                 <ProductDetail 
-                    product={selectedProduct} 
-                    onBack={handleProductBack}
-                    addToCart={addToCart} 
-                    isSaved={savedItems.some(i => i.id === selectedProduct.id)} 
-                    toggleSaved={() => toggleSaved(selectedProduct)}
-                    notify={notify}
-                 />
-               ) : (
-                 <MasonryFeed 
-                   onSelect={handleProductSelect}
-                   savedItems={savedItems} 
-                   toggleSaved={toggleSaved} 
-                   addToCart={addToCart} 
-                 />
-               )
-            } />
+            {/* ✅ NEW: TRANSFORM Flow Routes */}
+            <Route path="discovery" element={<MakerDiscoveryView />} />
+            <Route path="briefs" element={<BriefsView />} />
             
-            <Route path="search" element={
-              <SearchView 
-                onSelect={handleProductSelect}
-              />
-            } />
-            
-            <Route 
-              path="chat" 
-              element={
-                <ChatRoom 
-                  initialData={location.state as any} 
-                  onMobileNavChange={setHideMobileNav} 
-                /> 
-              } 
-            />
-            
-            <Route 
-              path="profile/:makerId" 
-              element={
-                <ProfileWrapper 
-                  userAvatar={userAvatar}
-                  setUserAvatar={setUserAvatar}
-                  setActiveTab={handleTabChange}
-                  onProductSelect={handleProductSelect}
-                />
-              } 
-            />
-            
-            <Route 
-              path="profile" 
-              element={
-                <ProfileView 
-                  makerId="me" 
-                  userAvatar={userAvatar}
-                  setUserAvatar={setUserAvatar}
-                  onProductClick={handleProductSelect}
-                  onMessageMaker={() => navigate('/platform/chat')}
-                />
-              } 
-            />
-            
-            <Route 
-              path="settings" 
-              element={
-                <ProfileSettings 
-                  userProfile={userProfile} // ✅ Pass full profile
-                  setUserProfile={handleSetUserProfile} // ✅ Use new handler
-                  notify={notify} // ✅ Pass notify for toasts
-                />
-              } 
-            />
-            
-            <Route 
-              path="cart" 
-              element={
-                <CartView 
-                  cartItems={cartItems} 
-                  updateQuantity={updateQuantity}
-                  removeItem={removeItem}
-                  toggleSaved={toggleSaved}
-                /> 
-              } 
-            />
-
-            <Route 
-              path="checkout" 
-              element={
-                <CheckoutView 
-                  cartItems={cartItems}
-                  clearCart={clearCart}
-                  notify={notify}
-                  onComplete={() => navigate('/orders')}
-                /> 
-              } 
-            />
-            
+            {/* ✅ KEEP: Untouched for now */}
+            <Route path="search" element={<SearchView onSelect={handleProductSelect} />} />
+            <Route path="chat" element={<ChatRoom initialData={location.state as any} onMobileNavChange={setHideMobileNav} />} />
+            <Route path="profile/:makerId" element={<ProfileWrapper userAvatar={userAvatar} setUserAvatar={setUserAvatar} setActiveTab={handleTabChange} onProductSelect={handleProductSelect} />} />
+            <Route path="profile" element={<ProfileView makerId="me" userAvatar={userAvatar} setUserAvatar={setUserAvatar} onProductClick={handleProductSelect} onMessageMaker={() => navigate('/platform/chat')} />} />
+            <Route path="settings" element={<ProfileSettings userProfile={userProfile} setUserProfile={handleSetUserProfile} notify={notify} />} />
             <Route path="orders" element={<OrdersView />} />
-            
             <Route path="orders/track/:orderId" element={<OrderTracker notify={notify} />} />
             
-            <Route path="saved" element={
-              <SavedView 
-                savedItems={savedItems} 
-                collections={collections}
-                onCreateCollection={handleCreateCollection}
-                onMoveItem={handleMoveItem}
-                onSelect={handleProductSelect}
-                toggleSaved={toggleSaved} 
-                addToCart={addToCart}
-                notify={notify} // ✅ Pass notify for toasts
-              />
-            } />
+            {/* 🚫 ARCHIVE: Fenced off routes (redirect to discovery so old links don't break) */}
+            <Route path="shop" element={<Navigate to="/platform/discovery" replace />} />
+            <Route path="cart" element={<Navigate to="/platform/discovery" replace />} />
+            <Route path="checkout" element={<Navigate to="/platform/discovery" replace />} />
+            <Route path="saved" element={<Navigate to="/platform/discovery" replace />} />
+            
+            <Route path="*" element={<Navigate to="discovery" replace />} />
           </Routes>
         </div>
       </main>

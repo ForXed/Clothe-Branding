@@ -1,10 +1,14 @@
+// src/MakerStudio/MakerStudio/MakerStudio.tsx
+
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+
+// Navigation
 import StudioSideBar from './StudioSideBar/StudioSideBar';
 import StudioHeader from './StudioHeader/StudioHeader';
 import StudioMobileNav from './StudioMobileNav/StudioMobileNav';
-import AddProduct from './AddProduct/AddProduct';
-import Products from './Products/Products';
+
+// ✅ KEEP: Existing Studio Components
 import OverView from './OverView/OverView';
 import Order from './Order/Order';
 import Messages from './Messages/Messages';
@@ -12,6 +16,15 @@ import Transaction from './Transaction/Transaction';
 import StudioSettings from './StudioSettings/StudioSettings';
 import Analytics from './Analytics/Analytics';
 import ProModal from './ProModal/ProModal';
+
+// ✅ NEW: Transform Flow Components
+import BriefsView from '../../Transform/Briefs/BriefsView';
+import QuotesView from '../../Transform/Quotes/QuotesView';
+
+// 🚫 ARCHIVED: Keep imports so TypeScript doesn't complain, but remove routes
+import AddProduct from './AddProduct/AddProduct';
+import Products from './Products/Products';
+
 // @ts-ignore
 import useStudioData from '../../hooks/useStudioData';
 import styles from './MakerStudio.module.css';
@@ -51,7 +64,8 @@ const MakerStudio: React.FC = () => {
     navigate(`/studio/${tabId}`);
   };
 
-  const goToPlatform = () => navigate('/platform/shop');
+  // ✅ UPDATED: Navigate to discovery instead of shop
+  const goToPlatform = () => navigate('/platform/discovery');
 
   useEffect(() => {
     if (currentTab !== 'messages') {
@@ -85,9 +99,9 @@ const MakerStudio: React.FC = () => {
         <div className={styles.viewport}>
           <Routes>
             <Route path="/" element={<Navigate to="overview" replace />} />
+            
+            {/* ✅ KEEP: Existing routes */}
             <Route path="overview" element={<OverView {...studioData} />} />
-            <Route path="add-product" element={<AddProduct {...studioData} />} />
-            <Route path="products" element={<Products {...studioData} />} />
             <Route path="orders" element={<Order {...studioData} />} />
             <Route 
               path="messages" 
@@ -95,13 +109,23 @@ const MakerStudio: React.FC = () => {
                 <Messages 
                   {...studioData} 
                   onMobileNavChange={setHideMobileNav}
-                  isCollapsed={isCollapsed}  // 👈 Pass sidebar state
+                  isCollapsed={isCollapsed}
                 /> 
               } 
             />
             <Route path="transactions" element={<Transaction {...studioData} />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<StudioSettings isPro={isPro} onUpgradeClick={() => setShowProModal(true)} />} />
+            
+            {/* ✅ NEW: Transform Flow Routes */}
+            <Route path="briefs" element={<BriefsView />} />
+            <Route path="quotes" element={<QuotesView />} />
+            
+            {/* 🚫 ARCHIVE: Fenced off routes (redirect to overview so old links don't break) */}
+            <Route path="add-product" element={<Navigate to="/studio/overview" replace />} />
+            <Route path="products" element={<Navigate to="/studio/overview" replace />} />
+            
+            <Route path="*" element={<Navigate to="overview" replace />} />
           </Routes>
         </div>
       </main>
