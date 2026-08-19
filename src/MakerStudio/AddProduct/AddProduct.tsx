@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { productAPI } from '../../../services/ProductService';
-import CustomSelect from '../../../Checkout/shared/CustomSelect';
+import { productAPI } from '../../services/ProductService';
+import CustomSelect from '../../Checkout/shared/CustomSelect';
 import styles from './AddProduct.module.css';
 
 interface ImageItem {

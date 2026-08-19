@@ -26,7 +26,7 @@ import AddProduct from './AddProduct/AddProduct';
 import Products from './Products/Products';
 
 // @ts-ignore
-import useStudioData from '../../hooks/useStudioData';
+import useStudioData from '../hooks/useStudioData';
 import styles from './MakerStudio.module.css';
 
 const MakerStudio: React.FC = () => {

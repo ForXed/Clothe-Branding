@@ -9,7 +9,7 @@ import SignUpPage from './Form/SignUpPage';
 import MakerSignUp from './Form/MakerSignUp';
 import ForgottenPassword from './Form/ForgottenPassword';
 import VerifyPassword from './Form/VerifyPassword';
-import MakerStudio from './MakerStudio/MakerStudio/MakerStudio';
+import MakerStudio from './MakerStudio/MakerStudio';
 
 // Form Components
 import ChangePasswordForm from './Form/ChangePasswordForm';
