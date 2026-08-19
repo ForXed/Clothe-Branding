@@ -30,20 +30,18 @@ import Support from './Hub/Support/Support';
 import Privacy from './Hub/Legal/Privacy';
 import Terms from './Hub/Legal/Terms';
 import Cookies from './Hub/Legal/Cookies';
-// ✅ NEW: Custom Order Policy import
 import CustomOrderPolicy from './Hub/Legal/CustomOrderPolicy';
 
-// Pricing Page
+// 🚫 ARCHIVED: Marketplace flow deferred to v1.1
+// Imports kept to avoid TS errors but routes are fenced off below
 import Pricing from './Pricing/Pricing';
+import CustomOrderCheckout from './Checkout/CustomOrderCheckout/CustomOrderCheckout';
+import CheckoutSuccess from './Checkout/CheckoutSuccess';
+import CheckoutView from './Checkout/RegularCheckout/CheckoutView/CheckoutView';
 
 // Global Infrastructure Components
 import Preloader from './Homepage/Preloader/Preloader';
 import FloatingMessage from './Notification/FloatingMessage';
-
-// Checkout Components
-import CustomOrderCheckout from './Checkout/CustomOrderCheckout/CustomOrderCheckout';
-import CheckoutSuccess from './Checkout/CheckoutSuccess';
-import CheckoutView from './Checkout/RegularCheckout/CheckoutView/CheckoutView';
 
 // --- Type Definitions ---
 interface NotificationState {
@@ -60,7 +58,6 @@ export const validateEmail = (email: string): boolean => {
   return match !== null;
 };
 
-// ✅ UPDATED: AppRoutes now receives theme state as props
 interface AppRoutesProps {
   notify: NotifyFunction;
   isDarkMode: boolean;
@@ -71,17 +68,11 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
   const navigate = useNavigate();
   const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
 
-  // ✅ REMOVED: Local isDarkMode state and toggleTheme function
-  // They now come from parent App component
-
   return (
     <>
       <Routes>
         {/* Public Landing Page */}
         <Route path="/" element={<LandingPage />} />
-
-        {/* Pricing Page */}
-        <Route path="/pricing" element={<Pricing />} />
 
         {/* Auth Flow */}
         <Route path="/login" element={<SignInPage notify={notify} />} />
@@ -111,10 +102,12 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
           } 
         />
 
-        {/* CHECKOUT ROUTES */}
-        <Route path="/checkout" element={<CheckoutView notify={notify} />} />
-        <Route path="/checkout/custom/:quoteId" element={<CustomOrderCheckout notify={notify} />} />
-        <Route path="/checkout/success" element={<CheckoutSuccess notify={notify} />} />
+        {/* 🚫 ARCHIVED: Marketplace routes (deferred to v1.1) */}
+        {/* These now redirect to the new B2B discovery flow */}
+        <Route path="/pricing" element={<Navigate to="/platform/discovery" replace />} />
+        <Route path="/checkout" element={<Navigate to="/platform/discovery" replace />} />
+        <Route path="/checkout/custom/:quoteId" element={<Navigate to="/platform/discovery" replace />} />
+        <Route path="/checkout/success" element={<Navigate to="/platform/discovery" replace />} />
 
         {/* MAKER STUDIO */}
         <Route 
@@ -168,7 +161,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
           <Route path="privacy" element={<Privacy />} />
           <Route path="terms" element={<Terms />} />
           <Route path="cookies" element={<Cookies />} />
-          {/* ✅ NEW: Custom Order Policy route */}
           <Route path="custom-order-policy" element={<CustomOrderPolicy />} />
         </Route>
 
@@ -181,7 +173,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
 
 // ✅ Main App component - owns the theme state
 const App: React.FC = () => {
-  // --- GLOBAL STATE ---
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('brutige_theme') === 'dark';
   });
@@ -191,18 +182,15 @@ const App: React.FC = () => {
     visible: false 
   });
 
-  // ✅ Toggle function lives HERE (single source of truth)
   const toggleTheme = (): void => {
     setIsDarkMode(prev => !prev);
   };
 
-  // --- THEME SYNC ---
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
     localStorage.setItem('brutige_theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
-  // --- NOTIFICATION HANDLER ---
   const notify: NotifyFunction = (message, type = 'success') => {
     setNotification({ message, type, visible: true });
     setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 4000);
@@ -210,14 +198,12 @@ const App: React.FC = () => {
 
   return (
     <Router>
-      {/* Global Notification Layer */}
       <FloatingMessage 
         message={notification.message} 
         type={notification.type} 
         isVisible={notification.visible} 
       />
 
-      {/* ✅ Pass theme state down to AppRoutes */}
       <AppRoutes 
         notify={notify}
         isDarkMode={isDarkMode}

@@ -6,25 +6,27 @@ import Sidebar from './DesktopSidebar/Sidebar';
 import MobileNav from './MobileNav/MobileNav';
 import HomeHeader from './HomeHeader/HomeHeader';
 
-// ✅ NEW: Transform Flow Components
+// ✅ NEW: Transform Flow Components (B2B MVP)
 import MakerDiscoveryView from '../Transform/MakerDiscovery/MakerDiscoveryView';
-import BriefsView from '../Transform/Briefs/BriefsView'
+import BriefsView from '../Transform/Briefs/BriefsView';
+import QuotesView from '../Transform/Quotes/QuotesView';
+import ProductionOrdersView from '../Transform/Orders/ProductionOrdersView';
 
 // Keep Components
 import ChatRoom from './ChatRoom/ChatRoom';
 import ProfileView from './ProfileView/ProfileView';
 import ProfileSettings from './ProfileSettings/ProfileSettings';
-import OrdersView from './OrdersView/OrdersView';
-import OrderTracker from './OrderTracker/OrderTracker';
 import SearchView from './SearchView/SearchView';
 
-// 🚫 ARCHIVED: We keep the imports so TypeScript doesn't complain, 
-// but we remove their routes below so they are unreachable.
+// 🚫 ARCHIVED: Marketplace flow deferred to v1.1
+// Imports kept for TS, routes fenced off below
 import CartView from './CartView/CartView';
 import CheckoutView from '../Checkout/RegularCheckout/CheckoutView/CheckoutView';
 import SavedView from './SavedView/SavedView';
 import MasonryFeed from './HomeFeed/MasonryFeed';
 import ProductDetail from './ProductDetail/ProductDetail';
+import OrdersView from './OrdersView/OrdersView';
+import OrderTracker from './OrderTracker/OrderTracker';
 
 import styles from './BrutigePlatform.module.css';
 import { Product, CartItem, SavedItem } from './BrutigeContext/BrutigeContext';
@@ -52,29 +54,18 @@ interface UserProfile {
 }
 
 const ProfileWrapper: React.FC<ProfileWrapperProps> = ({ 
-  userAvatar, 
-  setUserAvatar, 
-  setActiveTab,
-  onProductSelect 
+  userAvatar, setUserAvatar, setActiveTab, onProductSelect 
 }) => {
   const { makerId } = useParams<{ makerId: string }>();
   const navigate = useNavigate();
-
-  const handleProductClick = (product: Product) => {
-    onProductSelect(product);
-  };
-
-  const handleMessageMaker = () => {
-    navigate('/platform/chat');
-  };
 
   return (
     <ProfileView 
       makerId={makerId || 'me'}
       userAvatar={userAvatar}
       setUserAvatar={setUserAvatar}
-      onProductClick={handleProductClick}
-      onMessageMaker={handleMessageMaker}
+      onProductClick={onProductSelect}
+      onMessageMaker={() => navigate('/platform/chat')}
     />
   );
 };
@@ -84,7 +75,6 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
   const location = useLocation();
   
   const pathSegments = location.pathname.split('/');
-  // ✅ UPDATED: Default tab is now 'discovery' instead of 'shop'
   const currentTab: string = pathSegments[2] || 'discovery';
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
@@ -92,12 +82,8 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [hideMobileNav, setHideMobileNav] = useState<boolean>(false);
-  
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  
-  // ✅ UPDATED: Default previous route is now discovery
   const [previousRoute, setPreviousRoute] = useState<string>('/platform/discovery');
-
   const [collections, setCollections] = useState<string[]>(['All', 'Streetwear', 'Minimalist', 'Summer Drop', 'Blueprints']);
 
   useEffect(() => {
@@ -138,9 +124,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
   }, [userAvatar]);
 
   useEffect(() => {
-    if (currentTab !== 'chat') {
-      setHideMobileNav(false);
-    }
+    if (currentTab !== 'chat') setHideMobileNav(false);
   }, [currentTab]);
 
   const handleTabChange = (tabId: string) => {
@@ -149,24 +133,17 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
     navigate(`/platform/${tabId}`);
   };
 
-  const goToStudio = () => {
-    navigate('/studio');
-  };
+  const goToStudio = () => navigate('/studio');
 
   const handleProductBack = () => {
     setSelectedProduct(null);
-    if (previousRoute && previousRoute !== '/platform/discovery') {
-      navigate(previousRoute);
-    }
+    if (previousRoute && previousRoute !== '/platform/discovery') navigate(previousRoute);
   };
 
   const handleProductSelect = (product: Product) => {
     setPreviousRoute(location.pathname + location.search);
     setSelectedProduct(product);
-    // ✅ UPDATED: Navigate to discovery instead of shop
-    if (location.pathname !== '/platform/discovery') {
-      navigate('/platform/discovery');
-    }
+    if (location.pathname !== '/platform/discovery') navigate('/platform/discovery');
   };
 
   const addToCart = (product: Product, quantity: number = 1, size: string = 'M', color: string = 'Default') => {
@@ -176,9 +153,8 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
         const updated = [...prev];
         updated[existingIndex] = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + quantity };
         return updated;
-      } else {
-        return [...prev, { ...product, quantity, size, color }];
       }
+      return [...prev, { ...product, quantity, size, color }];
     });
     if (notify) notify('Added to Loop', 'success');
   };
@@ -232,8 +208,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
                      currentTab !== 'search' && 
                      currentTab !== 'chat' &&
                      !location.pathname.includes('/profile') &&
-                     !location.pathname.includes('/settings') &&
-                     !location.pathname.includes('/orders/track');
+                     !location.pathname.includes('/settings');
 
   return (
     <div className={styles.platformWrapper}>
@@ -258,27 +233,27 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({ isDarkMode, toggleThe
         
         <div className={styles.viewport}>
           <Routes location={location}>
-            {/* ✅ NEW: Default route is now discovery */}
             <Route path="/" element={<Navigate to="discovery" replace />} />
             
-            {/* ✅ NEW: TRANSFORM Flow Routes */}
+            {/* ✅ NEW: B2B One Loop Flow */}
             <Route path="discovery" element={<MakerDiscoveryView />} />
             <Route path="briefs" element={<BriefsView />} />
+            <Route path="quotes" element={<QuotesView />} />
+            <Route path="orders" element={<ProductionOrdersView />} />
             
-            {/* ✅ KEEP: Untouched for now */}
+            {/* ✅ KEEP: Chat, Profile, Settings, Search */}
             <Route path="search" element={<SearchView onSelect={handleProductSelect} />} />
             <Route path="chat" element={<ChatRoom initialData={location.state as any} onMobileNavChange={setHideMobileNav} />} />
             <Route path="profile/:makerId" element={<ProfileWrapper userAvatar={userAvatar} setUserAvatar={setUserAvatar} setActiveTab={handleTabChange} onProductSelect={handleProductSelect} />} />
             <Route path="profile" element={<ProfileView makerId="me" userAvatar={userAvatar} setUserAvatar={setUserAvatar} onProductClick={handleProductSelect} onMessageMaker={() => navigate('/platform/chat')} />} />
             <Route path="settings" element={<ProfileSettings userProfile={userProfile} setUserProfile={handleSetUserProfile} notify={notify} />} />
-            <Route path="orders" element={<OrdersView />} />
-            <Route path="orders/track/:orderId" element={<OrderTracker notify={notify} />} />
             
-            {/* 🚫 ARCHIVE: Fenced off routes (redirect to discovery so old links don't break) */}
+            {/* 🚫 ARCHIVED: Marketplace flow (deferred to v1.1) */}
             <Route path="shop" element={<Navigate to="/platform/discovery" replace />} />
             <Route path="cart" element={<Navigate to="/platform/discovery" replace />} />
             <Route path="checkout" element={<Navigate to="/platform/discovery" replace />} />
             <Route path="saved" element={<Navigate to="/platform/discovery" replace />} />
+            <Route path="orders/track/:orderId" element={<Navigate to="/platform/orders" replace />} />
             
             <Route path="*" element={<Navigate to="discovery" replace />} />
           </Routes>

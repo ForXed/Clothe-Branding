@@ -1,5 +1,3 @@
-// src/MakerStudio/MakerStudio/MakerStudio.tsx
-
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
 
@@ -17,11 +15,11 @@ import StudioSettings from './StudioSettings/StudioSettings';
 import Analytics from './Analytics/Analytics';
 import ProModal from './ProModal/ProModal';
 
-// ✅ NEW: Transform Flow Components
-import BriefsView from '../../Transform/Briefs/BriefsView';
-import QuotesView from '../../Transform/Quotes/QuotesView';
+// ✅ NEW: Transform Flow Components (B2B MVP)
+import BriefsView from '../Transform/Briefs/BriefsView';
+import QuotesView from '../Transform/Quotes/QuotesView';
 
-// 🚫 ARCHIVED: Keep imports so TypeScript doesn't complain, but remove routes
+// 🚫 ARCHIVED: Marketplace flow deferred to v1.1
 import AddProduct from './AddProduct/AddProduct';
 import Products from './Products/Products';
 
@@ -56,7 +54,6 @@ const MakerStudio: React.FC = () => {
 
   const handleTabChange = (tabId: string) => {
     const proFeatures = ['transactions', 'analytics'];
-    
     if (proFeatures.includes(tabId) && !isPro) {
       setShowProModal(true);
       return;
@@ -64,13 +61,10 @@ const MakerStudio: React.FC = () => {
     navigate(`/studio/${tabId}`);
   };
 
-  // ✅ UPDATED: Navigate to discovery instead of shop
   const goToPlatform = () => navigate('/platform/discovery');
 
   useEffect(() => {
-    if (currentTab !== 'messages') {
-      setHideMobileNav(false);
-    }
+    if (currentTab !== 'messages') setHideMobileNav(false);
   }, [currentTab]);
 
   return (
@@ -100,28 +94,19 @@ const MakerStudio: React.FC = () => {
           <Routes>
             <Route path="/" element={<Navigate to="overview" replace />} />
             
-            {/* ✅ KEEP: Existing routes */}
+            {/* ✅ KEEP: Existing routes (maker's production view) */}
             <Route path="overview" element={<OverView {...studioData} />} />
             <Route path="orders" element={<Order {...studioData} />} />
-            <Route 
-              path="messages" 
-              element={
-                <Messages 
-                  {...studioData} 
-                  onMobileNavChange={setHideMobileNav}
-                  isCollapsed={isCollapsed}
-                /> 
-              } 
-            />
+            <Route path="messages" element={<Messages {...studioData} onMobileNavChange={setHideMobileNav} isCollapsed={isCollapsed} />} />
             <Route path="transactions" element={<Transaction {...studioData} />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<StudioSettings isPro={isPro} onUpgradeClick={() => setShowProModal(true)} />} />
             
-            {/* ✅ NEW: Transform Flow Routes */}
+            {/* ✅ NEW: B2B One Loop Flow */}
             <Route path="briefs" element={<BriefsView />} />
             <Route path="quotes" element={<QuotesView />} />
             
-            {/* 🚫 ARCHIVE: Fenced off routes (redirect to overview so old links don't break) */}
+            {/* 🚫 ARCHIVED: Marketplace flow (deferred to v1.1) */}
             <Route path="add-product" element={<Navigate to="/studio/overview" replace />} />
             <Route path="products" element={<Navigate to="/studio/overview" replace />} />
             
