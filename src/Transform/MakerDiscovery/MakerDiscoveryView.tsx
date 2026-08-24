@@ -92,9 +92,14 @@ const MakerDiscoveryView: React.FC = () => {
 
   const selectedOption = SPECIALTIES.find(s => s.value === selectedSpecialty);
 
+  // ✅ FIXED: Normalize both strings by stripping all non-alphanumeric chars
+  // for bulletproof matching (handles hyphens, ampersands, spaces, etc.)
+  // "Cut-and-Sew" → "cutandsew" | "Adire & Textile" → "adiretextile"
+  const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
+
   const filteredMakers = mockMakers.filter(maker => {
     if (selectedSpecialty === 'all') return true;
-    return maker.specialty.toLowerCase().includes(selectedSpecialty.replace(/-/g, ' '));
+    return normalize(maker.specialty).includes(normalize(selectedSpecialty));
   });
 
   return (
