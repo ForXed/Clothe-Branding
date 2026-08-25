@@ -39,11 +39,17 @@
   white-space: nowrap;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  font-family: 'Outfit', sans-serif;
 }
 
 .backBtn:hover {
   background: var(--brut-hover);
   border-color: var(--brut-border);
+}
+
+.backBtn:focus-visible {
+  outline: 2px solid var(--brut-text);
+  outline-offset: 2px;
 }
 
 .backBtn svg {
@@ -81,8 +87,8 @@
 }
 
 .mobileProBadge {
-  display: none; /* Hidden on desktop, shown on mobile if needed */
-  color: var(--brut-warning);
+  display: none;
+  color: var(--brut-warning, #f59e0b);
 }
 
 /* Actions Area */
@@ -98,7 +104,7 @@
   align-items: center;
   gap: 6px;
   padding: 6px 14px;
-  background: linear-gradient(135deg, var(--brut-warning) 0%, #d97706 100%);
+  background: linear-gradient(135deg, var(--brut-warning, #f59e0b) 0%, #d97706 100%);
   color: white;
   font-size: 0.7rem;
   font-weight: 900;
@@ -142,6 +148,11 @@
   transform: translateY(0);
 }
 
+.iconBtn:focus-visible {
+  outline: 2px solid var(--brut-text);
+  outline-offset: 2px;
+}
+
 /* Notification Dot */
 .notificationDot {
   position: absolute;
@@ -149,9 +160,57 @@
   right: 10px;
   width: 8px;
   height: 8px;
-  background: var(--brut-danger);
+  background: var(--brut-danger, #ef4444);
   border-radius: 50%;
   border: 2px solid var(--brut-card);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ✅ NEW: User Avatar Button */
+.avatarBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--brut-border);
+  background: var(--brut-bg);
+  color: var(--brut-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.avatarBtn:hover {
+  border-color: var(--brut-text);
+  transform: scale(1.05);
+}
+
+.avatarBtn:active {
+  transform: scale(1);
+}
+
+.avatarBtn:focus-visible {
+  outline: 2px solid var(--brut-text);
+  outline-offset: 2px;
+}
+
+.avatarThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 
 /* Responsive Adjustments */
@@ -179,7 +238,7 @@
   }
 
   .proBadge {
-    display: none; /* Hide text badge on small screens, rely on icon if needed */
+    display: none;
   }
   
   .mobileProBadge {
@@ -187,6 +246,11 @@
   }
 
   .iconBtn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .avatarBtn {
     width: 38px;
     height: 38px;
   }
@@ -198,5 +262,19 @@
     max-width: 120px;
     overflow: hidden;
     text-overflow: ellipsis;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .iconBtn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .avatarBtn {
+    width: 36px;
+    height: 36px;
   }
 }

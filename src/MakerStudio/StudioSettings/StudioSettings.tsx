@@ -1,43 +1,93 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import styles from './StudioSettings.module.css';
+// import { makerAPI } from '../../../services/MakerService'; // 👈 TODO: Import when backend is ready
 import TwoFactorAuth from '../TwoFactorAuth/TwoFactorAuth';
 
 interface StudioSettingsProps {
   isPro?: boolean;
   onUpgradeClick?: () => void;
+  notify?: (message: string, type: 'success' | 'error') => void; // 👈 Added for toasts
 }
 
-// 👇 Strict interface for the massive settings object
 interface SettingsData {
-  businessName: string; handle: string; contactEmail: string; bio: string;
-  brandColor: string; accentColor: string; currency: string; timezone: string;
-  lowStockThreshold: string; defaultStatus: string; shippingOrigin: string;
-  freeShippingThreshold: string; flatRate: string; autoFulfill: boolean; taxRate: string;
-  returnPolicy: string; shippingPolicy: string; termsOfService: string;
-  newOrderAlerts: boolean; weeklyReports: boolean;
+  businessName: string; 
+  handle: string; 
+  contactEmail: string; 
+  bio: string;
+  brandColor: string; 
+  accentColor: string; 
+  currency: string; 
+  timezone: string;
+  lowStockThreshold: string; 
+  defaultStatus: string; 
+  shippingOrigin: string;
+  freeShippingThreshold: string; 
+  flatRate: string; 
+  autoFulfill: boolean; 
+  taxRate: string;
+  returnPolicy: string; 
+  shippingPolicy: string; 
+  termsOfService: string;
+  newOrderAlerts: boolean; 
+  weeklyReports: boolean;
+  messageRequests: boolean; // 👈 NEW: For custom order requests & messages
 }
 
-const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick }) => {
+const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick, notify }) => {
   const [activeTab, setActiveTab] = useState<string>('profile');
-  const [saved, setSaved] = useState<boolean>(false);
   const [show2FA, setShow2FA] = useState<boolean>(false);
   const [twoFactorEnabled, setTwoFactorEnabled] = useState<boolean>(false);
   
-  // 👇 Typed ref for file input
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const [profileImage, setProfileImage] = useState<string>('https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200');
+  // 👈 NEW: Backend loading states
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isSaving, setIsSaving] = useState<boolean>(false);
 
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [profileImage, setProfileImage] = useState<string>('https://via.placeholder.com/200?text=Logo');
+
+  // 👈 UPDATED: Nigerian defaults and new messageRequests field
   const [settings, setSettings] = useState<SettingsData>({
-    businessName: 'Aura Studio', handle: '@aurastudio', contactEmail: 'hello@aurastudio.com',
-    bio: 'Premium heavyweight streetwear manufactured with precision.', brandColor: '#1a1a1a',
-    accentColor: '#3b82f6', currency: 'USD', timezone: 'America/New_York', lowStockThreshold: '5',
-    defaultStatus: 'draft', shippingOrigin: 'New York, USA', freeShippingThreshold: '150',
-    flatRate: '9.99', autoFulfill: false, taxRate: '8.5',
-    returnPolicy: 'Items must be returned within 30 days in original condition.',
-    shippingPolicy: 'Orders are processed within 2-3 business days.',
-    termsOfService: 'By using this service, you agree to our terms...',
-    newOrderAlerts: true, weeklyReports: true,
+    businessName: '', 
+    handle: '', 
+    contactEmail: '',
+    bio: '',
+    brandColor: '#1a1a1a',
+    accentColor: '#8b5cf6', // Brutige accent
+    currency: 'NGN', // 👈 Nigerian Default
+    timezone: 'Africa/Lagos', // 👈 Nigerian Default
+    lowStockThreshold: '5',
+    defaultStatus: 'draft', 
+    shippingOrigin: 'Lagos, Nigeria', // 👈 Nigerian Default
+    freeShippingThreshold: '50000', // 👈 ₦50,000
+    flatRate: '2500', // 👈 ₦2,500
+    autoFulfill: false, 
+    taxRate: '0',
+    returnPolicy: 'Custom items are non-refundable. Ready-to-wear items can be returned within 7 days.',
+    shippingPolicy: 'Orders are processed within 3-5 business days.',
+    termsOfService: 'All transactions are protected by Brutige\'s escrow and dispute resolution policies.',
+    newOrderAlerts: true, 
+    weeklyReports: true,
+    messageRequests: true, // 👈 NEW: Default to true
   });
+
+  // 👈 TODO: Backend - Fetch settings on mount
+  useEffect(() => {
+    const fetchSettings = async () => {
+      setIsLoading(true);
+      try {
+        // const data = await makerAPI.getSettings();
+        // setSettings(data);
+        
+        // Simulating network delay for now
+        setTimeout(() => setIsLoading(false), 800);
+      } catch (error) {
+        console.error('Failed to load settings', error);
+        notify?.('Failed to load settings', 'error');
+        setIsLoading(false);
+      }
+    };
+    fetchSettings();
+  }, [notify]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -48,17 +98,45 @@ const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick }
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       setProfileImage(URL.createObjectURL(e.target.files[0]));
+      // 👈 TODO: Backend - Upload image to cloud storage here and get URL
     }
   };
 
-  const handleSave = (e: React.FormEvent<HTMLFormElement>) => {
+  // 👈 TODO: Backend - Handle actual save
+  const handleSave = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    console.log('Saving settings:', settings);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 3000);
+    setIsSaving(true);
+    try {
+      // await makerAPI.updateSettings(settings);
+      
+      // Simulating network delay
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      notify?.('Settings saved successfully!', 'success');
+    } catch (error) {
+      console.error('Failed to save settings', error);
+      notify?.('Failed to save settings. Please try again.', 'error');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handle2FAEnabled = () => { setTwoFactorEnabled(true); setShow2FA(false); };
+  const handle2FAEnabled = () => { 
+    setTwoFactorEnabled(true); 
+    setShow2FA(false); 
+    notify?.('Two-Factor Authentication enabled!', 'success');
+  };
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Loading studio settings...</p>
+        </div>
+      </div>
+    );
+  }
 
   const tabs = [
     { id: 'profile', label: 'Profile', icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg> },
@@ -74,8 +152,6 @@ const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick }
 
   return (
     <div className={styles.container}>
-      {saved && (<div className={styles.successToast}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Settings saved successfully!</div>)}
-
       <div className={styles.settingsLayout}>
         <div className={styles.tabsSidebar}>
           {tabs.map(tab => (
@@ -137,8 +213,22 @@ const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick }
               <div className={styles.section}>
                 <div className={styles.sectionHeader}><h3>General Settings</h3><p>Basic store configuration</p></div>
                 <div className={styles.formGrid}>
-                  <div className={styles.inputGroup}><label>Currency</label><select name="currency" value={settings.currency} onChange={handleChange}><option value="USD">USD - US Dollar</option><option value="EUR">EUR - Euro</option><option value="GBP">GBP - British Pound</option></select></div>
-                  <div className={styles.inputGroup}><label>Timezone</label><select name="timezone" value={settings.timezone} onChange={handleChange}><option value="America/New_York">Eastern Time (ET)</option><option value="America/Los_Angeles">Pacific Time (PT)</option><option value="Europe/London">London (GMT)</option><option value="Europe/Paris">Central European (CET)</option><option value="Asia/Tokyo">Japan Standard (JST)</option></select></div>
+                  <div className={styles.inputGroup}>
+                    <label>Currency</label>
+                    <select name="currency" value={settings.currency} onChange={handleChange}>
+                      <option value="NGN">NGN - Nigerian Naira (₦)</option>
+                      <option value="USD">USD - US Dollar ($)</option>
+                      <option value="GBP">GBP - British Pound (£)</option>
+                    </select>
+                  </div>
+                  <div className={styles.inputGroup}>
+                    <label>Timezone</label>
+                    <select name="timezone" value={settings.timezone} onChange={handleChange}>
+                      <option value="Africa/Lagos">Lagos, Nigeria (WAT, GMT+1)</option>
+                      <option value="America/New_York">Eastern Time (ET)</option>
+                      <option value="Europe/London">London (GMT)</option>
+                    </select>
+                  </div>
                 </div>
               </div>
             )}
@@ -158,8 +248,8 @@ const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick }
                 <div className={styles.sectionHeader}><h3>Shipping & Delivery</h3><p>Define your shipping rules</p></div>
                 <div className={styles.inputGroup}><label>Shipping Origin</label><input type="text" name="shippingOrigin" value={settings.shippingOrigin} onChange={handleChange} /></div>
                 <div className={styles.formGrid}>
-                  <div className={styles.inputGroup}><label>Free Shipping Threshold ($)</label><input type="number" name="freeShippingThreshold" value={settings.freeShippingThreshold} onChange={handleChange} min="0" step="0.01" /></div>
-                  <div className={styles.inputGroup}><label>Flat Rate ($)</label><input type="number" name="flatRate" value={settings.flatRate} onChange={handleChange} min="0" step="0.01" /></div>
+                  <div className={styles.inputGroup}><label>Free Shipping Threshold (₦)</label><input type="number" name="freeShippingThreshold" value={settings.freeShippingThreshold} onChange={handleChange} min="0" step="100" /></div>
+                  <div className={styles.inputGroup}><label>Flat Rate (₦)</label><input type="number" name="flatRate" value={settings.flatRate} onChange={handleChange} min="0" step="100" /></div>
                 </div>
               </div>
             )}
@@ -168,10 +258,10 @@ const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick }
               <div className={styles.section}>
                 <div className={styles.sectionHeader}><h3>Payments & Checkout</h3><p>Configure how you get paid</p></div>
                 <div className={styles.toggleRow}>
-                  <div className={styles.toggleLabel}><span>Auto-fulfill Orders</span><p>Automatically mark digital orders as fulfilled</p></div>
+                  <div className={styles.toggleLabel}><span>Auto-fulfill Orders</span><p>Automatically mark digital/ready-to-wear orders as fulfilled</p></div>
                   <label className={styles.toggle}><input type="checkbox" name="autoFulfill" checked={settings.autoFulfill} onChange={handleChange} /><span className={styles.toggleSlider}></span></label>
                 </div>
-                <div className={styles.inputGroup} style={{ marginTop: '20px' }}><label>Sales Tax Rate (%)</label><input type="number" name="taxRate" value={settings.taxRate} onChange={handleChange} step="0.1" min="0" max="100" /></div>
+                <div className={styles.inputGroup} style={{ marginTop: '20px' }}><label>Sales Tax / VAT Rate (%)</label><input type="number" name="taxRate" value={settings.taxRate} onChange={handleChange} step="0.1" min="0" max="100" /></div>
                 {!isPro && (
                   <div className={styles.proFeature}>
                     <div className={styles.proFeatureIcon}><svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></div>
@@ -184,22 +274,30 @@ const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick }
 
             {activeTab === 'policies' && (
               <div className={styles.section}>
-                <div className={styles.sectionHeader}><h3>Store Policies</h3><p>Legal text displayed at checkout</p></div>
+                <div className={styles.sectionHeader}>
+                  <h3>Store Policies</h3>
+                  <p>Legal text displayed at checkout. <em>Note: These must align with Brutige's overarching Platform Policies.</em></p>
+                </div>
                 <div className={styles.inputGroup}><label>Return Policy</label><textarea name="returnPolicy" value={settings.returnPolicy} onChange={handleChange} rows={5} placeholder="Explain your return process..." /></div>
                 <div className={styles.inputGroup}><label>Shipping Policy</label><textarea name="shippingPolicy" value={settings.shippingPolicy} onChange={handleChange} rows={5} placeholder="Explain shipping times and costs..." /></div>
-                <div className={styles.inputGroup}><label>Terms of Service</label><textarea name="termsOfService" value={settings.termsOfService} onChange={handleChange} rows={5} placeholder="Your legal terms..." /></div>
+                <div className={styles.inputGroup}><label>Terms of Service</label><textarea name="termsOfService" value={settings.termsOfService} onChange={handleChange} rows={5} placeholder="Your specific store terms..." /></div>
               </div>
             )}
 
             {activeTab === 'notifications' && (
               <div className={styles.section}>
-                <div className={styles.sectionHeader}><h3>Email Notifications</h3><p>Choose what emails you receive</p></div>
+                <div className={styles.sectionHeader}><h3>Email Notifications</h3><p>Choose what alerts you receive</p></div>
                 <div className={styles.toggleRow}>
                   <div className={styles.toggleLabel}><span>New Order Alerts</span><p>Get emailed instantly when an order is placed</p></div>
                   <label className={styles.toggle}><input type="checkbox" name="newOrderAlerts" checked={settings.newOrderAlerts} onChange={handleChange} /><span className={styles.toggleSlider}></span></label>
                 </div>
+                {/* 👈 NEW: Message/Request Notifications */}
                 <div className={styles.toggleRow}>
-                  <div className={styles.toggleLabel}><span>Weekly Reports</span><p>Receive a summary of sales every Monday</p></div>
+                  <div className={styles.toggleLabel}><span>Custom Requests & Messages</span><p>Get notified when a customer sends a custom order request or direct message</p></div>
+                  <label className={styles.toggle}><input type="checkbox" name="messageRequests" checked={settings.messageRequests} onChange={handleChange} /><span className={styles.toggleSlider}></span></label>
+                </div>
+                <div className={styles.toggleRow}>
+                  <div className={styles.toggleLabel}><span>Weekly Reports</span><p>Receive a summary of sales and performance every Monday</p></div>
                   <label className={styles.toggle}><input type="checkbox" name="weeklyReports" checked={settings.weeklyReports} onChange={handleChange} /><span className={styles.toggleSlider}></span></label>
                 </div>
               </div>
@@ -211,21 +309,25 @@ const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick }
                 <div className={styles.securityOption}>
                   <div className={styles.securityInfo}>
                     <div className={styles.securityIcon}><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
-                    <div><h4>Two-Factor Authentication</h4><p>Add an extra layer of security</p></div>
+                    <div><h4>Two-Factor Authentication</h4><p>Add an extra layer of security to your business account</p></div>
                   </div>
                   <button type="button" className={`${styles.securityBtn} ${twoFactorEnabled ? styles.enabled : ''}`} onClick={() => setShow2FA(true)}>{twoFactorEnabled ? 'Enabled' : 'Enable'}</button>
                 </div>
                 <div className={styles.dangerZone}>
                   <h4>Danger Zone</h4>
                   <div className={styles.dangerOption}>
-                    <div><h5>Delete Account</h5><p>Permanently delete your store and data</p></div>
-                    <button type="button" className={styles.deleteBtn}>Delete Account</button>
+                    <div><h5>Delete Studio</h5><p>Permanently delete your maker profile and store data</p></div>
+                    <button type="button" className={styles.deleteBtn}>Delete Studio</button>
                   </div>
                 </div>
               </div>
             )}
 
-            <div className={styles.actions}><button type="submit" className={styles.saveBtn}>Save Changes</button></div>
+            <div className={styles.actions}>
+              <button type="submit" className={styles.saveBtn} disabled={isSaving}>
+                {isSaving ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
           </form>
         </div>
       </div>

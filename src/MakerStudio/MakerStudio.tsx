@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useNavigate, useLocation } from 'react-router-dom';
+
+// Navigation
 import StudioSideBar from './StudioSideBar/StudioSideBar';
 import StudioHeader from './StudioHeader/StudioHeader';
 import StudioMobileNav from './StudioMobileNav/StudioMobileNav';
-import AddProduct from './AddProduct/AddProduct';
-import Products from './Products/Products';
+
+// ✅ KEEP: Existing Studio Components
 import OverView from './OverView/OverView';
 import Order from './Order/Order';
 import Messages from './Messages/Messages';
@@ -12,6 +14,15 @@ import Transaction from './Transaction/Transaction';
 import StudioSettings from './StudioSettings/StudioSettings';
 import Analytics from './Analytics/Analytics';
 import ProModal from './ProModal/ProModal';
+
+// ✅ NEW: Transform Flow Components (B2B MVP)
+import BriefsView from '../Transform/Briefs/BriefsView';
+import QuotesView from '../Transform/Quotes/QuotesView';
+
+// 🚫 ARCHIVED: Marketplace flow deferred to v1.1
+import AddProduct from './AddProduct/AddProduct';
+import Products from './Products/Products';
+
 // @ts-ignore
 import useStudioData from '../hooks/useStudioData';
 import styles from './MakerStudio.module.css';
@@ -43,7 +54,6 @@ const MakerStudio: React.FC = () => {
 
   const handleTabChange = (tabId: string) => {
     const proFeatures = ['transactions', 'analytics'];
-    
     if (proFeatures.includes(tabId) && !isPro) {
       setShowProModal(true);
       return;
@@ -51,12 +61,10 @@ const MakerStudio: React.FC = () => {
     navigate(`/studio/${tabId}`);
   };
 
-  const goToPlatform = () => navigate('/platform/shop');
+  const goToPlatform = () => navigate('/platform/discovery');
 
   useEffect(() => {
-    if (currentTab !== 'messages') {
-      setHideMobileNav(false);
-    }
+    if (currentTab !== 'messages') setHideMobileNav(false);
   }, [currentTab]);
 
   return (
@@ -85,23 +93,24 @@ const MakerStudio: React.FC = () => {
         <div className={styles.viewport}>
           <Routes>
             <Route path="/" element={<Navigate to="overview" replace />} />
+            
+            {/* ✅ KEEP: Existing routes (maker's production view) */}
             <Route path="overview" element={<OverView {...studioData} />} />
-            <Route path="add-product" element={<AddProduct {...studioData} />} />
-            <Route path="products" element={<Products {...studioData} />} />
             <Route path="orders" element={<Order {...studioData} />} />
-            <Route 
-              path="messages" 
-              element={
-                <Messages 
-                  {...studioData} 
-                  onMobileNavChange={setHideMobileNav}
-                  isCollapsed={isCollapsed}  // 👈 Pass sidebar state
-                /> 
-              } 
-            />
+            <Route path="messages" element={<Messages {...studioData} onMobileNavChange={setHideMobileNav} isCollapsed={isCollapsed} />} />
             <Route path="transactions" element={<Transaction {...studioData} />} />
             <Route path="analytics" element={<Analytics />} />
             <Route path="settings" element={<StudioSettings isPro={isPro} onUpgradeClick={() => setShowProModal(true)} />} />
+            
+            {/* ✅ NEW: B2B One Loop Flow */}
+            <Route path="briefs" element={<BriefsView />} />
+            <Route path="quotes" element={<QuotesView />} />
+            
+            {/* 🚫 ARCHIVED: Marketplace flow (deferred to v1.1) */}
+            <Route path="add-product" element={<Navigate to="/studio/overview" replace />} />
+            <Route path="products" element={<Navigate to="/studio/overview" replace />} />
+            
+            <Route path="*" element={<Navigate to="overview" replace />} />
           </Routes>
         </div>
       </main>
