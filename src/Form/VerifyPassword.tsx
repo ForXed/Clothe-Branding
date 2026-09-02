@@ -1,18 +1,40 @@
 import React, { useRef, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
+import { authService } from '../services/authService';
 import styles from './VerifyPassword.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
-const VerifyPassword: React.FC = () => {
+interface NotifyFunction {
+  (message: string, type: 'success' | 'error' | 'info'): void;
+}
+
+interface VerifyPasswordProps {
+  notify?: NotifyFunction;
+}
+
+const VerifyPassword: React.FC<VerifyPasswordProps> = ({ notify }) => {
   const [otp, setOtp] = useState<string[]>(new Array(6).fill(''));
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string>('');
   const container = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+
+  // Check if there's a token in the URL (from email link verification)
+  const tokenFromUrl = searchParams.get('token');
+
+  const phrases: string[] = [
+    'verify your access.',
+    'authenticating identity.',
+    'securing the infrastructure.',
+  ];
 
   useGSAP(
     () => {
@@ -23,12 +45,9 @@ const VerifyPassword: React.FC = () => {
         duration: 1,
         ease: 'expo.out',
       });
+
       let masterTl = gsap.timeline({ repeat: -1 });
-      [
-        'verify your access.',
-        'authenticating identity.',
-        'securing the infrastructure.',
-      ].forEach((phrase) => {
+      phrases.forEach((phrase) => {
         let tl = gsap.timeline({ repeat: 1, yoyo: true, repeatDelay: 2 });
         tl.to(textRef.current, {
           duration: phrase.length * 0.05,
@@ -37,6 +56,7 @@ const VerifyPassword: React.FC = () => {
         });
         masterTl.add(tl);
       });
+
       gsap.to(cursorRef.current, {
         opacity: 0,
         ease: 'steps(1)',
@@ -47,59 +67,161 @@ const VerifyPassword: React.FC = () => {
     { scope: container },
   );
 
-  const handleChange = (element: HTMLInputElement, index: number) => {
-    if (isNaN(Number(element.value))) return;
-    const newOtp = [...otp];
-    newOtp[index] = element.value;
-    setOtp(newOtp);
-    if (element.value !== '' && element.nextSibling) {
-      (element.nextSibling as HTMLInputElement).focus();
+  // If token is in the URL, verify it automatically on mount
+  React.useEffect(() => {
+    if (tokenFromUrl) {
+      handleTokenVerification(tokenFromUrl);
+    }
+  }, [tokenFromUrl]);
+
+  const handleTokenVerification = async (token: string) => {
+    setIsLoading(true);
+    setError('');
+    try {
+      await authService.verifyEmail(token);
+      if (notify) notify('Email verified successfully! You can now sign in.', 'success');
+      setTimeout(() => navigate('/login'), 1500);
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Verification failed. The link may have expired.';
+      setError(message);
+      if (notify) notify(message, 'error');
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleVerify = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleChange = (element: HTMLInputElement, index: number) => {
+    if (isNaN(Number(element.value))) return;
+
+    const newOtp = [...otp];
+    newOtp[index] = element.value;
+    setOtp(newOtp);
+    setError('');
+
+    // Auto-focus next input
+    if (element.value && index < 5) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>, index: number) => {
+    if (e.key === 'Backspace' && !otp[index] && index > 0) {
+      inputRefs.current[index - 1]?.focus();
+    }
+  };
+
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
     e.preventDefault();
-    if (otp.join('').length < 6) {
-      alert('Enter the full 6-digit code.');
+    const pastedData = e.clipboardData.getData('text').trim().slice(0, 6).split('');
+    if (pastedData.every(char => !isNaN(Number(char)))) {
+      const newOtp = [...otp];
+      pastedData.forEach((char, i) => {
+        if (i < 6) newOtp[i] = char;
+      });
+      setOtp(newOtp);
+      const focusIndex = Math.min(pastedData.length, 5);
+      inputRefs.current[focusIndex]?.focus();
+    }
+  };
+
+  const handleVerify = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const fullCode = otp.join('');
+
+    if (fullCode.length < 6) {
+      setError('Please enter the complete 6-digit code.');
       return;
     }
 
-    navigate('/platform/shop');
+    setIsLoading(true);
+    setError('');
+    try {
+      await authService.verifyEmail(fullCode);
+      if (notify) notify('Email verified successfully! You can now sign in.', 'success');
+      setTimeout(() => navigate('/login'), 1500);
+    } catch (err: any) {
+      const message = err.response?.data?.message || 'Invalid code. Please check and try again.';
+      setError(message);
+      if (notify) notify(message, 'error');
+      // Clear inputs for retry
+      setOtp(new Array(6).fill(''));
+      inputRefs.current[0]?.focus();
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <div ref={container} className={styles.mainWrapper}>
       <div className={styles.formSection}>
         <div className={styles.formWrapper}>
-          <h1 className={styles.title}>Identity Check</h1>
+          <h1 className={styles.title}>Verify Your Email</h1>
           <p className={styles.subtitle}>
-            Enter the 6-digit code sent to your professional email.
+            {tokenFromUrl
+              ? 'Verifying your email address...'
+              : 'Enter the 6-digit code we sent to your email.'}
           </p>
-          <form className={styles.form} onSubmit={handleVerify}>
-            <div className={styles.otpContainer}>
-              {otp.map((data, index) => (
-                <input
-                  key={index}
-                  type='text'
-                  maxLength={1}
-                  className={styles.otpInput}
-                  value={data}
-                  onChange={(e) => handleChange(e.target, index)}
-                  onFocus={(e) => e.target.select()}
-                />
-              ))}
+
+          {!tokenFromUrl && (
+            <form className={styles.form} onSubmit={handleVerify}>
+              <div className={styles.otpContainer}>
+                {otp.map((digit, index) => (
+                  <input
+                    key={index}
+                    ref={el => {
+                      inputRefs.current[index] = el;
+                    }}
+                    type='text'
+                    inputMode='numeric'
+                    maxLength={1}
+                    className={styles.otpInput}
+                    value={digit}
+                    onChange={(e) => handleChange(e.target, index)}
+                    onKeyDown={(e) => handleKeyDown(e, index)}
+                    onPaste={handlePaste}
+                    onFocus={(e) => e.target.select()}
+                    disabled={isLoading}
+                  />
+                ))}
+              </div>
+
+              {error && <p className={styles.errorMsg}>{error}</p>}
+
+              <button
+                type='submit'
+                className={styles.submitBtn}
+                disabled={isLoading}
+              >
+                {isLoading ? 'Verifying...' : 'Verify Email →'}
+              </button>
+            </form>
+          )}
+
+          {tokenFromUrl && error && (
+            <div className={styles.errorBox}>
+              <p className={styles.errorMsg}>{error}</p>
+              <button
+                type='button'
+                className={styles.submitBtn}
+                onClick={() => navigate('/signup')}
+              >
+                Sign Up Again
+              </button>
             </div>
-            <button type='submit' className={styles.submitBtn}>
-              Verify Access
-            </button>
-          </form>
+          )}
+
+          <div className={styles.authFooter}>
+            <p className={styles.footerLink}>
+              <Link to='/login'>Back to Sign In</Link>
+            </p>
+          </div>
         </div>
       </div>
       <div className={styles.brandSection}>
         <div className={styles.typewriterBox}>
           <h2 className={styles.typewriterText}>
             <span ref={textRef}></span>
-            <span ref={cursorRef}>|</span>
+            <span ref={cursorRef} className={styles.cursor}>|</span>
           </h2>
         </div>
       </div>

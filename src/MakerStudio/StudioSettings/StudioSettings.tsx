@@ -1,7 +1,9 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './StudioSettings.module.css';
 // import { makerAPI } from '../../../services/MakerService'; // 👈 TODO: Import when backend is ready
-import TwoFactorAuth from '../TwoFactorAuth/TwoFactorAuth';
+
+// ✅ UPDATED: Import the shared 2FA component from the global Form folder
+import TwoFactorSetup from '../../Form/TwoFactorSetup';
 
 interface StudioSettingsProps {
   isPro?: boolean;
@@ -332,7 +334,13 @@ const StudioSettings: React.FC<StudioSettingsProps> = ({ isPro, onUpgradeClick, 
         </div>
       </div>
 
-      {show2FA && (<TwoFactorAuth onClose={() => setShow2FA(false)} onEnable={handle2FAEnabled} />)}
+      {/* ✅ UPDATED: Use the shared TwoFactorSetup component */}
+      {show2FA && (
+        <TwoFactorSetup 
+          onClose={() => setShow2FA(false)} 
+          onSuccess={handle2FAEnabled} 
+        />
+      )}
     </div>
   );
 };

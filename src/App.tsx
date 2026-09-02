@@ -52,12 +52,6 @@ interface NotificationState {
 
 type NotifyFunction = (message: string, type?: 'success' | 'error' | 'info') => void;
 
-// Global Validation Helper
-export const validateEmail = (email: string): boolean => {
-  const match = String(email).toLowerCase().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-  return match !== null;
-};
-
 interface AppRoutesProps {
   notify: NotifyFunction;
   isDarkMode: boolean;
@@ -198,12 +192,14 @@ const App: React.FC = () => {
 
   return (
     <Router>
+      {/* Global Notification Layer */}
       <FloatingMessage 
         message={notification.message} 
         type={notification.type} 
         isVisible={notification.visible} 
       />
 
+      {/* ✅ Pass theme state down to AppRoutes */}
       <AppRoutes 
         notify={notify}
         isDarkMode={isDarkMode}

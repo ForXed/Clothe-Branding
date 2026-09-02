@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
-import { validateEmail } from '../App';
+import { validateEmail } from '../utils/validators';
+import { authService } from '../services/authService';
 import styles from './SignUpPage.module.css';
 
 gsap.registerPlugin(TextPlugin);
@@ -17,7 +18,8 @@ interface SignUpPageProps {
 }
 
 interface FormData {
-  name: string;
+  firstName: string;
+  lastName: string;
   email: string;
   password: string;
 }
@@ -80,11 +82,13 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState<FormData>({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
   });
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const phrases: string[] = [
     'brutige: join the infrastructure.',
@@ -137,23 +141,56 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
     { scope: container },
   );
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formData.name.length < 2) {
-      if (notify) notify('Please enter your full name.', 'error');
+    
+    if (formData.firstName.trim().length < 2) {
+      if (notify) notify('Please enter your first name.', 'error');
+      return;
+    }
+    if (formData.lastName.trim().length < 2) {
+      if (notify) notify('Please enter your last name.', 'error');
       return;
     }
     if (!validateEmail(formData.email)) {
-      if (notify) notify('Invalid professional email address.', 'error');
+      if (notify) notify('Please enter a valid email address.', 'error');
       return;
     }
     if (formData.password.length < 8) {
-      if (notify) notify('Security requires at least 8 characters.', 'error');
+      if (notify) notify('Password must be at least 8 characters.', 'error');
       return;
     }
 
-    if (notify) notify('Identity created. Verifying access...', 'success');
-    setTimeout(() => navigate('/verify'), 1500);
+    setIsLoading(true);
+    try {
+      await authService.register({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email,
+        password: formData.password,
+      });
+
+      if (notify) {
+        notify(
+          'Account created! Please check your email to verify your account.',
+          'success'
+        );
+      }
+      
+      // Navigate to login page after successful signup
+      setTimeout(() => navigate('/login'), 1500);
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        'Registration failed. Please try again.';
+      if (notify) notify(message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = () => {
+    window.location.href = authService.getGoogleOAuthUrl();
   };
 
   return (
@@ -175,20 +212,16 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
           </p>
 
           <div className={styles.socialGrid}>
-            <button type='button' className={styles.socialBtn}>
+            <button 
+              type='button' 
+              className={styles.socialBtn}
+              onClick={handleGoogleSignUp}
+            >
               <img
                 src='https://www.svgrepo.com/show/475656/google-color.svg'
                 alt='Google'
               />
-              <span>GOOGLE</span>
-            </button>
-            <button type='button' className={styles.socialBtn}>
-              <img
-                src='https://www.svgrepo.com/show/511330/apple-173.svg'
-                alt='Apple'
-                className={styles.appleIcon}
-              />
-              <span>APPLE</span>
+              <span>Continue with Google</span>
             </button>
           </div>
 
@@ -198,25 +231,47 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
             <span className={styles.dividerLine}></span>
           </div>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.inputGroup}>
-              <label>Full Name</label>
-              <input
-                type='text'
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder='Alexander McQueen'
-              />
+          <form className={styles.form} onSubmit={handleSubmit} noValidate>
+            <div className={styles.nameRow}>
+              <div className={styles.inputGroup}>
+                <label>First Name</label>
+                <input
+                  type='text'
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
+                  placeholder='Alexander'
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Last Name</label>
+                <input
+                  type='text'
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
+                  placeholder='McQueen'
+                  disabled={isLoading}
+                  required
+                />
+              </div>
             </div>
+
             <div className={styles.inputGroup}>
-              <label>Professional Email</label>
+              <label>Email</label>
               <input
                 type='email'
+                value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder='name@company.com'
+                disabled={isLoading}
+                required
               />
             </div>
 
@@ -225,35 +280,39 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
               <div className={styles.passwordWrapper}>
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder='••••••••'
+                  placeholder='Minimum 8 characters'
                   className={styles.passwordInput}
+                  disabled={isLoading}
+                  required
                 />
                 <button
                   type='button'
                   className={styles.togglePassword}
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
+                  disabled={isLoading}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
             </div>
 
-            <button type='submit' className={styles.submitBtn}>
-              Initialize &rarr;
+            <button 
+              type='submit' 
+              className={styles.submitBtn}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating Account...' : 'Create Account →'}
             </button>
           </form>
 
           <div className={styles.authFooter}>
             <p className={styles.footerLink}>
-              Already a member? <Link to='/login'>Sign In</Link>
-            </p>
-            <p className={styles.footerLink}>
-              Are you an Artisan?{' '}
-              <Link to='/maker-signup'>Join as a Maker</Link>
+              Already have an account? <Link to='/login'>Sign In</Link>
             </p>
           </div>
         </div>

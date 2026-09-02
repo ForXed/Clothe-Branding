@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { authService } from '../services/authService';
 import styles from './ChangePasswordForm.module.css';
 
 interface ChangePasswordFormProps {
@@ -61,12 +62,23 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onClose, onSucc
     
     setIsLoading(true);
     
-    // Simulate API call
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsLoading(false);
-    if (notify) notify('Password updated successfully', 'success');
-    onSuccess?.();
+    try {
+      await authService.changePassword(formData.currentPassword, formData.newPassword);
+      
+      setIsLoading(false);
+      if (notify) notify('Password updated successfully', 'success');
+      onSuccess?.();
+      onClose();
+    } catch (err: any) {
+      setIsLoading(false);
+      const message = err.response?.data?.message || 'Failed to update password. Please check your current password.';
+      if (notify) notify(message, 'error');
+      
+      // If current password is wrong, highlight that field
+      if (message.toLowerCase().includes('current') || err.response?.status === 401) {
+        setErrors({ currentPassword: 'Current password is incorrect' });
+      }
+    }
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -80,7 +92,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onClose, onSucc
   return (
     <div className={styles.modalOverlay} onClick={onClose}>
       <div className={styles.modal} onClick={(e) => e.stopPropagation()}>
-        <button className={styles.closeBtn} onClick={onClose}>
+        <button className={styles.closeBtn} onClick={onClose} disabled={isLoading}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
           </svg>
@@ -101,11 +113,13 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onClose, onSucc
                 value={formData.currentPassword}
                 onChange={handleChange}
                 placeholder="Enter current password"
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className={styles.toggleVisibility}
                 onClick={() => setShowCurrent(!showCurrent)}
+                disabled={isLoading}
               >
                 {showCurrent ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -126,11 +140,13 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onClose, onSucc
                 value={formData.newPassword}
                 onChange={handleChange}
                 placeholder="Enter new password"
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className={styles.toggleVisibility}
                 onClick={() => setShowNew(!showNew)}
+                disabled={isLoading}
               >
                 {showNew ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -151,11 +167,13 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onClose, onSucc
                 value={formData.confirmPassword}
                 onChange={handleChange}
                 placeholder="Confirm new password"
+                disabled={isLoading}
               />
               <button
                 type="button"
                 className={styles.toggleVisibility}
                 onClick={() => setShowConfirm(!showConfirm)}
+                disabled={isLoading}
               >
                 {showConfirm ? (
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
@@ -168,7 +186,7 @@ const ChangePasswordForm: React.FC<ChangePasswordFormProps> = ({ onClose, onSucc
           </div>
 
           <div className={styles.buttonGroup}>
-            <button type="button" className={styles.btnSecondary} onClick={onClose}>Cancel</button>
+            <button type="button" className={styles.btnSecondary} onClick={onClose} disabled={isLoading}>Cancel</button>
             <button type="submit" className={styles.btnPrimary} disabled={isLoading}>
               {isLoading ? 'Updating...' : 'Update Password'}
             </button>
