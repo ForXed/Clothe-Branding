@@ -67,12 +67,6 @@ const VerifyPassword: React.FC<VerifyPasswordProps> = ({ notify }) => {
     { scope: container },
   );
 
-  // If token is in the URL, verify it automatically on mount
-  React.useEffect(() => {
-    if (tokenFromUrl) {
-      handleTokenVerification(tokenFromUrl);
-    }
-  }, [tokenFromUrl]);
 
   const handleTokenVerification = async (token: string) => {
     setIsLoading(true);
@@ -89,6 +83,13 @@ const VerifyPassword: React.FC<VerifyPasswordProps> = ({ notify }) => {
       setIsLoading(false);
     }
   };
+
+  // If token is in the URL, verify it automatically on mount
+  React.useEffect(() => {
+    if (tokenFromUrl) {
+      handleTokenVerification(tokenFromUrl);
+    }
+  }, [tokenFromUrl]);
 
   const handleChange = (element: HTMLInputElement, index: number) => {
     if (isNaN(Number(element.value))) return;
