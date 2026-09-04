@@ -135,7 +135,7 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
       if (notify) notify(`Welcome back, ${user.firstName || user.email}!`, 'success');
       
       // Navigate to discovery (the new B2B entry point)
-      setTimeout(() => navigate('/platform/discovery'), 800);
+      navTimerRef.current = setTimeout(() => navigate('/platform/discovery'), 800);
     } catch (error: any) {
       const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
       if (notify) notify(message, 'error');
