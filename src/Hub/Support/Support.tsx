@@ -1,6 +1,6 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
 import styles from './Support.module.css';
-import { validateEmail } from '../../App'; 
+import { validateEmail } from '../../utils/validators'; 
 
 interface Article { id: number; title: string; content: string; }
 // 👇 FIXED: Changed JSX.Element to React.ReactNode

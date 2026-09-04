@@ -3,7 +3,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
-import { validateEmail } from '../App';
+import { validateEmail } from '../utils/validators';
+import { authService } from '../services/authService';
 import styles from './SignInPage.module.css';
 
 gsap.registerPlugin(TextPlugin);
@@ -58,6 +59,7 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const phrases: string[] = [
     'brutige: access your workspace.',
@@ -108,19 +110,39 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
     { scope: container },
   );
 
-  const handleLogin = (e: React.FormEvent<HTMLFormElement>) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    
     if (!validateEmail(email)) {
-      if (notify) notify('Authentication failed. Invalid email format.', 'error');
+      if (notify) notify('Please enter a valid email address.', 'error');
       return;
     }
     if (password.length < 6) {
-      if (notify) notify('Security requirement. Password too short.', 'error');
+      if (notify) notify('Password must be at least 6 characters.', 'error');
       return;
     }
 
-    if (notify) notify('Identity verified. Entering platform...', 'success');
-    setTimeout(() => navigate('/platform/shop'), 1500);
+    setIsLoading(true);
+    try {
+      const { user } = await authService.login(email, password);
+      
+      // Store user info for the app
+      localStorage.setItem('brutige_user', JSON.stringify(user));
+      
+      if (notify) notify(`Welcome back, ${user.firstName || user.email}!`, 'success');
+      
+      // Navigate to discovery (the new B2B entry point)
+      setTimeout(() => navigate('/platform/discovery'), 800);
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      if (notify) notify(message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = authService.getGoogleOAuthUrl();
   };
 
   return (
@@ -136,19 +158,19 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
             <span className={styles.brandName}>brutige</span>
           </div>
 
-          <h1 className={styles.title}>Secure Access</h1>
+          <h1 className={styles.title}>Welcome Back</h1>
           <p className={styles.subtitle}>
-            Sign in to your branding infrastructure.
+            Sign in to manage your brand and production orders.
           </p>
 
           <div className={styles.socialGrid}>
-            <button type='button' className={styles.socialBtn}>
+            <button 
+              type='button' 
+              className={styles.socialBtn}
+              onClick={handleGoogleLogin}
+            >
               <img src='https://www.svgrepo.com/show/475656/google-color.svg' alt='Google' />
-              <span>Google</span>
-            </button>
-            <button type='button' className={styles.socialBtn}>
-              <img src='https://www.svgrepo.com/show/511330/apple-173.svg' className={styles.appleIcon} alt='Apple' />
-              <span>Apple</span>
+              <span>Continue with Google</span>
             </button>
           </div>
 
@@ -158,14 +180,16 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
             <span className={styles.dividerLine}></span>
           </div>
 
-          <form className={styles.form} onSubmit={handleLogin}>
+          <form className={styles.form} onSubmit={handleLogin} noValidate>
             <div className={styles.inputGroup}>
-              <label>Professional Email</label>
+              <label>Email</label>
               <input
                 type='email'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder='name@company.com'
+                disabled={isLoading}
+                required
               />
             </div>
 
@@ -178,33 +202,37 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder='••••••••'
                   className={styles.passwordInput}
+                  disabled={isLoading}
+                  required
                 />
                 <button
                   type='button'
                   className={styles.togglePassword}
                   onClick={() => setShowPassword(!showPassword)}
                   tabIndex={-1}
+                  disabled={isLoading}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
             </div>
 
-            <button type='submit' className={styles.submitBtn}>
-              Continue &rarr;
+            <button 
+              type='submit' 
+              className={styles.submitBtn}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign In →'}
             </button>
           </form>
 
           <div className={styles.authFooter}>
             <p className={styles.footerLink}>
-              New here? <Link to='/signup'>Request Access</Link>
-            </p>
-            <p className={styles.footerLink}>
-              Artisan? <Link to='/maker-signup'>Join as a Maker</Link>
+              New to Brutige? <Link to='/signup'>Create Account</Link>
             </p>
             <p className={styles.footerLink}>
               <Link to='/forgot-password' style={{ opacity: 0.5 }}>
-                Forgotten credentials?
+                Forgot password?
               </Link>
             </p>
           </div>
