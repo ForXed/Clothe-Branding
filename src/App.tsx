@@ -32,12 +32,6 @@ import Terms from './Hub/Legal/Terms';
 import Cookies from './Hub/Legal/Cookies';
 import CustomOrderPolicy from './Hub/Legal/CustomOrderPolicy';
 
-// 🚫 ARCHIVED: Marketplace flow deferred to v1.1
-// Imports kept to avoid TS errors but routes are fenced off below
-import Pricing from './Pricing/Pricing';
-import CustomOrderCheckout from './Checkout/CustomOrderCheckout/CustomOrderCheckout';
-import CheckoutSuccess from './Checkout/CheckoutSuccess';
-import CheckoutView from './Checkout/RegularCheckout/CheckoutView/CheckoutView';
 
 // Global Infrastructure Components
 import Preloader from './Homepage/Preloader/Preloader';
@@ -102,12 +96,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
           } 
         />
 
-        {/* 🚫 ARCHIVED: Marketplace routes (deferred to v1.1) */}
-        {/* These now redirect to the new B2B discovery flow */}
-        <Route path="/pricing" element={<Navigate to="/platform/discovery" replace />} />
-        <Route path="/checkout" element={<Navigate to="/platform/discovery" replace />} />
-        <Route path="/checkout/custom/:quoteId" element={<Navigate to="/platform/discovery" replace />} />
-        <Route path="/checkout/success" element={<Navigate to="/platform/discovery" replace />} />
+    
 
         {/* MAKER STUDIO */}
         <Route 
