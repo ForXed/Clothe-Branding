@@ -1,15 +1,16 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
+import { makerService } from '../services/makerService';
+import type { Maker } from '../types/maker';
+import { Link } from 'react-router-dom';
 import styles from './MakerApplication.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
-interface NotifyFunction {
-  (message: string, type: 'success' | 'error' | 'info'): void;
-}
+type NotifyFunction = (message: string, type: 'success' | 'error' | 'info') => void;
 
 interface MakerApplicationProps {
   notify?: NotifyFunction;
@@ -31,16 +32,31 @@ interface FormErrors {
   [key: string]: string;
 }
 
+const SPECIALTIES = [
+  { value: 'cut-sew', label: 'Cut & Sew (Knits/Wovens)' },
+  { value: 'techwear', label: 'Technical Outerwear' },
+  { value: 'adire', label: 'Adire & Textile Dyeing' },
+  { value: 'leather', label: 'Leather Goods' },
+  { value: 'accessories', label: 'Accessories & Bags' },
+  { value: 'embroidery', label: 'Embroidery & Printing' },
+  { value: 'beads', label: 'Beadwork & Accessories' },
+  { value: 'tailoring', label: 'Bespoke Tailoring' },
+];
+
 const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
   const navigate = useNavigate();
   const container = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const [step, setStep] = useState<number>(1);
   const [errors, setErrors] = useState<FormErrors>({});
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [submittedMaker, setSubmittedMaker] = useState<Maker | null>(null);
+  const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<FormData>({
     studioName: '',
@@ -58,6 +74,17 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
     'building the maker registry.',
     'infrastructure for producers.',
   ];
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   useGSAP(() => {
     if (window.innerWidth <= 900) return;
@@ -209,7 +236,8 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
     window.scrollTo(0, 0);
   };
 
-  const handleSubmit = () => {
+  // ✅ WIRED TO REAL BACKEND
+  const handleSubmit = async () => {
     if (!validateStep()) {
       const firstError = Object.values(errors)[0] || 'Please check your input';
       if (notify) {
@@ -218,10 +246,38 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
       return;
     }
 
-    if (notify) {
-      notify('Application submitted! We\'ll review and get back to you within 48h.', 'success');
+    setIsSubmitting(true);
+    try {
+      // Map form fields to contract shape
+      const applyData = {
+        brandName: formData.studioName,
+        bio: formData.bio,
+        specializations: [formData.specialty], // contract expects array
+        location: 'Nigeria', // default, user can update later in profile
+        leadTimeDays: 14, // reasonable defaults, user updates after approval
+        minBatch: 50,
+        maxBatch: 500,
+      };
+
+      const createdMaker = await makerService.apply(applyData);
+
+      // Store locally so app knows they have a pending application
+      localStorage.setItem('brutige_maker_application', JSON.stringify(createdMaker));
+
+      // Show success state (Step 3)
+      setSubmittedMaker(createdMaker);
+      setStep(3);
+      if (notify) {
+        notify('Application submitted successfully! Status: PENDING', 'success');
+      }
+    } catch (err: any) {
+      const message =
+        err.response?.data?.message ||
+        'Failed to submit application. Please try again.';
+      if (notify) notify(message, 'error');
+    } finally {
+      setIsSubmitting(false);
     }
-    navigate('/platform/settings');
   };
 
   return (
@@ -240,10 +296,10 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
             <p>Join the Brutige network of verified producers.</p>
           </div>
 
-          {/* Progress Bar - Now 2 steps */}
+          {/* Progress Bar - 3 steps */}
           <div className={styles.progress}>
             <div className={styles.bar}>
-              <div className={styles.barFill} style={{ width: `${(step / 2) * 100}%` }}></div>
+              <div className={styles.barFill} style={{ width: `${(step / 3) * 100}%` }}></div>
             </div>
             <div className={styles.progressSteps}>
               <div className={`${styles.stepDot} ${step >= 1 ? styles.active : ''} ${step > 1 ? styles.completed : ''}`}>
@@ -256,9 +312,19 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                 </span>
                 <label>Basic Info</label>
               </div>
-              <div className={`${styles.stepDot} ${step >= 2 ? styles.active : ''}`}>
-                <span>2</span>
+              <div className={`${styles.stepDot} ${step >= 2 ? styles.active : ''} ${step > 2 ? styles.completed : ''}`}>
+                <span>
+                  {step > 2 ? (
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                      <polyline points="20 6 9 17 4 12"/>
+                    </svg>
+                  ) : '2'}
+                </span>
                 <label>Profile</label>
+              </div>
+              <div className={`${styles.stepDot} ${step >= 3 ? styles.active : ''}`}>
+                <span>3</span>
+                <label>Submitted</label>
               </div>
             </div>
           </div>
@@ -276,34 +342,66 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                   value={formData.studioName}
                   onChange={handleChange}
                   placeholder="e.g. Julian V. Studio"
+                  disabled={isSubmitting}
                 />
                 {errors.studioName && <span className={styles.errorMsg}>{errors.studioName}</span>}
               </div>
 
+              {/* 🎨 Custom Dropdown */}
               <div className={`${styles.formGroup} ${errors.specialty ? styles.hasError : ''}`}>
                 <label>Primary Specialty *</label>
-                <div className={styles.selectWrapper}>
-                  <select
-                    name="specialty"
-                    value={formData.specialty}
-                    onChange={handleChange}
+
+                <div className={styles.customDropdown} ref={dropdownRef}>
+                  <button
+                    type="button"
+                    className={`${styles.dropdownTrigger} ${isDropdownOpen ? styles.dropdownTriggerOpen : ''}`}
+                    onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                    disabled={isSubmitting}
                   >
-                    <option value="" disabled>Select your specialty...</option>
-                    <option value="cut-sew">Cut & Sew (Knits/Wovens)</option>
-                    <option value="techwear">Technical Outerwear</option>
-                    <option value="adire">Adire & Textile Dyeing</option>
-                    <option value="leather">Leather Goods</option>
-                    <option value="accessories">Accessories & Bags</option>
-                    <option value="embroidery">Embroidery & Printing</option>
-                    <option value="beads">Beadwork & Accessories</option>
-                    <option value="tailoring">Bespoke Tailoring</option>
-                  </select>
-                  <span className={styles.chevron}>
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <polyline points="6 9 12 15 18 9" />
-                    </svg>
-                  </span>
+                    <span className={!formData.specialty ? styles.dropdownTriggerPlaceholder : ''}>
+                      {formData.specialty
+                        ? SPECIALTIES.find(s => s.value === formData.specialty)?.label
+                        : 'Select your specialty...'}
+                    </span>
+                    <span className={`${styles.dropdownChevron} ${isDropdownOpen ? styles.chevronOpen : ''}`}>
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </span>
+                  </button>
+
+                  {isDropdownOpen && (
+                    <div className={styles.dropdownPanel}>
+                      {SPECIALTIES.map(spec => (
+                        <div
+                          key={spec.value}
+                          className={`${styles.dropdownOption} ${formData.specialty === spec.value ? styles.dropdownOptionSelected : ''}`}
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, specialty: spec.value }));
+                            setIsDropdownOpen(false);
+                            if (errors.specialty) {
+                              setErrors(prev => {
+                                const newErrors = { ...prev };
+                                delete newErrors.specialty;
+                                return newErrors;
+                              });
+                            }
+                          }}
+                        >
+                          <span>{spec.label}</span>
+                          {formData.specialty === spec.value && (
+                            <span className={styles.dropdownOptionCheck}>
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                                <polyline points="20 6 9 17 4 12"/>
+                              </svg>
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
+
                 {errors.specialty && <span className={styles.errorMsg}>{errors.specialty}</span>}
               </div>
 
@@ -314,6 +412,7 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                   value={formData.fullName}
                   onChange={handleChange}
                   placeholder="Your full name"
+                  disabled={isSubmitting}
                 />
                 {errors.fullName && <span className={styles.errorMsg}>{errors.fullName}</span>}
               </div>
@@ -326,6 +425,7 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                   value={formData.email}
                   onChange={handleChange}
                   placeholder="your@email.com"
+                  disabled={isSubmitting}
                 />
                 {errors.email && <span className={styles.errorMsg}>{errors.email}</span>}
               </div>
@@ -338,6 +438,7 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                   value={formData.phone}
                   onChange={handleChange}
                   placeholder="+234 801 234 5678"
+                  disabled={isSubmitting}
                 />
                 {errors.phone && <span className={styles.errorMsg}>{errors.phone}</span>}
               </div>
@@ -352,7 +453,7 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
               </div>
 
               <div className={styles.btnRow}>
-                <button className={styles.btnPrimary} onClick={handleNext}>
+                <button className={styles.btnPrimary} onClick={handleNext} disabled={isSubmitting}>
                   Continue to Profile &rarr;
                 </button>
               </div>
@@ -367,30 +468,33 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
 
               <div className={`${styles.formGroup} ${errors.profileImage ? styles.hasError : ''}`}>
                 <label>Profile / Studio Picture *</label>
-                <div className={styles.imageUpload} onClick={() => fileInputRef.current?.click()}>
+                <div className={styles.imageUpload} onClick={() => !isSubmitting && fileInputRef.current?.click()}>
                   <input
                     type="file"
                     ref={fileInputRef}
                     hidden
                     accept="image/*"
                     onChange={handleImageUpload}
+                    disabled={isSubmitting}
                   />
                   {formData.profileImage ? (
                     <div className={styles.imagePreview}>
                       <img src={formData.profileImage} alt="Profile" />
-                      <button
-                        type="button"
-                        className={styles.removeImage}
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setFormData(prev => ({ ...prev, profileImage: null }));
-                        }}
-                      >
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18"/>
-                          <line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                      </button>
+                      {!isSubmitting && (
+                        <button
+                          type="button"
+                          className={styles.removeImage}
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setFormData(prev => ({ ...prev, profileImage: null }));
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18"/>
+                            <line x1="6" y1="6" x2="18" y2="18"/>
+                          </svg>
+                        </button>
+                      )}
                     </div>
                   ) : (
                     <div className={styles.imagePlaceholder}>
@@ -416,6 +520,7 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                   onChange={handleChange}
                   placeholder="Briefly describe your studio, expertise, and what you offer..."
                   maxLength={300}
+                  disabled={isSubmitting}
                 />
                 <span className={styles.charCount}>{formData.bio.length}/300</span>
                 {errors.bio && <span className={styles.errorMsg}>{errors.bio}</span>}
@@ -436,20 +541,72 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
                         });
                       }
                     }}
+                    disabled={isSubmitting}
                   />
-                  <span>
-                    I confirm that all information provided is accurate and I agree to Brutige's
-                    <a href="/terms" target="_blank" rel="noopener noreferrer"> Terms of Service</a> and
-                    <a href="/privacy" target="_blank" rel="noopener noreferrer"> Privacy Policy</a>.
-                  </span>
+               <span>
+                  I confirm that all information provided is accurate and I agree to Brutige's{' '}
+                  <Link to="/hub/terms" target="_blank" rel="noopener noreferrer">Terms of Service</Link>{' '}
+                  and{' '}
+                  <Link to="/hub/privacy" target="_blank" rel="noopener noreferrer">Privacy Policy</Link>.
+                </span>
                 </label>
                 {errors.terms && <span className={styles.errorMsg}>{errors.terms}</span>}
               </div>
 
               <div className={styles.btnRow}>
-                <button className={styles.btnText} onClick={handleBack}>&larr; Back</button>
-                <button className={styles.btnPrimary} onClick={handleSubmit}>
-                  Submit Application ✓
+                <button className={styles.btnText} onClick={handleBack} disabled={isSubmitting}>&larr; Back</button>
+                <button className={styles.btnPrimary} onClick={handleSubmit} disabled={isSubmitting}>
+                  {isSubmitting ? 'Submitting...' : 'Submit Application ✓'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* ✅ Step 3: Success Confirmation */}
+          {step === 3 && submittedMaker && (
+            <div className={styles.step}>
+              <div className={styles.successIcon}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                  <polyline points="22 4 12 14.01 9 11.01"/>
+                </svg>
+              </div>
+              <h3>Application Submitted!</h3>
+              <p className={styles.stepDesc}>
+                Your maker application for <strong>{submittedMaker.brandName}</strong> is now under review.
+              </p>
+
+              <div className={styles.statusCard}>
+                <div className={styles.statusRow}>
+                  <span className={styles.statusLabel}>Status</span>
+                  <span className={styles.statusBadge}>
+                    {submittedMaker.verificationStatus}
+                  </span>
+                </div>
+                <div className={styles.statusRow}>
+                  <span className={styles.statusLabel}>Application ID</span>
+                  <span className={styles.statusValue}>{submittedMaker.id}</span>
+                </div>
+                <div className={styles.statusRow}>
+                  <span className={styles.statusLabel}>Submitted</span>
+                  <span className={styles.statusValue}>
+                    {new Date(submittedMaker.createdAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className={styles.infoNote}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"/>
+                  <line x1="12" y1="16" x2="12" y2="12"/>
+                  <line x1="12" y1="8" x2="12.01" y2="8"/>
+                </svg>
+                <span>Our team will review your application within 48 hours. You'll receive an email once approved.</span>
+              </div>
+
+              <div className={styles.btnRow}>
+                <button className={styles.btnPrimary} onClick={() => navigate('/platform/discovery')}>
+                  Continue to Discovery &rarr;
                 </button>
               </div>
             </div>

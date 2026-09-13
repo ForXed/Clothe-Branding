@@ -1,8 +1,8 @@
 // src/Transform/MakerDiscovery/MakerDiscoveryView.tsx
 
-import React, { useState, useRef, useEffect } from 'react';
-import { mockMakers } from '../../data/mockTransform';
-import type { Maker } from '../../data/mockTransform';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
+import { makerService } from '../../services/makerService';
+import type { Maker } from '../../types/maker';
 import styles from './MakerDiscoveryView.module.css';
 
 // ===== ICONS =====
@@ -69,10 +69,19 @@ const SPECIALTIES = [
   { value: 'embroidery', label: 'Embroidery & Print', icon: <NeedleIcon /> },
 ];
 
+// Initials fallback avatar (contract has no image field yet)
+const getInitials = (name: string): string =>
+  name.split(' ').filter(Boolean).map(w => w[0]).join('').slice(0, 2).toUpperCase() || '??';
+
 const MakerDiscoveryView: React.FC = () => {
   const [selectedSpecialty, setSelectedSpecialty] = useState<string>('all');
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // ✅ REAL DATA STATE — mocks fully removed
+  const [makers, setMakers] = useState<Maker[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -85,6 +94,26 @@ const MakerDiscoveryView: React.FC = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  // ✅ Fetch real makers from GET /makers
+  const loadMakers = useCallback(async () => {
+    setIsLoading(true);
+    setFetchError(null);
+    try {
+      const data = await makerService.getMakers();
+      setMakers(data);
+    } catch (err: any) {
+      setFetchError(
+        err.response?.data?.message || 'Unable to load makers right now. Please try again.'
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadMakers();
+  }, [loadMakers]);
+
   const handleSelect = (value: string) => {
     setSelectedSpecialty(value);
     setIsDropdownOpen(false);
@@ -92,14 +121,17 @@ const MakerDiscoveryView: React.FC = () => {
 
   const selectedOption = SPECIALTIES.find(s => s.value === selectedSpecialty);
 
-  // ✅ FIXED: Normalize both strings by stripping all non-alphanumeric chars
-  // for bulletproof matching (handles hyphens, ampersands, spaces, etc.)
-  // "Cut-and-Sew" → "cutandsew" | "Adire & Textile" → "adiretextile"
+  // Normalize for bulletproof matching (hyphens, ampersands, casing)
   const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  const filteredMakers = mockMakers.filter(maker => {
+  // ✅ DoD: only VERIFIED makers appear in discovery
+  // ✅ specializations is an ARRAY in the contract — match against any entry
+  const filteredMakers = makers.filter(maker => {
+    if (maker.verificationStatus !== 'VERIFIED') return false;
     if (selectedSpecialty === 'all') return true;
-    return normalize(maker.specialty).includes(normalize(selectedSpecialty));
+    return maker.specializations.some(spec =>
+      normalize(spec).includes(normalize(selectedSpecialty))
+    );
   });
 
   return (
@@ -161,44 +193,73 @@ const MakerDiscoveryView: React.FC = () => {
         </div>
       </div>
 
-      {/* Makers Grid */}
-      {filteredMakers.length === 0 ? (
+      {/* LOADING STATE */}
+      {isLoading && (
         <div className={styles.emptyState}>
-          <p>No makers found matching your criteria.</p>
+          <p>Loading makers...</p>
         </div>
-      ) : (
-        <div className={styles.grid}>
-          {filteredMakers.map((maker: Maker) => (
-            <div key={maker.id} className={styles.card}>
-              <div className={styles.cardHeader}>
-                <img src={maker.avatarUrl} alt={maker.name} className={styles.avatar} />
-                <div className={styles.makerInfo}>
-                  <h3 className={styles.makerName}>{maker.name}</h3>
-                  <p className={styles.handle}>{maker.handle}</p>
-                </div>
-              </div>
+      )}
 
-              <div className={styles.info}>
-                <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Specialty</span>
-                  <span className={styles.infoValue}>{maker.specialty}</span>
-                </div>
-                <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Location</span>
-                  <span className={styles.infoValue}>{maker.location}</span>
-                </div>
-                <div className={styles.infoRow}>
-                  <span className={styles.infoLabel}>Min Order</span>
-                  <span className={styles.infoValue}>{maker.minOrderQuantity} units</span>
-                </div>
-              </div>
-
-              <div className={styles.footer}>
-                <button className={styles.actionBtn}>View Profile</button>
-              </div>
-            </div>
-          ))}
+      {/* ERROR STATE WITH RETRY */}
+      {!isLoading && fetchError && (
+        <div className={styles.emptyState}>
+          <p>{fetchError}</p>
+          <button className={styles.actionBtn} onClick={loadMakers}>
+            Try Again
+          </button>
         </div>
+      )}
+
+      {/* Makers Grid */}
+      {!isLoading && !fetchError && (
+        filteredMakers.length === 0 ? (
+          <div className={styles.emptyState}>
+            <p>No verified makers found matching your criteria.</p>
+          </div>
+        ) : (
+          <div className={styles.grid}>
+            {filteredMakers.map((maker: Maker) => (
+              <div key={maker.id} className={styles.card}>
+                <div className={styles.cardHeader}>
+                  <div className={styles.avatarFallback} aria-hidden="true">
+                    {getInitials(maker.brandName)}
+                  </div>
+                  <div className={styles.makerInfo}>
+                    <h3 className={styles.makerName}>{maker.brandName}</h3>
+                    <p className={styles.handle}>{maker.bio}</p>
+                  </div>
+                </div>
+
+                <div className={styles.info}>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Specialty</span>
+                    <span className={styles.infoValue}>
+                      {maker.specializations.join(', ') || '—'}
+                    </span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Location</span>
+                    <span className={styles.infoValue}>{maker.location}</span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Batch Size</span>
+                    <span className={styles.infoValue}>
+                      {maker.minBatch}–{maker.maxBatch} units
+                    </span>
+                  </div>
+                  <div className={styles.infoRow}>
+                    <span className={styles.infoLabel}>Lead Time</span>
+                    <span className={styles.infoValue}>{maker.leadTimeDays} days</span>
+                  </div>
+                </div>
+
+                <div className={styles.footer}>
+                  <button className={styles.actionBtn}>View Profile</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )
       )}
     </div>
   );

@@ -192,7 +192,7 @@
   opacity: 0.8;
 }
 
-.formGroup input, 
+.formGroup input,
 .formGroup textarea {
   width: 100%;
   padding: 12px 16px;
@@ -206,7 +206,7 @@
   box-sizing: border-box;
 }
 
-.formGroup input:focus, 
+.formGroup input:focus,
 .formGroup textarea:focus {
   outline: none;
   border-color: var(--brut-text);
@@ -220,7 +220,7 @@
 /* Error States */
 .formGroup.hasError input,
 .formGroup.hasError textarea,
-.formGroup.hasError .selectWrapper select {
+.formGroup.hasError .dropdownTrigger {
   border-color: var(--brut-danger, #ef4444);
 }
 
@@ -232,31 +232,15 @@
   font-weight: 600;
 }
 
-/* 🔧 Custom Select Wrapper with SVG Chevron */
-.selectWrapper {
+/* 🎨 Custom Dropdown */
+.customDropdown {
   position: relative;
-}
-
-.chevron {
-  position: absolute;
-  right: 16px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: var(--brut-text);
-  opacity: 0.6;
-  transition: opacity 0.2s, transform 0.2s;
-  display: flex;
-  align-items: center;
-}
-
-.selectWrapper:hover .chevron {
-  opacity: 1;
-}
-
-.formGroup select {
   width: 100%;
-  padding: 12px 44px 12px 16px;
+}
+
+.dropdownTrigger {
+  width: 100%;
+  padding: 12px 16px;
   border: 1.5px solid var(--brut-border);
   border-radius: 10px;
   background: var(--brut-bg);
@@ -264,64 +248,112 @@
   font-family: 'Outfit', sans-serif;
   font-size: 0.9rem;
   cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  transition: border-color 0.2s, background 0.2s;
-  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  transition: border-color 0.2s;
+  text-align: left;
 }
 
-.formGroup select:hover {
+.dropdownTrigger:hover {
   border-color: var(--brut-text);
 }
 
-.formGroup select:focus {
-  outline: none;
+.dropdownTriggerOpen {
   border-color: var(--brut-text);
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
 }
 
-/* 🔧 Enhanced Dropdown Options Styling */
-.formGroup select option {
+.dropdownTriggerPlaceholder {
+  opacity: 0.4;
+  font-style: italic;
+}
+
+.dropdownChevron {
+  display: flex;
+  align-items: center;
+  transition: transform 0.2s;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+
+.chevronOpen {
+  transform: rotate(180deg);
+}
+
+.dropdownPanel {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
   background: var(--brut-card, #161616);
-  color: var(--brut-text, #ededed);
-  padding: 14px 16px;
-  font-size: 0.9rem;
-  font-family: 'Outfit', sans-serif;
-  font-weight: 500;
-  border-bottom: 1px solid var(--brut-border, #333);
+  border: 1.5px solid var(--brut-text);
+  border-top: none;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  max-height: 240px;
+  overflow-y: auto;
+  z-index: 10;
+  animation: slideDown 0.2s ease;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.dropdownOption {
+  padding: 12px 16px;
   cursor: pointer;
+  transition: background 0.15s;
+  font-size: 0.9rem;
+  color: var(--brut-text);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
 }
 
-.formGroup select option:last-child {
-  border-bottom: none;
+.dropdownOption:hover {
+  background: var(--brut-hover, #2a2a2a);
 }
 
-.formGroup select option:hover,
-.formGroup select option:checked {
-  background: var(--brut-text, #ededed);
-  color: var(--brut-bg, #0a0a0a);
+.dropdownOptionSelected {
+  background: var(--brut-text);
+  color: var(--brut-bg);
   font-weight: 700;
 }
 
-/* Firefox specific styling */
-.formGroup select option:hover:not(:checked) {
-  background: var(--brut-hover, #2a2a2a);
-  color: var(--brut-text);
+.dropdownOptionSelected:hover {
+  background: var(--brut-text);
 }
 
-/* Disabled option (placeholder) styling */
-.formGroup select option:disabled {
-  color: var(--brut-text);
-  opacity: 0.4;
-  background: var(--brut-bg);
-  font-style: italic;
-  font-weight: 600;
-  cursor: not-allowed;
+.dropdownOptionCheck {
+  display: flex;
+  align-items: center;
+  opacity: 0.8;
 }
 
-/* Chrome/Safari specific - when dropdown is open */
-.formGroup select:focus option {
-  padding: 12px 16px;
+/* Scrollbar styling for dropdown */
+.dropdownPanel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.dropdownPanel::-webkit-scrollbar-track {
+  background: var(--brut-border);
+}
+
+.dropdownPanel::-webkit-scrollbar-thumb {
+  background: var(--brut-text);
+  border-radius: 4px;
 }
 
 .hint {
@@ -442,7 +474,7 @@
   color: var(--brut-blue, #3b82f6);
 }
 
-/* ℹ️ NEW: Info Note - Used in simplified form */
+/* ℹ️ Info Note */
 .infoNote {
   display: flex;
   align-items: flex-start;
@@ -467,6 +499,66 @@
 .light-mode .infoNote {
   background: rgba(139, 92, 246, 0.06);
   border-color: rgba(139, 92, 246, 0.2);
+}
+
+/* ✅ Success State (Step 3) */
+.successIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  height: 80px;
+  margin: 0 auto 1.5rem;
+  background: rgba(34, 197, 94, 0.1);
+  color: #22c55e;
+  border-radius: 50%;
+}
+
+.statusCard {
+  background: var(--brut-hover, rgba(255,255,255,0.03));
+  border: 1.5px solid var(--brut-border);
+  border-radius: 10px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.statusRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.statusLabel {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--brut-text);
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusBadge {
+  background: #fbbf24;
+  color: #000;
+  font-weight: 900;
+  font-size: 0.75rem;
+  padding: 4px 12px;
+  border-radius: 100px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.statusValue {
+  font-weight: 600;
+  color: var(--brut-text);
+  font-family: 'Courier New', monospace;
+  font-size: 0.85rem;
+  text-align: right;
+  word-break: break-all;
 }
 
 /* Terms Box */
@@ -533,9 +625,16 @@
   font-family: 'Outfit', sans-serif;
 }
 
-.btnPrimary:hover {
+.btnPrimary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.btnPrimary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
 .btnText {
@@ -551,8 +650,13 @@
   font-family: 'Outfit', sans-serif;
 }
 
-.btnText:hover {
+.btnText:hover:not(:disabled) {
   opacity: 1;
+}
+
+.btnText:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
 }
 
 /* Brand Section - Right Side */
@@ -655,7 +759,6 @@
     min-height: 100vh;
   }
 
-  /* 🔧 FIX: Hide brand section completely on mobile */
   .brandSection {
     display: none !important;
   }

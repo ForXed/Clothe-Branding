@@ -233,12 +233,27 @@
   margin-bottom: 1.25rem;
 }
 
-.avatar {
+/* Initials avatar (contract has no image field yet) */
+.avatarFallback {
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  object-fit: cover;
-  border: 2px solid var(--brut-border);
+  background: #000;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  letter-spacing: -0.5px;
+}
+
+/* Keep long bios on one line */
+.handle {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .makerInfo {
