@@ -1,11 +1,10 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useRef, useState, useEffect } from 'react';
+import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
-import { validateEmail } from '../utils/validators';
 import { authService } from '../services/authService';
-import styles from './SignInPage.module.css';
+import styles from './ResetPassword.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
@@ -13,7 +12,7 @@ interface NotifyFunction {
   (message: string, type: 'success' | 'error' | 'info'): void;
 }
 
-interface SignInPageProps {
+interface ResetPasswordProps {
   notify?: NotifyFunction;
 }
 
@@ -50,27 +49,37 @@ const EyeOffIcon: React.FC = () => (
   </svg>
 );
 
-const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
+const ResetPassword: React.FC<ResetPasswordProps> = ({ notify }) => {
   const container = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const [email, setEmail] = useState<string>('');
-  const [password, setPassword] = useState<string>('');
+  const token = searchParams.get('token') || '';
+
+  const [newPassword, setNewPassword] = useState<string>('');
+  const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const navTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-
-  useEffect(() => () => clearTimeout(navTimerRef.current), []);
+  const [tokenValid, setTokenValid] = useState<boolean>(true);
 
   const phrases: string[] = [
-    'brutige: access your workspace.',
-    'infrastructure for the bold.',
-    'raw vision. refined reality.',
-    'the bridge to premium labels.',
-    'architecture of the new age.',
+    'brutige: reset your access.',
+    'security first. always.',
+    'your infrastructure, protected.',
+    'rebuild. restart. reclaim.',
   ];
+
+  // Check if token exists on mount
+  useEffect(() => {
+    if (!token) {
+      setTokenValid(false);
+      if (notify) {
+        notify('Invalid reset link. Please request a new one.', 'error');
+      }
+    }
+  }, [token, notify]);
 
   useGSAP(
     () => {
@@ -104,69 +113,98 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
         });
         masterTl.add(tl);
       });
+
       gsap.to(cursorRef.current, {
         opacity: 0,
-        ease: 'power2.inOut',
+        ease: 'steps(1)',
         repeat: -1,
+        duration: 0.5,
       });
     },
-    { scope: container },
+    { scope: container }
   );
 
-  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!validateEmail(email)) {
-      if (notify) notify('Please enter a valid email address.', 'error');
+    if (!tokenValid || !token) {
+      if (notify) notify('Invalid or expired reset link.', 'error');
       return;
     }
-    if (password.length < 6) {
-      if (notify) notify('Password must be at least 6 characters.', 'error');
+
+    if (newPassword.length < 8) {
+      if (notify) notify('Password must be at least 8 characters.', 'error');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      if (notify) notify('Passwords do not match.', 'error');
       return;
     }
 
     setIsLoading(true);
     try {
-      // ✅ v1.2: cookies are set by the browser automatically on login success
-      const { user } = await authService.login(email, password);
+      await authService.resetPassword(token, newPassword);
 
-      // Store user info for display only (auth is handled via cookies)
-      localStorage.setItem('brutige_user', JSON.stringify(user));
+      if (notify) {
+        notify('Password reset successfully! Please sign in with your new password.', 'success');
+      }
 
-      if (notify) notify(`Welcome back, ${user.firstName || user.email}!`, 'success');
-
-      navTimerRef.current = setTimeout(() => navigate('/platform/discovery'), 800);
+      setTimeout(() => navigate('/login'), 2000);
     } catch (error: any) {
-      const status = error.response?.status;
-      const serverMessage = error.response?.data?.message;
-
-      let message = 'Login failed. Please check your credentials.';
-
-      // ✅ v1.2: handle specific error states
-      if (status === 403 && serverMessage?.toLowerCase().includes('verif')) {
-        message = 'Please verify your email first. Redirecting...';
-        if (notify) notify(message, 'error');
-        setTimeout(
-          () => navigate(`/verify-email?email=${encodeURIComponent(email)}`),
-          1500
-        );
-        return;
-      }
-      if (status === 400 && serverMessage?.toLowerCase().includes('google')) {
-        message = 'This account uses Google sign-in. Please use "Continue with Google".';
-      } else if (serverMessage) {
-        message = serverMessage;
-      }
-
+      const message =
+        error.response?.data?.message ||
+        'Failed to reset password. The link may have expired.';
       if (notify) notify(message, 'error');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleGoogleLogin = () => {
-    window.location.href = authService.getGoogleOAuthUrl();
-  };
+  // Render invalid token state
+  if (!tokenValid) {
+    return (
+      <div ref={container} className={styles.mainWrapper}>
+        <div className={styles.formSection}>
+          <div className={styles.formWrapper}>
+            <div
+              className={styles.logoHeader}
+              onClick={() => navigate('/')}
+              style={{ cursor: 'pointer' }}
+            >
+              <BrutigeLogo color='black' />
+              <span className={styles.brandName}>brutige</span>
+            </div>
+
+            <h1 className={styles.title}>Invalid Link</h1>
+            <p className={styles.subtitle}>
+              This password reset link is invalid or has expired. Please request a new one.
+            </p>
+
+            <div className={styles.authFooter}>
+              <p className={styles.footerLink}>
+                <Link to='/forgot-password'>Request New Reset Link</Link>
+              </p>
+              <p className={styles.footerLink}>
+                <Link to='/login'>Back to Sign In</Link>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className={styles.brandSection}>
+          <div className={styles.line} style={{ top: '20%', left: '10%', width: '300px' }} />
+          <div className={styles.line} style={{ top: '50%', right: '10%', width: '400px' }} />
+          <div className={styles.typewriterBox}>
+            <h2 className={styles.typewriterText}>
+              <span ref={textRef}></span>
+              <span ref={cursorRef} className={styles.cursor}>|</span>
+            </h2>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={container} className={styles.mainWrapper}>
@@ -181,49 +219,20 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
             <span className={styles.brandName}>brutige</span>
           </div>
 
-          <h1 className={styles.title}>Welcome Back</h1>
+          <h1 className={styles.title}>Reset Password</h1>
           <p className={styles.subtitle}>
-            Sign in to manage your brand and production orders.
+            Create a new strong password for your account.
           </p>
 
-          <div className={styles.socialGrid}>
-            <button
-              type='button'
-              className={styles.socialBtn}
-              onClick={handleGoogleLogin}
-            >
-              <img src='https://www.svgrepo.com/show/475656/google-color.svg' alt='Google' />
-              <span>Continue with Google</span>
-            </button>
-          </div>
-
-          <div className={styles.divider}>
-            <span className={styles.dividerLine}></span>
-            <span className={styles.dividerText}>OR</span>
-            <span className={styles.dividerLine}></span>
-          </div>
-
-          <form className={styles.form} onSubmit={handleLogin} noValidate>
+          <form className={styles.form} onSubmit={handleSubmit} noValidate>
             <div className={styles.inputGroup}>
-              <label>Email</label>
-              <input
-                type='email'
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder='name@company.com'
-                disabled={isLoading}
-                required
-              />
-            </div>
-
-            <div className={styles.inputGroup}>
-              <label>Password</label>
+              <label>New Password</label>
               <div className={styles.passwordWrapper}>
                 <input
                   type={showPassword ? 'text' : 'password'}
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder='••••••••'
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder='Minimum 8 characters'
                   className={styles.passwordInput}
                   disabled={isLoading}
                   required
@@ -240,23 +249,33 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
               </div>
             </div>
 
+            <div className={styles.inputGroup}>
+              <label>Confirm New Password</label>
+              <div className={styles.passwordWrapper}>
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder='Re-enter your new password'
+                  className={styles.passwordInput}
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+            </div>
+
             <button
               type='submit'
               className={styles.submitBtn}
               disabled={isLoading}
             >
-              {isLoading ? 'Signing in...' : 'Sign In →'}
+              {isLoading ? 'Resetting...' : 'Reset Password →'}
             </button>
           </form>
 
           <div className={styles.authFooter}>
             <p className={styles.footerLink}>
-              New to Brutige? <Link to='/signup'>Create Account</Link>
-            </p>
-            <p className={styles.footerLink}>
-              <Link to='/forgot-password' style={{ opacity: 0.5 }}>
-                Forgot password?
-              </Link>
+              Remember your password? <Link to='/login'>Sign In</Link>
             </p>
           </div>
         </div>
@@ -276,4 +295,4 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
   );
 };
 
-export default SignInPage;
+export default ResetPassword;

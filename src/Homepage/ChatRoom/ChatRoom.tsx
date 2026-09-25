@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import styles from './ChatRoom.module.css';
 
 // @ts-ignore
-import { chatAPI } from './ChatService';
+import { chatAPI } from '../../services/chatService';
 
 // Import new chat components
 import AttachmentMenu from '../../chat/AttachmentMenu';

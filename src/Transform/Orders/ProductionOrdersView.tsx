@@ -1,17 +1,45 @@
 // src/Transform/Orders/ProductionOrdersView.tsx
 
-import React, { useState } from 'react';
-import { mockOrders } from '../../data/mockTransform';
-import type { ProductionOrder, OrderStatus, EscrowStatus } from '../../data/mockTransform';
+import React, { useState, useEffect, useCallback } from 'react';
+import { orderService } from '../../services/orderService';
+import type { ProductionOrder, OrderStatus, EscrowStatus } from '../../types/order';
 import styles from './ProductionOrdersView.module.css';
 
 const ProductionOrdersView: React.FC = () => {
-  const [orders, setOrders] = useState<ProductionOrder[]>([...mockOrders]);
+  const [orders, setOrders] = useState<ProductionOrder[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
   const filterTabs = ['ALL', 'IN_ESCROW', 'IN_PRODUCTION', 'DELIVERED', 'COMPLETED', 'DISPUTED'];
 
+  const fetchOrders = useCallback(async () => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await orderService.getOrders();
+      setOrders(data);
+    } catch (err: any) {
+      console.error('Failed to fetch orders:', err);
+      setError(err.response?.data?.message || 'Failed to load orders. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchOrders();
+  }, [fetchOrders]);
+
   const filteredOrders = orders.filter(o => statusFilter === 'ALL' || o.status === statusFilter);
+
+  // ✅ VISIBILITY RULES — buttons exist ONLY in valid states, driven by REAL backend status
+  const canConfirm = (order: ProductionOrder): boolean =>
+    order.status === 'DELIVERED' && order.escrow.status === 'HELD';
+
+  const canDispute = (order: ProductionOrder): boolean =>
+    order.status === 'DELIVERED' && order.escrow.status === 'HELD';
 
   const getOrderStatusColor = (status: OrderStatus): string => {
     switch (status) {
@@ -32,6 +60,7 @@ const ProductionOrdersView: React.FC = () => {
       case 'HELD': return '#3b82f6';
       case 'RELEASED': return '#10b981';
       case 'REFUNDED': return '#f97316';
+      case 'DISPUTED': return '#ef4444';
       default: return '#6b7280';
     }
   };
@@ -43,27 +72,64 @@ const ProductionOrdersView: React.FC = () => {
     return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
   };
 
-  const handleConfirmDelivery = (orderId: string) => {
-    setOrders(prev => prev.map(o =>
-      o.id === orderId
-        ? {
-            ...o,
-            status: 'COMPLETED' as OrderStatus,
-            escrow: { ...o.escrow, status: 'RELEASED' as EscrowStatus, releasedAt: new Date().toISOString() }
-          }
-        : o
-    ));
+  // ✅ Wire Confirm Action — with resync on invalid-state rejection
+  const handleConfirmDelivery = async (orderId: string) => {
+    if (!window.confirm('Confirm delivery and release funds to the maker? This action cannot be undone.')) return;
+
+    setActionLoadingId(orderId);
+    try {
+      const updatedOrder = await orderService.confirmOrder(orderId);
+      if (updatedOrder && updatedOrder.id) {
+        setOrders(prev => prev.map(o => (o.id === orderId ? updatedOrder : o)));
+      } else {
+        await fetchOrders(); // 204/no body → resync from server
+      }
+    } catch (err: any) {
+      if (err.response?.status === 409 || err.response?.status === 400) {
+        await fetchOrders(); // backend says state changed → resync UI to real status
+      }
+      alert(err.response?.data?.message || 'Failed to confirm delivery.');
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
-  const handleDispute = (orderId: string) => {
-    setOrders(prev => prev.map(o =>
-      o.id === orderId ? { ...o, status: 'DISPUTED' as OrderStatus } : o
-    ));
+  // ✅ Wire Dispute Action — same resync discipline
+  const handleDispute = async (orderId: string) => {
+    const reason = window.prompt('Please provide a reason for the dispute:');
+    if (!reason) return;
+
+    setActionLoadingId(orderId);
+    try {
+      const updatedOrder = await orderService.disputeOrder(orderId, reason);
+      if (updatedOrder && updatedOrder.id) {
+        setOrders(prev => prev.map(o => (o.id === orderId ? updatedOrder : o)));
+      } else {
+        await fetchOrders();
+      }
+    } catch (err: any) {
+      if (err.response?.status === 409 || err.response?.status === 400) {
+        await fetchOrders();
+      }
+      alert(err.response?.data?.message || 'Failed to open dispute.');
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
   const formatCurrency = (amount: number): string => `₦${amount.toLocaleString('en-NG')}`;
   const formatDate = (dateString: string): string =>
     new Date(dateString).toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <p>Loading orders...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -73,6 +139,15 @@ const ProductionOrdersView: React.FC = () => {
           Your money is held in escrow and only released when you confirm delivery.
         </p>
       </div>
+
+      {error && (
+        <div className={styles.errorBox} style={{ color: '#ef4444', padding: '1rem', background: '#fee2e2', borderRadius: '8px', marginBottom: '1rem' }}>
+          {error}
+          <button onClick={fetchOrders} style={{ marginLeft: '1rem', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}>
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className={styles.filterBar}>
@@ -96,6 +171,7 @@ const ProductionOrdersView: React.FC = () => {
         <div className={styles.orderList}>
           {filteredOrders.map((order: ProductionOrder) => {
             const autoReleaseDays = getAutoReleaseDays(order.escrow.autoReleaseAt);
+            const isActionLoading = actionLoadingId === order.id;
 
             return (
               <div key={order.id} className={styles.orderCard}>
@@ -169,21 +245,27 @@ const ProductionOrdersView: React.FC = () => {
                   )}
                 </div>
 
-                {/* Buyer Actions */}
-                {order.status === 'DELIVERED' && (
+                {/* ✅ BUYER ACTIONS — rendered ONLY when valid per real status + escrow state */}
+                {(canConfirm(order) || canDispute(order)) && (
                   <div className={styles.actionRow}>
-                    <button
-                      onClick={() => handleDispute(order.id)}
-                      className={styles.disputeBtn}
-                    >
-                      Dispute Order
-                    </button>
-                    <button
-                      onClick={() => handleConfirmDelivery(order.id)}
-                      className={styles.confirmBtn}
-                    >
-                      Confirm Delivery & Release Funds
-                    </button>
+                    {canDispute(order) && (
+                      <button
+                        onClick={() => handleDispute(order.id)}
+                        className={styles.disputeBtn}
+                        disabled={isActionLoading}
+                      >
+                        Dispute Order
+                      </button>
+                    )}
+                    {canConfirm(order) && (
+                      <button
+                        onClick={() => handleConfirmDelivery(order.id)}
+                        className={styles.confirmBtn}
+                        disabled={isActionLoading}
+                      >
+                        {isActionLoading ? 'Processing...' : 'Confirm Delivery & Release Funds'}
+                      </button>
+                    )}
                   </div>
                 )}
 

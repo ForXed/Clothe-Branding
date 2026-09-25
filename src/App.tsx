@@ -9,6 +9,7 @@ import SignUpPage from './Form/SignUpPage';
 import MakerSignUp from './Form/MakerSignUp';
 import ForgottenPassword from './Form/ForgottenPassword';
 import VerifyPassword from './Form/VerifyPassword';
+import ResetPassword from './Form/ResetPassword'; // ✅ ADDED
 import MakerStudio from './MakerStudio/MakerStudio';
 
 // Form Components
@@ -67,7 +68,13 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
         <Route path="/signup" element={<SignUpPage notify={notify} />} />
         <Route path="/maker-signup" element={<MakerSignUp />} />
         <Route path="/forgot-password" element={<ForgottenPassword />} />
-        <Route path="/verify" element={<VerifyPassword />} />
+        
+        {/* ✅ UPDATED: Changed from /verify to /verify-email to match signup redirect */}
+        <Route path="/verify-email" element={<VerifyPassword />} /> 
+        
+        {/* ✅ ADDED: Reset Password Route (reads token from email link) */}
+        <Route path="/reset-password" element={<ResetPassword notify={notify} />} />
+        
         <Route path="/maker-application" element={<MakerApplication notify={notify} />} />
         
         {/* Account Management Forms */}
@@ -89,8 +96,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
             />
           } 
         />
-
-    
 
         {/* MAKER STUDIO */}
         <Route 

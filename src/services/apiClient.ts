@@ -8,21 +8,10 @@ const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  withCredentials: true, // ✅ Required for httpOnly cookies
 });
 
-// 1️⃣ REQUEST INTERCEPTOR: Attach token to every request
-apiClient.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('brutige_access_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
-
-// 2️⃣ RESPONSE INTERCEPTOR: Auto-refresh on 401
+// 1️⃣ RESPONSE INTERCEPTOR: Auto-refresh on 401
 apiClient.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -33,31 +22,19 @@ apiClient.interceptors.response.use(
       originalRequest._retry = true;
 
       try {
-        const refreshToken = localStorage.getItem('brutige_refresh_token');
-        if (!refreshToken) {
-          throw new Error('No refresh token available');
-        }
+        // Call refresh endpoint (browser sends refresh cookie automatically)
+        await axios.post(
+          `${API_BASE_URL}/authentication/refresh`,
+          {},
+          { withCredentials: true }
+        );
 
-        // Call refresh endpoint directly (bypass interceptor to avoid loop)
-        const { data } = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-          refreshToken,
-        });
-
-        // Update tokens in storage
-        localStorage.setItem('brutige_access_token', data.accessToken);
-        if (data.refreshToken) {
-          localStorage.setItem('brutige_refresh_token', data.refreshToken);
-        }
-
-        // Retry the original request with the new token
-        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        // Retry the original request (browser sends new access cookie automatically)
         return apiClient(originalRequest);
       } catch (refreshError) {
         // Refresh failed (token revoked/expired) -> Force logout
         console.error('Refresh failed, logging out:', refreshError);
-        localStorage.removeItem('brutige_access_token');
-        localStorage.removeItem('brutige_refresh_token');
-        window.location.href = '/login'; 
+        window.location.href = '/login';
         return Promise.reject(refreshError);
       }
     }

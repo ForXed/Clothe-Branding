@@ -1,15 +1,42 @@
 // src/Transform/Quotes/QuotesView.tsx
 
-import React, { useState } from 'react';
-import { mockQuotes } from '../../data/mockTransform';
-import type { Quote, QuoteStatus } from '../../data/mockTransform';
+import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { quoteService } from '../../services/quoteService';
+import type { Quote, QuoteStatus } from '../../types/quote';
 import styles from './QuotesView.module.css';
 
 const QuotesView: React.FC = () => {
-  const [quotes, setQuotes] = useState<Quote[]>([...mockQuotes]);
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const { briefId } = useParams<{ briefId: string }>();
+  const navigate = useNavigate();
 
-  const filterTabs = ['ALL', 'PENDING', 'ACCEPTED', 'DECLINED', 'SUPERSEDED'];
+  const [quotes, setQuotes] = useState<Quote[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>('ALL');
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+  const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
+
+  const filterTabs: (QuoteStatus | 'ALL')[] = ['ALL', 'PENDING', 'ACCEPTED', 'DECLINED', 'SUPERSEDED'];
+
+  // ✅ Load real quotes from the backend
+  const fetchQuotes = useCallback(async () => {
+    if (!briefId) return;
+    setIsLoading(true);
+    setError(null);
+    try {
+      const data = await quoteService.getQuotesForBrief(briefId);
+      setQuotes(data);
+    } catch (err: any) {
+      console.error('Failed to fetch quotes:', err);
+      setError(err.response?.data?.message || 'Failed to load quotes. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+  }, [briefId]);
+
+  useEffect(() => {
+    fetchQuotes();
+  }, [fetchQuotes]);
 
   const filteredQuotes = quotes.filter(q => statusFilter === 'ALL' || q.status === statusFilter);
 
@@ -23,21 +50,59 @@ const QuotesView: React.FC = () => {
     }
   };
 
-  const handleAccept = (quoteId: string) => {
-    setQuotes(prev => prev.map(q =>
-      q.id === quoteId ? { ...q, status: 'ACCEPTED' as QuoteStatus } : q
-    ));
+  // ✅ Wire Accept Action — creates a ProductionOrder + locks escrow
+  const handleAccept = async (quoteId: string) => {
+    if (!window.confirm('Accept this quote? This will create a production order and lock in the price.')) return;
+
+    setActionLoadingId(quoteId);
+    try {
+      const newOrder = await quoteService.acceptQuote(quoteId);
+      // Update local state optimistically, then refetch to get the full picture
+      setQuotes(prev => prev.map(q =>
+        q.id === quoteId ? { ...q, status: 'ACCEPTED' as QuoteStatus } : q
+      ));
+
+      // Navigate to the new order (which is in AWAITING_PAYMENT state)
+      alert(`Quote accepted! Order ${newOrder.id} created. Please fund escrow to start production.`);
+      navigate(`/platform/orders/${newOrder.id}`);
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to accept quote.');
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
-  const handleDecline = (quoteId: string) => {
-    setQuotes(prev => prev.map(q =>
-      q.id === quoteId ? { ...q, status: 'DECLINED' as QuoteStatus } : q
-    ));
+  // ✅ Wire Decline Action — maker may submit one revision
+  const handleDecline = async (quoteId: string) => {
+    if (!window.confirm('Decline this quote? The maker will be allowed ONE revised quote.')) return;
+
+    setActionLoadingId(quoteId);
+    try {
+      const updated = await quoteService.declineQuote(quoteId);
+      setQuotes(prev => prev.map(q =>
+        q.id === quoteId ? updated : q
+      ));
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to decline quote.');
+    } finally {
+      setActionLoadingId(null);
+    }
   };
 
   const formatCurrency = (amount: number): string => `₦${amount.toLocaleString('en-NG')}`;
   const formatDate = (dateString: string): string =>
     new Date(dateString).toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' });
+
+  // Loading state
+  if (isLoading) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <p>Loading quotes...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
@@ -47,6 +112,15 @@ const QuotesView: React.FC = () => {
           Compare quotes from makers on your briefs. Accept one to start production (funds go to escrow).
         </p>
       </div>
+
+      {error && (
+        <div style={{ color: '#ef4444', padding: '1rem', background: '#fee2e2', borderRadius: '8px', marginBottom: '1rem' }}>
+          {error}
+          <button onClick={fetchQuotes} style={{ marginLeft: '1rem', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}>
+            Retry
+          </button>
+        </div>
+      )}
 
       {/* Filter Tabs */}
       <div className={styles.filterBar}>
@@ -64,72 +138,91 @@ const QuotesView: React.FC = () => {
       {/* Quotes List */}
       {filteredQuotes.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>No quotes found with this status.</p>
+          <p>{quotes.length === 0 ? 'No quotes received yet for this brief.' : 'No quotes found with this status.'}</p>
         </div>
       ) : (
         <div className={styles.quoteList}>
-          {filteredQuotes.map((quote: Quote) => (
-            <div key={quote.id} className={styles.quoteCard}>
-              {/* Card Header */}
-              <div className={styles.cardHeader}>
-                <div>
-                  <div className={styles.titleRow}>
-                    <h3 className={styles.quoteTitle}>{quote.makerName}</h3>
-                    <span
-                      className={styles.statusBadge}
-                      style={{ backgroundColor: getStatusColor(quote.status) }}
-                    >
-                      {quote.status}
-                    </span>
-                    <span className={styles.revisionBadge}>
-                      Rev {quote.revisionNumber} / 2
-                    </span>
+          {filteredQuotes.map((quote: Quote) => {
+            const isActionLoading = actionLoadingId === quote.id;
+
+            return (
+              <div key={quote.id} className={styles.quoteCard}>
+                {/* Card Header */}
+                <div className={styles.cardHeader}>
+                  <div>
+                    <div className={styles.titleRow}>
+                      <h3 className={styles.quoteTitle}>Maker Quote</h3>
+                      <span
+                        className={styles.statusBadge}
+                        style={{ backgroundColor: getStatusColor(quote.status) }}
+                      >
+                        {quote.status}
+                      </span>
+                      <span className={styles.revisionBadge}>
+                        Rev {quote.revisionNumber} / 2
+                      </span>
+                    </div>
+                    <p className={styles.metaLine}>
+                      Quote ID: {quote.id} • Brief: {quote.briefId} • Sent {formatDate(quote.createdAt)}
+                    </p>
                   </div>
-                  <p className={styles.metaLine}>
-                    Quote ID: {quote.id} • For Brief: {quote.briefId} • Sent {formatDate(quote.createdAt)}
-                  </p>
                 </div>
+
+                {/* Quote Details Grid — mapped to real contract fields */}
+                <div className={styles.detailsGrid}>
+                  <div className={styles.detailItem}>
+                    <p className={styles.detailLabel}>Quoted Price</p>
+                    <p className={styles.detailValue}>{formatCurrency(quote.priceNgn)}</p>
+                  </div>
+                  <div className={styles.detailItem}>
+                    <p className={styles.detailLabel}>Maker Receives</p>
+                    <p className={styles.detailValue}>{formatCurrency(quote.estimatedMakerPayoutNgn)}</p>
+                  </div>
+                  <div className={styles.detailItem}>
+                    <p className={styles.detailLabel}>Production Time</p>
+                    <p className={styles.detailValuePlain}>{quote.timelineDays} days</p>
+                  </div>
+                </div>
+
+                {/* Maker Terms */}
+                {quote.terms && (
+                  <div className={styles.notesBox}>
+                    <p className={styles.notesLabel}>Maker Terms</p>
+                    <p className={styles.notesText}>{quote.terms}</p>
+                  </div>
+                )}
+
+                {/* SUPERSEDED Notice */}
+                {quote.status === 'SUPERSEDED' && (
+                  <div className={styles.notesBox} style={{ background: 'rgba(107, 114, 128, 0.1)' }}>
+                    <p className={styles.notesText} style={{ color: '#6b7280' }}>
+                      This quote was superseded by a revised version from the same maker.
+                    </p>
+                  </div>
+                )}
+
+                {/* Accept/Decline Actions (One Loop decision point) */}
+                {quote.status === 'PENDING' && (
+                  <div className={styles.actionRow}>
+                    <button
+                      onClick={() => handleDecline(quote.id)}
+                      className={styles.declineBtn}
+                      disabled={isActionLoading}
+                    >
+                      Decline
+                    </button>
+                    <button
+                      onClick={() => handleAccept(quote.id)}
+                      className={styles.acceptBtn}
+                      disabled={isActionLoading}
+                    >
+                      {isActionLoading ? 'Processing...' : 'Accept Quote & Fund Escrow'}
+                    </button>
+                  </div>
+                )}
               </div>
-
-              {/* Quote Details Grid */}
-              <div className={styles.detailsGrid}>
-                <div className={styles.detailItem}>
-                  <p className={styles.detailLabel}>Quoted Price</p>
-                  <p className={styles.detailValue}>{formatCurrency(quote.quotedPriceNgn)}</p>
-                </div>
-                <div className={styles.detailItem}>
-                  <p className={styles.detailLabel}>Production Time</p>
-                  <p className={styles.detailValuePlain}>{quote.productionTimeDays} days</p>
-                </div>
-              </div>
-
-              {/* Maker Notes */}
-              {quote.notes && (
-                <div className={styles.notesBox}>
-                  <p className={styles.notesLabel}>Maker Notes</p>
-                  <p className={styles.notesText}>{quote.notes}</p>
-                </div>
-              )}
-
-              {/* Accept/Decline Actions (One Loop decision point) */}
-              {quote.status === 'PENDING' && (
-                <div className={styles.actionRow}>
-                  <button
-                    onClick={() => handleDecline(quote.id)}
-                    className={styles.declineBtn}
-                  >
-                    Decline
-                  </button>
-                  <button
-                    onClick={() => handleAccept(quote.id)}
-                    className={styles.acceptBtn}
-                  >
-                    Accept Quote
-                  </button>
-                </div>
-              )}
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
