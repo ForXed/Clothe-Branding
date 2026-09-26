@@ -1,4 +1,3 @@
-// src/services/authService.ts
 import apiClient from './apiClient';
 
 export interface RegisterData {
@@ -22,7 +21,7 @@ export interface AuthResponse {
 export const authService = {
   // 🔐 AUTH CORE
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/authentication/register', data);
+    const response = await apiClient.post<AuthResponse>('/authentication/signup', data);
     return response.data;
   },
 
@@ -50,27 +49,24 @@ export const authService = {
     return response.data;
   },
 
-  async changePassword(currentPassword: string, newPassword: string): Promise<{ message: string }> {
-    const response = await apiClient.post<{ message: string }>('/authentication/change-password', {
-      currentPassword,
-      newPassword,
-    });
-    return response.data;
-  },
-
   async forgotPassword(email: string): Promise<{ message: string }> {
-    const response = await apiClient.post<{ message: string }>('/authentication/forgot-password', { email });
+    const response = await apiClient.post<{ message: string }>('/authentication/forgotten-password', { email });
     return response.data;
   },
 
-  async resetPassword(token: string, password: string): Promise<{ message: string }> {
-    const response = await apiClient.post<{ message: string }>('/authentication/reset-password', { token, password });
+  async resetPassword(email: string, password: string, otp: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/authentication/verify-forgotten-password', {
+      email,
+      forgottenPassword: password,
+      otp,
+    });
     return response.data;
   },
 
   // 🌐 OAUTH
   getGoogleOAuthUrl(): string {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    return `${API_BASE_URL}/oauth2/authorization/google`;
+    // Google OAuth must be at the root, not under /api/v1
+    const API_ROOT = import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8080';
+    return `${API_ROOT}/oauth2/authorization/google`;
   },
 };

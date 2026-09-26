@@ -254,7 +254,7 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
               New to Brutige? <Link to='/signup'>Create Account</Link>
             </p>
             <p className={styles.footerLink}>
-              <Link to='/forgot-password' style={{ opacity: 0.5 }}>
+              <Link to='/reset-password' style={{ opacity: 0.5 }}>
                 Forgot password?
               </Link>
             </p>

@@ -1,5 +1,5 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { useNavigate, useSearchParams, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom'; // ✅ Added useSearchParams
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
@@ -49,20 +49,26 @@ const EyeOffIcon: React.FC = () => (
   </svg>
 );
 
+type ResetStep = 'email' | 'otp' | 'success';
+
 const ResetPassword: React.FC<ResetPasswordProps> = ({ notify }) => {
   const container = useRef<HTMLDivElement>(null);
   const textRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const navigate = useNavigate();
-  const [searchParams] = useSearchParams();
+  const [searchParams] = useSearchParams(); // ✅ Read URL params
 
-  const token = searchParams.get('token') || '';
+  // ✅ Read email from URL (redirected from /forgot-password)
+  const emailFromUrl = searchParams.get('email') || '';
 
+  // ✅ Start at OTP step if email came from URL, otherwise start at email step
+  const [step, setStep] = useState<ResetStep>(emailFromUrl ? 'otp' : 'email');
+  const [email, setEmail] = useState<string>(emailFromUrl);
+  const [otp, setOtp] = useState<string>('');
   const [newPassword, setNewPassword] = useState<string>('');
   const [confirmPassword, setConfirmPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [tokenValid, setTokenValid] = useState<boolean>(true);
 
   const phrases: string[] = [
     'brutige: reset your access.',
@@ -70,16 +76,6 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ notify }) => {
     'your infrastructure, protected.',
     'rebuild. restart. reclaim.',
   ];
-
-  // Check if token exists on mount
-  useEffect(() => {
-    if (!token) {
-      setTokenValid(false);
-      if (notify) {
-        notify('Invalid reset link. Please request a new one.', 'error');
-      }
-    }
-  }, [token, notify]);
 
   useGSAP(
     () => {
@@ -124,11 +120,34 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ notify }) => {
     { scope: container }
   );
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  // Step 1: Request OTP (only runs if user lands directly on /reset-password without email)
+  const handleRequestOtp = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
 
-    if (!tokenValid || !token) {
-      if (notify) notify('Invalid or expired reset link.', 'error');
+    if (!email || !email.includes('@')) {
+      if (notify) notify('Please enter a valid email address.', 'error');
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      await authService.forgotPassword(email);
+      if (notify) notify('6-digit code sent to your email.', 'success');
+      setStep('otp');
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Failed to send reset code.';
+      if (notify) notify(message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Step 2: Verify OTP + Set New Password (sends all 3 together per contract)
+  const handleVerifyOtp = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (otp.length !== 6) {
+      if (notify) notify('Please enter the 6-digit code.', 'error');
       return;
     }
 
@@ -144,67 +163,17 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ notify }) => {
 
     setIsLoading(true);
     try {
-      await authService.resetPassword(token, newPassword);
-
-      if (notify) {
-        notify('Password reset successfully! Please sign in with your new password.', 'success');
-      }
-
+      await authService.resetPassword(email, newPassword, otp);
+      if (notify) notify('Password reset successfully! Please sign in.', 'success');
+      setStep('success');
       setTimeout(() => navigate('/login'), 2000);
     } catch (error: any) {
-      const message =
-        error.response?.data?.message ||
-        'Failed to reset password. The link may have expired.';
+      const message = error.response?.data?.message || 'Invalid code or reset failed.';
       if (notify) notify(message, 'error');
     } finally {
       setIsLoading(false);
     }
   };
-
-  // Render invalid token state
-  if (!tokenValid) {
-    return (
-      <div ref={container} className={styles.mainWrapper}>
-        <div className={styles.formSection}>
-          <div className={styles.formWrapper}>
-            <div
-              className={styles.logoHeader}
-              onClick={() => navigate('/')}
-              style={{ cursor: 'pointer' }}
-            >
-              <BrutigeLogo color='black' />
-              <span className={styles.brandName}>brutige</span>
-            </div>
-
-            <h1 className={styles.title}>Invalid Link</h1>
-            <p className={styles.subtitle}>
-              This password reset link is invalid or has expired. Please request a new one.
-            </p>
-
-            <div className={styles.authFooter}>
-              <p className={styles.footerLink}>
-                <Link to='/forgot-password'>Request New Reset Link</Link>
-              </p>
-              <p className={styles.footerLink}>
-                <Link to='/login'>Back to Sign In</Link>
-              </p>
-            </div>
-          </div>
-        </div>
-
-        <div className={styles.brandSection}>
-          <div className={styles.line} style={{ top: '20%', left: '10%', width: '300px' }} />
-          <div className={styles.line} style={{ top: '50%', right: '10%', width: '400px' }} />
-          <div className={styles.typewriterBox}>
-            <h2 className={styles.typewriterText}>
-              <span ref={textRef}></span>
-              <span ref={cursorRef} className={styles.cursor}>|</span>
-            </h2>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div ref={container} className={styles.mainWrapper}>
@@ -219,59 +188,140 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ notify }) => {
             <span className={styles.brandName}>brutige</span>
           </div>
 
-          <h1 className={styles.title}>Reset Password</h1>
-          <p className={styles.subtitle}>
-            Create a new strong password for your account.
-          </p>
+          {step === 'email' && (
+            <>
+              <h1 className={styles.title}>Reset Password</h1>
+              <p className={styles.subtitle}>
+                Enter your email and we'll send you a 6-digit reset code.
+              </p>
 
-          <form className={styles.form} onSubmit={handleSubmit} noValidate>
-            <div className={styles.inputGroup}>
-              <label>New Password</label>
-              <div className={styles.passwordWrapper}>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={newPassword}
-                  onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder='Minimum 8 characters'
-                  className={styles.passwordInput}
-                  disabled={isLoading}
-                  required
-                />
+              <form className={styles.form} onSubmit={handleRequestOtp} noValidate>
+                <div className={styles.inputGroup}>
+                  <label>Email</label>
+                  <input
+                    type='email'
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder='name@company.com'
+                    disabled={isLoading}
+                    required
+                  />
+                </div>
+
                 <button
-                  type='button'
-                  className={styles.togglePassword}
-                  onClick={() => setShowPassword(!showPassword)}
-                  tabIndex={-1}
+                  type='submit'
+                  className={styles.submitBtn}
                   disabled={isLoading}
                 >
-                  {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                  {isLoading ? 'Sending Code...' : 'Send Reset Code →'}
                 </button>
-              </div>
-            </div>
+              </form>
+            </>
+          )}
 
-            <div className={styles.inputGroup}>
-              <label>Confirm New Password</label>
-              <div className={styles.passwordWrapper}>
-                <input
-                  type={showPassword ? 'text' : 'password'}
-                  value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder='Re-enter your new password'
-                  className={styles.passwordInput}
+          {step === 'otp' && (
+            <>
+              <h1 className={styles.title}>Enter Code & New Password</h1>
+              <p className={styles.subtitle}>
+                We sent a 6-digit code to <strong>{email}</strong>. Enter it below along with your new password.
+              </p>
+
+              <form className={styles.form} onSubmit={handleVerifyOtp} noValidate>
+                <div className={styles.inputGroup}>
+                  <label>6-Digit Code</label>
+                  <input
+                    type='text'
+                    value={otp}
+                    onChange={(e) => setOtp(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                    placeholder='123456'
+                    maxLength={6}
+                    disabled={isLoading}
+                    required
+                    style={{ letterSpacing: '0.5em', textAlign: 'center', fontSize: '1.5rem' }}
+                  />
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label>New Password</label>
+                  <div className={styles.passwordWrapper}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder='Minimum 8 characters'
+                      className={styles.passwordInput}
+                      disabled={isLoading}
+                      required
+                    />
+                    <button
+                      type='button'
+                      className={styles.togglePassword}
+                      onClick={() => setShowPassword(!showPassword)}
+                      tabIndex={-1}
+                      disabled={isLoading}
+                    >
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className={styles.inputGroup}>
+                  <label>Confirm New Password</label>
+                  <div className={styles.passwordWrapper}>
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder='Re-enter your new password'
+                      className={styles.passwordInput}
+                      disabled={isLoading}
+                      required
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type='submit'
+                  className={styles.submitBtn}
                   disabled={isLoading}
-                  required
-                />
-              </div>
-            </div>
+                >
+                  {isLoading ? 'Resetting...' : 'Reset Password →'}
+                </button>
 
-            <button
-              type='submit'
-              className={styles.submitBtn}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Resetting...' : 'Reset Password →'}
-            </button>
-          </form>
+                <button
+                  type='button'
+                  className={styles.backBtn}
+                  onClick={() => {
+                    setStep('email');
+                    setOtp('');
+                    setNewPassword('');
+                    setConfirmPassword('');
+                  }}
+                  disabled={isLoading}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#666',
+                    fontSize: '0.9rem',
+                    cursor: 'pointer',
+                    marginTop: '8px',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  ← Use a different email
+                </button>
+              </form>
+            </>
+          )}
+
+          {step === 'success' && (
+            <>
+              <h1 className={styles.title}>Success!</h1>
+              <p className={styles.subtitle}>
+                Your password has been reset. Redirecting to sign in...
+              </p>
+            </>
+          )}
 
           <div className={styles.authFooter}>
             <p className={styles.footerLink}>
