@@ -13,11 +13,13 @@ import Sidebar from "./DesktopSidebar/Sidebar";
 import MobileNav from "./MobileNav/MobileNav";
 import HomeHeader from "./HomeHeader/HomeHeader";
 
-// ✅ NEW: Transform Flow Components (B2B MVP)
+// ✅ Transform Flow Components (B2B MVP)
 import MakerDiscoveryView from "../Transform/MakerDiscovery/MakerDiscoveryView";
 import BriefsView from "../Transform/Briefs/BriefsView";
+import BriefForm from "../Transform/Briefs/BriefForm";
 import QuotesView from "../Transform/Quotes/QuotesView";
 import ProductionOrdersView from "../Transform/Orders/ProductionOrdersView";
+import OrderChatView from "../Transform/Orders/OrderChatView"; // ✅ restored
 
 // Keep Components
 import ChatRoom from "./ChatRoom/ChatRoom";
@@ -31,10 +33,7 @@ import { Product, SavedItem } from "./BrutigeContext/BrutigeContext";
 interface BrutigePlatformProps {
   isDarkMode: boolean;
   toggleTheme: () => void;
-  notify: (
-    message: string,
-    type?: "success" | "error" | "info" | string,
-  ) => void;
+  notify: (message: string, type?: "success" | "error" | "info" | string) => void;
 }
 
 interface ProfileWrapperProps {
@@ -85,14 +84,11 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
   const currentTab: string = pathSegments[2] || "discovery";
 
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
-  // const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [savedItems, setSavedItems] = useState<SavedItem[]>([]);
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [hideMobileNav, setHideMobileNav] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [previousRoute, setPreviousRoute] = useState<string>(
-    "/platform/discovery",
-  );
+  const [previousRoute, setPreviousRoute] = useState<string>("/platform/discovery");
   const [collections, setCollections] = useState<string[]>([
     "All",
     "Streetwear",
@@ -124,8 +120,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
       }
     };
     window.addEventListener("profileUpdated", handleProfileUpdate);
-    return () =>
-      window.removeEventListener("profileUpdated", handleProfileUpdate);
+    return () => window.removeEventListener("profileUpdated", handleProfileUpdate);
   }, []);
 
   useEffect(() => {
@@ -159,72 +154,22 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
 
   const handleProductBack = () => {
     setSelectedProduct(null);
-    if (previousRoute && previousRoute !== "/platform/discovery")
-      navigate(previousRoute);
+    if (previousRoute && previousRoute !== "/platform/discovery") navigate(previousRoute);
   };
 
   const handleProductSelect = (product: Product) => {
     setPreviousRoute(location.pathname + location.search);
     setSelectedProduct(product);
-    if (location.pathname !== "/platform/discovery")
-      navigate("/platform/discovery");
+    if (location.pathname !== "/platform/discovery") navigate("/platform/discovery");
   };
-
-  // const addToCart = (
-  //   product: Product,
-  //   quantity: number = 1,
-  //   size: string = "M",
-  //   color: string = "Default",
-  // ) => {
-  //   setCartItems((prev) => {
-  //     const existingIndex = prev.findIndex(
-  //       (item) => item.id === product.id && item.size === size,
-  //     );
-  //     if (existingIndex >= 0) {
-  //       const updated = [...prev];
-  //       updated[existingIndex] = {
-  //         ...updated[existingIndex],
-  //         quantity: updated[existingIndex].quantity + quantity,
-  //       };
-  //       return updated;
-  //     }
-  //     return [...prev, { ...product, quantity, size, color }];
-  //   });
-  //   if (notify) notify("Added to Loop", "success");
-  // };
-
-  // const updateQuantity = (
-  //   id: string | number,
-  //   size: string,
-  //   newQuantity: number,
-  // ) => {
-  //   if (newQuantity < 1) return;
-  //   setCartItems((prev) =>
-  //     prev.map((item) =>
-  //       item.id === id && item.size === size
-  //         ? { ...item, quantity: newQuantity }
-  //         : item,
-  //     ),
-  //   );
-  // };
-
-  // const removeItem = (id: string | number, size: string) => {
-  //   setCartItems((prev) =>
-  //     prev.filter((item) => !(item.id === id && item.size === size)),
-  //   );
-  // };
 
   const toggleSaved = (product: Product) => {
     setSavedItems((prev) => {
       const isSaved = prev.some((item) => item.id === product.id);
       if (!isSaved && notify) notify("Saved to Archive", "success");
-      return isSaved
-        ? prev.filter((i) => i.id !== product.id)
-        : [...prev, product];
+      return isSaved ? prev.filter((i) => i.id !== product.id) : [...prev, product];
     });
   };
-
-  // const clearCart = () => setCartItems([]);
 
   const handleCreateCollection = (newName: string): boolean => {
     if (newName && !collections.includes(newName)) {
@@ -235,14 +180,9 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
     return false;
   };
 
-  const handleMoveItem = (
-    itemId: string | number,
-    targetCollection: string,
-  ) => {
+  const handleMoveItem = (itemId: string | number, targetCollection: string) => {
     setSavedItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId ? { ...item, collection: targetCollection } : item,
-      ),
+      prev.map((item) => (item.id === itemId ? { ...item, collection: targetCollection } : item)),
     );
     if (notify) notify(`Item moved to ${targetCollection}`, "success");
   };
@@ -260,7 +200,8 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
     currentTab !== "search" &&
     currentTab !== "chat" &&
     !location.pathname.includes("/profile") &&
-    !location.pathname.includes("/settings");
+    !location.pathname.includes("/settings") &&
+    !location.pathname.endsWith("/chat"); // ✅ hide header on order chat too
 
   return (
     <div className={styles.platformWrapper}>
@@ -277,7 +218,6 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
           <HomeHeader
             activeTab={currentTab}
             setActiveTab={handleTabChange}
-            // cartCount={cartItems.length}
             userAvatar={userAvatar}
             userName={userProfile?.firstName || "User"}
           />
@@ -287,17 +227,30 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
           <Routes location={location}>
             <Route path="/" element={<Navigate to="discovery" replace />} />
 
-            {/* ✅ NEW: B2B One Loop Flow */}
+            {/* B2B One Loop Flow */}
             <Route path="discovery" element={<MakerDiscoveryView />} />
-            <Route path="briefs" element={<BriefsView />} />
-            <Route path="quotes" element={<QuotesView />} />
-            <Route path="orders" element={<ProductionOrdersView />} />
 
-            {/* ✅ KEEP: Chat, Profile, Settings, Search */}
+            <Route path="briefs" element={<BriefsView />} />
+            <Route path="briefs/new" element={<BriefForm notify={notify} />} />
             <Route
-              path="search"
-              element={<SearchView onSelect={handleProductSelect} />}
+              path="briefs/:briefId/quotes"
+              element={<QuotesView notify={notify} />}
             />
+
+            <Route path="quotes" element={<Navigate to="/platform/briefs" replace />} />
+
+            <Route path="orders" element={<ProductionOrdersView />} />
+            <Route
+              path="orders/:orderId/chat"
+              element={<OrderChatView notify={notify} />}
+            /> {/* ✅ restored */}
+            <Route
+              path="orders/track/:orderId"
+              element={<Navigate to="/platform/orders" replace />}
+            />
+
+            {/* Keep: Chat, Profile, Settings, Search */}
+            <Route path="search" element={<SearchView onSelect={handleProductSelect} />} />
             <Route
               path="chat"
               element={
@@ -341,11 +294,6 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
               }
             />
 
-            <Route
-              path="orders/track/:orderId"
-              element={<Navigate to="/platform/orders" replace />}
-            />
-
             <Route path="*" element={<Navigate to="discovery" replace />} />
           </Routes>
         </div>
@@ -356,7 +304,6 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
           activeTab={currentTab}
           setActiveTab={handleTabChange}
           goToStudio={goToStudio}
-          // cartCount={cartItems.length}
           isDarkMode={isDarkMode}
           toggleTheme={toggleTheme}
         />

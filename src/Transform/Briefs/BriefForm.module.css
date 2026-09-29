@@ -1,0 +1,133 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+.container {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 48px 24px 80px;
+  font-family: 'Inter', sans-serif;
+}
+
+.header { margin-bottom: 32px; }
+
+.title {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+  margin: 0 0 10px;
+  color: #000;
+}
+
+.subtitle { color: #666; font-size: 1rem; margin: 0; }
+
+.errorBanner {
+  background: #fee2e2;
+  color: #ef4444;
+  border: 1.5px solid #ef4444;
+  padding: 14px 16px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+
+.form { display: flex; flex-direction: column; gap: 22px; }
+
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+
+.inputGroup { display: flex; flex-direction: column; gap: 8px; }
+
+.inputGroup label {
+  font-size: 0.75rem;
+  font-weight: 900;
+  color: #000;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.inputGroup input,
+.inputGroup textarea {
+  padding: 14px 16px;
+  border: 1.5px solid #000;
+  border-radius: 0;
+  font-size: 1rem;
+  font-family: 'Inter', sans-serif;
+  outline: none;
+  background: #fff;
+  color: #000;
+  transition: background 0.2s ease;
+}
+
+.inputGroup textarea { resize: vertical; min-height: 120px; }
+
+.inputGroup input:focus,
+.inputGroup textarea:focus { background: #f9f9f9; }
+
+.inputGroup input:disabled,
+.inputGroup textarea:disabled { background: #f5f5f5; cursor: not-allowed; opacity: 0.7; }
+
+.fileInput {
+  border: 1.5px dashed #000 !important;
+  padding: 12px !important;
+  background: #fafafa !important;
+  cursor: pointer;
+}
+
+.imageList { display: flex; flex-direction: column; gap: 8px; margin-top: 4px; }
+
+.imageItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1.5px solid #000;
+  padding: 8px 12px;
+  background: #fff;
+}
+
+.imageName { font-size: 0.85rem; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.removeImg {
+  background: none; border: none; cursor: pointer;
+  font-size: 1rem; font-weight: 900; color: #ef4444; padding: 0 4px;
+}
+
+.helper { font-size: 0.78rem; color: #888; }
+
+.errorText { font-size: 0.78rem; font-weight: 700; color: #ef4444; }
+
+.actions {
+  display: flex;
+  gap: 12px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.btnPrimary, .btnSecondary, .btnGhost {
+  font-family: 'Inter', sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  padding: 16px 22px;
+  cursor: pointer;
+  border-radius: 0;
+  transition: all 0.2s ease;
+}
+
+.btnPrimary { background: #000; color: #fff; border: 1.5px solid #000; }
+.btnPrimary:hover:not(:disabled) { background: #333; transform: translateY(-1px); }
+
+.btnSecondary { background: #fff; color: #000; border: 1.5px solid #000; }
+.btnSecondary:hover:not(:disabled) { background: #f2f2f2; }
+
+.btnGhost { background: none; color: #666; border: 1.5px solid transparent; }
+.btnGhost:hover:not(:disabled) { color: #000; }
+
+.btnPrimary:disabled, .btnSecondary:disabled, .btnGhost:disabled {
+  opacity: 0.5; cursor: not-allowed; transform: none;
+}
+
+@media (max-width: 600px) {
+  .row { grid-template-columns: 1fr; }
+  .actions { flex-direction: column-reverse; }
+  .btnPrimary, .btnSecondary, .btnGhost { width: 100%; }
+}

@@ -1,93 +1,146 @@
 // src/hooks/useOrderChat.ts
-import { useState, useEffect, useRef, useCallback } from 'react';
-import { Client, type IMessage } from '@stomp/stompjs';
-import { orderChatService, type OrderMessage } from '../services/orderChatService';
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Client, type IMessage } from "@stomp/stompjs";
+import { orderChatService, type OrderMessage } from "../services/orderChatService";
 
 interface UseOrderChatProps {
   orderId: string;
   currentUserId: string;
-  orderStatus: string; // pass from the order object you already have
-  accessToken: string; // from your auth context/localStorage
+  orderStatus: string;
+  accessToken?: string;
 }
 
-export const useOrderChat = ({ orderId, currentUserId, orderStatus, accessToken }: UseOrderChatProps) => {
+type ConnectionState = "connecting" | "connected" | "disconnected" | "error";
+
+const getWsUrl = (): string => {
+  const base = import.meta.env.VITE_API_URL || "http://localhost:8080/api/v1";
+  try {
+    const url = new URL(base);
+    url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+    url.pathname = "/ws";
+    url.search = "";
+    return url.toString();
+  } catch {
+    return base
+      .replace(/^https:/, "wss:")
+      .replace(/^http:/, "ws:")
+      .replace(/\/api\/v1\/?$/, "/ws");
+  }
+};
+
+export const useOrderChat = ({
+  orderId,
+  currentUserId,
+  orderStatus,
+  accessToken,
+}: UseOrderChatProps) => {
   const [messages, setMessages] = useState<OrderMessage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [isConnected, setIsConnected] = useState(false);
+  const [isSending, setIsSending] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<ConnectionState>("disconnected");
   const [error, setError] = useState<string | null>(null);
   const clientRef = useRef<Client | null>(null);
 
-  // 1. Load history via REST on mount
+  // 1. Load history via REST
   useEffect(() => {
-    if (!orderId) return;
+    if (!orderId) {
+      setIsLoading(false);
+      return;
+    }
+    let cancelled = false;
     setIsLoading(true);
-    orderChatService.getMessages(orderId)
-      .then(setMessages)
-      .catch(err => setError(err.response?.data?.message || 'Failed to load chat.'))
-      .finally(() => setIsLoading(false));
+    setError(null);
+    orderChatService
+      .getMessages(orderId)
+      .then((data) => {
+        if (!cancelled) setMessages(data);
+      })
+      .catch((err: any) => {
+        if (!cancelled)
+          setError(err.response?.data?.message || "Failed to load chat history.");
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
   }, [orderId]);
 
-  // 2. Open STOMP connection + subscribe
+  // 2. STOMP connect + subscribe (receive-only; send is via REST)
   useEffect(() => {
-    if (!orderId || !accessToken) return;
+    if (!orderId) return;
+    setConnectionStatus("connecting");
 
     const client = new Client({
-      brokerURL: 'wss://api.brutige.name.ng/ws',
-      connectHeaders: { Authorization: `Bearer ${accessToken}` },
+      brokerURL: getWsUrl(),
+      connectHeaders: accessToken ? { Authorization: `Bearer ${accessToken}` } : undefined,
       reconnectDelay: 5000,
       heartbeatIncoming: 10000,
       heartbeatOutgoing: 10000,
-
       onConnect: () => {
-        setIsConnected(true);
-        client.subscribe(
-          `/topic/orders/${orderId}/messages`,
-          (message: IMessage) => {
+        setConnectionStatus("connected");
+        client.subscribe(`/topic/orders/${orderId}/messages`, (message: IMessage) => {
+          try {
             const incoming: OrderMessage = JSON.parse(message.body);
-            setMessages(prev => {
-              // Dedupe by id — covers our own optimistic sends + WS echo
-              if (prev.some(m => m.id === incoming.id)) return prev;
-              return [...prev, incoming];
-            });
+            setMessages((prev) =>
+              prev.some((m) => m.id === incoming.id) ? prev : [...prev, incoming],
+            );
+          } catch (e) {
+            console.error("Failed to parse WS message:", e);
           }
-        );
+        });
       },
-
       onStompError: (frame) => {
-        console.error('STOMP error:', frame.headers['message']);
-        setError(frame.headers['message'] || 'Connection error.');
+        console.error("STOMP error:", frame.headers["message"]);
+        setConnectionStatus("error");
+        setError(frame.headers["message"] || "WebSocket connection error.");
       },
-
-      onDisconnect: () => setIsConnected(false),
+      onWebSocketClose: () => setConnectionStatus("disconnected"),
     });
 
     client.activate();
     clientRef.current = client;
-
-    return () => { client.deactivate(); clientRef.current = null; };
+    return () => {
+      client.deactivate();
+      clientRef.current = null;
+    };
   }, [orderId, accessToken]);
 
-  // 3. Publish message via STOMP (server broadcasts back via topic)
-  const sendMessage = useCallback(async (content: string) => {
-    if (!content.trim() || !clientRef.current?.connected) return;
-    clientRef.current.publish({
-      destination: `/app/orders/${orderId}/messages`,
-      body: JSON.stringify({ content }),
-    });
-    // Server will broadcast the saved OrderMessage back via our subscription —
-    // no optimistic append needed; dedupe handles echo safely
-  }, [orderId]);
+  // 3. Send via REST (authoritative). WS broadcasts to the other party.
+  const sendMessage = useCallback(
+    async (content: string) => {
+      const trimmed = content.trim();
+      if (!trimmed || !orderId) return;
+      setIsSending(true);
+      setError(null);
+      try {
+        const saved = await orderChatService.sendMessage(orderId, trimmed);
+        setMessages((prev) =>
+          prev.some((m) => m.id === saved.id) ? prev : [...prev, saved],
+        );
+      } catch (err: any) {
+        const message = err.response?.data?.message || "Failed to send message.";
+        setError(message);
+        throw err;
+      } finally {
+        setIsSending(false);
+      }
+    },
+    [orderId],
+  );
 
-  // 4. Business rules
-  const isLocked = orderStatus === 'AWAITING_PAYMENT';
+  // 4. Business rule: locked until escrow funded
+  const isLocked = orderStatus === "AWAITING_PAYMENT";
 
   return {
     messages,
     isLoading,
-    isConnected,
+    isSending,
+    connectionStatus,
     error,
     sendMessage,
     isLocked,
-    currentUserId, // UI uses this for bubble alignment
+    currentUserId,
   };
 };

@@ -6,7 +6,15 @@ import { quoteService } from '../../services/quoteService';
 import type { Quote, QuoteStatus } from '../../types/quote';
 import styles from './QuotesView.module.css';
 
-const QuotesView: React.FC = () => {
+interface NotifyFunction {
+  (message: string, type: 'success' | 'error' | 'info'): void;
+}
+
+interface QuotesViewProps {
+  notify?: NotifyFunction;
+}
+
+const QuotesView: React.FC<QuotesViewProps> = ({ notify }) => {
   const { briefId } = useParams<{ briefId: string }>();
   const navigate = useNavigate();
 
@@ -16,19 +24,32 @@ const QuotesView: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  const filterTabs: (QuoteStatus | 'ALL')[] = ['ALL', 'PENDING', 'ACCEPTED', 'DECLINED', 'SUPERSEDED'];
+  const filterTabs: (QuoteStatus | 'ALL')[] = [
+    'ALL',
+    'PENDING',
+    'ACCEPTED',
+    'DECLINED',
+    'SUPERSEDED',
+  ];
 
-  // ✅ Load real quotes from the backend
   const fetchQuotes = useCallback(async () => {
-    if (!briefId) return;
+    if (!briefId) {
+      setIsLoading(false);
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
+
     try {
       const data = await quoteService.getQuotesForBrief(briefId);
       setQuotes(data);
     } catch (err: any) {
       console.error('Failed to fetch quotes:', err);
-      setError(err.response?.data?.message || 'Failed to load quotes. Please try again.');
+      setError(
+        err.response?.data?.message ||
+          'Failed to load quotes. Please try again.',
+      );
     } finally {
       setIsLoading(false);
     }
@@ -38,62 +59,121 @@ const QuotesView: React.FC = () => {
     fetchQuotes();
   }, [fetchQuotes]);
 
-  const filteredQuotes = quotes.filter(q => statusFilter === 'ALL' || q.status === statusFilter);
+  const filteredQuotes = quotes.filter(
+    (q) => statusFilter === 'ALL' || q.status === statusFilter,
+  );
 
   const getStatusColor = (status: QuoteStatus): string => {
     switch (status) {
-      case 'PENDING': return '#f59e0b';
-      case 'ACCEPTED': return '#10b981';
-      case 'DECLINED': return '#ef4444';
-      case 'SUPERSEDED': return '#6b7280';
-      default: return '#6b7280';
+      case 'PENDING':
+        return '#f59e0b';
+      case 'ACCEPTED':
+        return '#10b981';
+      case 'DECLINED':
+        return '#ef4444';
+      case 'SUPERSEDED':
+        return '#6b7280';
+      default:
+        return '#6b7280';
     }
   };
 
-  // ✅ Wire Accept Action — creates a ProductionOrder + locks escrow
   const handleAccept = async (quoteId: string) => {
-    if (!window.confirm('Accept this quote? This will create a production order and lock in the price.')) return;
+    if (
+      !window.confirm(
+        'Accept this quote? This will create a production order and lock in the price.',
+      )
+    )
+      return;
 
     setActionLoadingId(quoteId);
+
     try {
       const newOrder = await quoteService.acceptQuote(quoteId);
-      // Update local state optimistically, then refetch to get the full picture
-      setQuotes(prev => prev.map(q =>
-        q.id === quoteId ? { ...q, status: 'ACCEPTED' as QuoteStatus } : q
-      ));
 
-      // Navigate to the new order (which is in AWAITING_PAYMENT state)
-      alert(`Quote accepted! Order ${newOrder.id} created. Please fund escrow to start production.`);
-      navigate(`/platform/orders/${newOrder.id}`);
+      setQuotes((prev) =>
+        prev.map((q) =>
+          q.id === quoteId ? { ...q, status: 'ACCEPTED' as QuoteStatus } : q,
+        ),
+      );
+
+      if (notify) {
+        notify(
+          `Quote accepted. Order ${newOrder.id} created. Fund escrow to start production.`,
+          'success',
+        );
+      }
+
+      navigate('/platform/orders');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to accept quote.');
+      const message =
+        err.response?.data?.message || 'Failed to accept quote.';
+      if (notify) notify(message, 'error');
+      else alert(message);
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  // ✅ Wire Decline Action — maker may submit one revision
   const handleDecline = async (quoteId: string) => {
-    if (!window.confirm('Decline this quote? The maker will be allowed ONE revised quote.')) return;
+    if (
+      !window.confirm(
+        'Decline this quote? The maker will be allowed ONE revised quote.',
+      )
+    )
+      return;
 
     setActionLoadingId(quoteId);
+
     try {
       const updated = await quoteService.declineQuote(quoteId);
-      setQuotes(prev => prev.map(q =>
-        q.id === quoteId ? updated : q
-      ));
+
+      if (updated && updated.id) {
+        setQuotes((prev) =>
+          prev.map((q) => (q.id === quoteId ? updated : q)),
+        );
+      } else {
+        await fetchQuotes();
+      }
+
+      if (notify) notify('Quote declined.', 'info');
     } catch (err: any) {
-      alert(err.response?.data?.message || 'Failed to decline quote.');
+      const message =
+        err.response?.data?.message || 'Failed to decline quote.';
+      if (notify) notify(message, 'error');
+      else alert(message);
     } finally {
       setActionLoadingId(null);
     }
   };
 
-  const formatCurrency = (amount: number): string => `₦${amount.toLocaleString('en-NG')}`;
-  const formatDate = (dateString: string): string =>
-    new Date(dateString).toLocaleDateString('en-NG', { year: 'numeric', month: 'short', day: 'numeric' });
+  const formatCurrency = (amount: number): string =>
+    `₦${amount.toLocaleString('en-NG')}`;
 
-  // Loading state
+  const formatDate = (dateString: string): string =>
+    new Date(dateString).toLocaleDateString('en-NG', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    });
+
+  if (!briefId) {
+    return (
+      <div className={styles.container}>
+        <div className={styles.emptyState}>
+          <p>Select a brief to view its quotes.</p>
+          <button
+            type="button"
+            className={styles.acceptBtn}
+            onClick={() => navigate('/platform/briefs')}
+          >
+            Go to Briefs
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   if (isLoading) {
     return (
       <div className={styles.container}>
@@ -109,36 +189,58 @@ const QuotesView: React.FC = () => {
       <div className={styles.header}>
         <h1 className={styles.title}>Review Quotes</h1>
         <p className={styles.subtitle}>
-          Compare quotes from makers on your briefs. Accept one to start production (funds go to escrow).
+          Compare quotes from makers on your briefs. Accept one to start
+          production. Funds go to escrow after acceptance.
         </p>
       </div>
 
       {error && (
-        <div style={{ color: '#ef4444', padding: '1rem', background: '#fee2e2', borderRadius: '8px', marginBottom: '1rem' }}>
+        <div
+          style={{
+            color: '#ef4444',
+            padding: '1rem',
+            background: '#fee2e2',
+            borderRadius: '8px',
+            marginBottom: '1rem',
+          }}
+        >
           {error}
-          <button onClick={fetchQuotes} style={{ marginLeft: '1rem', textDecoration: 'underline', background: 'none', border: 'none', cursor: 'pointer' }}>
+          <button
+            onClick={fetchQuotes}
+            style={{
+              marginLeft: '1rem',
+              textDecoration: 'underline',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer',
+            }}
+          >
             Retry
           </button>
         </div>
       )}
 
-      {/* Filter Tabs */}
       <div className={styles.filterBar}>
-        {filterTabs.map(status => (
+        {filterTabs.map((status) => (
           <button
             key={status}
             onClick={() => setStatusFilter(status)}
-            className={`${styles.filterBtn} ${statusFilter === status ? styles.filterBtnActive : ''}`}
+            className={`${styles.filterBtn} ${
+              statusFilter === status ? styles.filterBtnActive : ''
+            }`}
           >
             {status.toLowerCase()}
           </button>
         ))}
       </div>
 
-      {/* Quotes List */}
       {filteredQuotes.length === 0 ? (
         <div className={styles.emptyState}>
-          <p>{quotes.length === 0 ? 'No quotes received yet for this brief.' : 'No quotes found with this status.'}</p>
+          <p>
+            {quotes.length === 0
+              ? 'No quotes received yet for this brief.'
+              : 'No quotes found with this status.'}
+          </p>
         </div>
       ) : (
         <div className={styles.quoteList}>
@@ -147,7 +249,6 @@ const QuotesView: React.FC = () => {
 
             return (
               <div key={quote.id} className={styles.quoteCard}>
-                {/* Card Header */}
                 <div className={styles.cardHeader}>
                   <div>
                     <div className={styles.titleRow}>
@@ -163,28 +264,33 @@ const QuotesView: React.FC = () => {
                       </span>
                     </div>
                     <p className={styles.metaLine}>
-                      Quote ID: {quote.id} • Brief: {quote.briefId} • Sent {formatDate(quote.createdAt)}
+                      Quote ID: {quote.id} • Brief: {quote.briefId} • Sent{' '}
+                      {formatDate(quote.createdAt)}
                     </p>
                   </div>
                 </div>
 
-                {/* Quote Details Grid — mapped to real contract fields */}
                 <div className={styles.detailsGrid}>
                   <div className={styles.detailItem}>
                     <p className={styles.detailLabel}>Quoted Price</p>
-                    <p className={styles.detailValue}>{formatCurrency(quote.priceNgn)}</p>
+                    <p className={styles.detailValue}>
+                      {formatCurrency(quote.priceNgn)}
+                    </p>
                   </div>
                   <div className={styles.detailItem}>
                     <p className={styles.detailLabel}>Maker Receives</p>
-                    <p className={styles.detailValue}>{formatCurrency(quote.estimatedMakerPayoutNgn)}</p>
+                    <p className={styles.detailValue}>
+                      {formatCurrency(quote.estimatedMakerPayoutNgn)}
+                    </p>
                   </div>
                   <div className={styles.detailItem}>
                     <p className={styles.detailLabel}>Production Time</p>
-                    <p className={styles.detailValuePlain}>{quote.timelineDays} days</p>
+                    <p className={styles.detailValuePlain}>
+                      {quote.timelineDays} days
+                    </p>
                   </div>
                 </div>
 
-                {/* Maker Terms */}
                 {quote.terms && (
                   <div className={styles.notesBox}>
                     <p className={styles.notesLabel}>Maker Terms</p>
@@ -192,16 +298,21 @@ const QuotesView: React.FC = () => {
                   </div>
                 )}
 
-                {/* SUPERSEDED Notice */}
                 {quote.status === 'SUPERSEDED' && (
-                  <div className={styles.notesBox} style={{ background: 'rgba(107, 114, 128, 0.1)' }}>
-                    <p className={styles.notesText} style={{ color: '#6b7280' }}>
-                      This quote was superseded by a revised version from the same maker.
+                  <div
+                    className={styles.notesBox}
+                    style={{ background: 'rgba(107, 114, 128, 0.1)' }}
+                  >
+                    <p
+                      className={styles.notesText}
+                      style={{ color: '#6b7280' }}
+                    >
+                      This quote was superseded by a revised version from the
+                      same maker.
                     </p>
                   </div>
                 )}
 
-                {/* Accept/Decline Actions (One Loop decision point) */}
                 {quote.status === 'PENDING' && (
                   <div className={styles.actionRow}>
                     <button
@@ -216,7 +327,9 @@ const QuotesView: React.FC = () => {
                       className={styles.acceptBtn}
                       disabled={isActionLoading}
                     >
-                      {isActionLoading ? 'Processing...' : 'Accept Quote & Fund Escrow'}
+                      {isActionLoading
+                        ? 'Processing...'
+                        : 'Accept Quote & Create Order'}
                     </button>
                   </div>
                 )}
