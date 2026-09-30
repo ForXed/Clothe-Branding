@@ -143,7 +143,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (formData.firstName.trim().length < 2) {
       if (notify) notify('Please enter your first name.', 'error');
       return;
@@ -163,22 +163,29 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
 
     setIsLoading(true);
     try {
-      await authService.register({
+      // ✅ v1.2: signup may return 200 (already registered, unverified) or 201 (new)
+      const response = await authService.register({
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email,
         password: formData.password,
       });
 
+      const alreadyRegistered = response.user && !response.user.isEmailVerified;
       if (notify) {
         notify(
-          'Account created! Please check your email to verify your account.',
+          alreadyRegistered
+            ? 'We sent a new 6-digit code to your email. Please verify to continue.'
+            : 'Account created! Check your email for the 6-digit verification code.',
           'success'
         );
       }
-      
-      // Navigate to login page after successful signup
-      setTimeout(() => navigate('/login'), 1500);
+
+      // Navigate to OTP verification page, pre-fill email
+      setTimeout(
+        () => navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`),
+        1500
+      );
     } catch (error: any) {
       const message =
         error.response?.data?.message ||
@@ -212,8 +219,8 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
           </p>
 
           <div className={styles.socialGrid}>
-            <button 
-              type='button' 
+            <button
+              type='button'
               className={styles.socialBtn}
               onClick={handleGoogleSignUp}
             >
@@ -301,8 +308,8 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
               </div>
             </div>
 
-            <button 
-              type='submit' 
+            <button
+              type='submit'
               className={styles.submitBtn}
               disabled={isLoading}
             >

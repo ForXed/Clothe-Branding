@@ -1,4 +1,3 @@
-// src/services/authService.ts
 import apiClient from './apiClient';
 
 export interface RegisterData {
@@ -8,59 +7,66 @@ export interface RegisterData {
   password: string;
 }
 
+export interface AuthResponse {
+  user: {
+    id: string;
+    email: string;
+    firstName: string;
+    lastName: string;
+    isEmailVerified: boolean;
+  };
+  message?: string;
+}
+
 export const authService = {
   // 🔐 AUTH CORE
-  async register(data: RegisterData) {
-    const response = await apiClient.post('/auth/register', data);
+  async register(data: RegisterData): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>('/authentication/signup', data);
     return response.data;
   },
 
-  async login(email: string, password: string) {
-    const response = await apiClient.post('/auth/login', { email, password });
-    const { accessToken, refreshToken, user } = response.data;
-
-    // Store tokens immediately
-    localStorage.setItem('brutige_access_token', accessToken);
-    localStorage.setItem('brutige_refresh_token', refreshToken);
-
-    return { user, accessToken };
+  async login(email: string, password: string): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>('/authentication/login', { email, password });
+    return response.data;
   },
 
-  async logout() {
+  async logout(): Promise<void> {
     try {
-      await apiClient.post('/auth/logout');
+      await apiClient.post('/authentication/logout');
     } catch (e) {
-      // Ignore logout errors, we clear local state anyway
-      console.warn('Logout API call failed, clearing local state.');
+      console.warn('Logout API call failed:', e);
     }
-    localStorage.removeItem('brutige_access_token');
-    localStorage.removeItem('brutige_refresh_token');
   },
 
   // 🔄 SESSION LIFECYCLE
-  async verifyEmail(token: string) {
-    const response = await apiClient.post('/auth/verify-email', { token });
+  async verifyEmail(otp: string): Promise<AuthResponse> {
+    const response = await apiClient.post<AuthResponse>('/authentication/verify-email', { otp });
     return response.data;
   },
 
-  async changePassword(currentPassword: string, newPassword: string) {
-  const response = await apiClient.post('/auth/change-password', { currentPassword, newPassword });
-  return response.data;
-},
-
-  async forgotPassword(email: string) {
-    const response = await apiClient.post('/auth/forgot-password', { email });
+  async resendOtp(email: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/authentication/resend-otp', { email });
     return response.data;
   },
 
-  async resetPassword(token: string, password: string) {
-    const response = await apiClient.post('/auth/reset-password', { token, password });
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/authentication/forgotten-password', { email });
+    return response.data;
+  },
+
+  async resetPassword(email: string, password: string, otp: string): Promise<{ message: string }> {
+    const response = await apiClient.post<{ message: string }>('/authentication/verify-forgotten-password', {
+      email,
+      forgottenPassword: password,
+      otp,
+    });
     return response.data;
   },
 
   // 🌐 OAUTH
-  getGoogleOAuthUrl() {
-    const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
-    return `${API_BASE_URL}/auth/oauth2/google`;
-  }
+  getGoogleOAuthUrl(): string {
+    // Google OAuth must be at the root, not under /api/v1
+    const API_ROOT = import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8080';
+    return `${API_ROOT}/oauth2/authorization/google`;
+  },
 };

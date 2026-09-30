@@ -115,7 +115,7 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
 
   const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    
+
     if (!validateEmail(email)) {
       if (notify) notify('Please enter a valid email address.', 'error');
       return;
@@ -127,17 +127,37 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
 
     setIsLoading(true);
     try {
+      // ✅ v1.2: cookies are set by the browser automatically on login success
       const { user } = await authService.login(email, password);
-      
-      // Store user info for the app
+
+      // Store user info for display only (auth is handled via cookies)
       localStorage.setItem('brutige_user', JSON.stringify(user));
-      
+
       if (notify) notify(`Welcome back, ${user.firstName || user.email}!`, 'success');
-      
-      // Navigate to discovery (the new B2B entry point)
+
       navTimerRef.current = setTimeout(() => navigate('/platform/discovery'), 800);
     } catch (error: any) {
-      const message = error.response?.data?.message || 'Login failed. Please check your credentials.';
+      const status = error.response?.status;
+      const serverMessage = error.response?.data?.message;
+
+      let message = 'Login failed. Please check your credentials.';
+
+      // ✅ v1.2: handle specific error states
+      if (status === 403 && serverMessage?.toLowerCase().includes('verif')) {
+        message = 'Please verify your email first. Redirecting...';
+        if (notify) notify(message, 'error');
+        setTimeout(
+          () => navigate(`/verify-email?email=${encodeURIComponent(email)}`),
+          1500
+        );
+        return;
+      }
+      if (status === 400 && serverMessage?.toLowerCase().includes('google')) {
+        message = 'This account uses Google sign-in. Please use "Continue with Google".';
+      } else if (serverMessage) {
+        message = serverMessage;
+      }
+
       if (notify) notify(message, 'error');
     } finally {
       setIsLoading(false);
@@ -167,8 +187,8 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
           </p>
 
           <div className={styles.socialGrid}>
-            <button 
-              type='button' 
+            <button
+              type='button'
               className={styles.socialBtn}
               onClick={handleGoogleLogin}
             >
@@ -220,8 +240,8 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
               </div>
             </div>
 
-            <button 
-              type='submit' 
+            <button
+              type='submit'
               className={styles.submitBtn}
               disabled={isLoading}
             >
@@ -234,7 +254,7 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
               New to Brutige? <Link to='/signup'>Create Account</Link>
             </p>
             <p className={styles.footerLink}>
-              <Link to='/forgot-password' style={{ opacity: 0.5 }}>
+              <Link to='/reset-password' style={{ opacity: 0.5 }}>
                 Forgot password?
               </Link>
             </p>
