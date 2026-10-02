@@ -21,9 +21,8 @@ import StudioSettings from "./StudioSettings/StudioSettings";
 import Analytics from "./Analytics/Analytics";
 import ProModal from "./ProModal/ProModal";
 
-// ✅ NEW: Transform Flow Components (B2B MVP)
-import BriefsView from "../Transform/Briefs/BriefsView";
-import QuotesView from "../Transform/Quotes/QuotesView";
+// ✅ NEW: Maker-side B2B flow (incoming briefs + quote/decline in one screen)
+import IncomingBriefs from "../Transform/MakerBriefs/IncomingBriefs";
 
 // @ts-ignore
 import useStudioData from "../hooks/useStudioData";
@@ -129,9 +128,10 @@ const MakerStudio: React.FC = () => {
               }
             />
 
-            {/* ✅ NEW: B2B One Loop Flow */}
-            <Route path="briefs" element={<BriefsView />} />
-            <Route path="quotes" element={<QuotesView />} />
+            {/* ✅ NEW: Maker incoming-briefs queue (P3.2.14).
+                Quote + decline happen here via the in-screen modal,
+                so there is intentionally NO standalone /studio/quotes route. */}
+            <Route path="briefs" element={<IncomingBriefs />} />
 
             <Route path="*" element={<Navigate to="overview" replace />} />
           </Routes>
