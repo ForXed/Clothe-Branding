@@ -33,7 +33,10 @@ import { Product, SavedItem } from "./BrutigeContext/BrutigeContext";
 interface BrutigePlatformProps {
   isDarkMode: boolean;
   toggleTheme: () => void;
-  notify: (message: string, type?: "success" | "error" | "info" | string) => void;
+  notify: (
+    message: string,
+    type?: "success" | "error" | "info" | string,
+  ) => void;
 }
 
 interface ProfileWrapperProps {
@@ -88,7 +91,9 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
   const [hideMobileNav, setHideMobileNav] = useState<boolean>(false);
   const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
-  const [previousRoute, setPreviousRoute] = useState<string>("/platform/discovery");
+  const [previousRoute, setPreviousRoute] = useState<string>(
+    "/platform/discovery",
+  );
   const [collections, setCollections] = useState<string[]>([
     "All",
     "Streetwear",
@@ -120,7 +125,8 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
       }
     };
     window.addEventListener("profileUpdated", handleProfileUpdate);
-    return () => window.removeEventListener("profileUpdated", handleProfileUpdate);
+    return () =>
+      window.removeEventListener("profileUpdated", handleProfileUpdate);
   }, []);
 
   useEffect(() => {
@@ -154,20 +160,24 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
 
   const handleProductBack = () => {
     setSelectedProduct(null);
-    if (previousRoute && previousRoute !== "/platform/discovery") navigate(previousRoute);
+    if (previousRoute && previousRoute !== "/platform/discovery")
+      navigate(previousRoute);
   };
 
   const handleProductSelect = (product: Product) => {
     setPreviousRoute(location.pathname + location.search);
     setSelectedProduct(product);
-    if (location.pathname !== "/platform/discovery") navigate("/platform/discovery");
+    if (location.pathname !== "/platform/discovery")
+      navigate("/platform/discovery");
   };
 
   const toggleSaved = (product: Product) => {
     setSavedItems((prev) => {
       const isSaved = prev.some((item) => item.id === product.id);
       if (!isSaved && notify) notify("Saved to Archive", "success");
-      return isSaved ? prev.filter((i) => i.id !== product.id) : [...prev, product];
+      return isSaved
+        ? prev.filter((i) => i.id !== product.id)
+        : [...prev, product];
     });
   };
 
@@ -180,9 +190,14 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
     return false;
   };
 
-  const handleMoveItem = (itemId: string | number, targetCollection: string) => {
+  const handleMoveItem = (
+    itemId: string | number,
+    targetCollection: string,
+  ) => {
     setSavedItems((prev) =>
-      prev.map((item) => (item.id === itemId ? { ...item, collection: targetCollection } : item)),
+      prev.map((item) =>
+        item.id === itemId ? { ...item, collection: targetCollection } : item,
+      ),
     );
     if (notify) notify(`Item moved to ${targetCollection}`, "success");
   };
@@ -226,31 +241,33 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
         <div className={styles.viewport}>
           <Routes location={location}>
             <Route path="/" element={<Navigate to="discovery" replace />} />
-
             {/* B2B One Loop Flow */}
             <Route path="discovery" element={<MakerDiscoveryView />} />
-
             <Route path="briefs" element={<BriefsView />} />
             <Route path="briefs/new" element={<BriefForm notify={notify} />} />
             <Route
               path="briefs/:briefId/quotes"
               element={<QuotesView notify={notify} />}
             />
-
-            <Route path="quotes" element={<Navigate to="/platform/briefs" replace />} />
-
+            <Route
+              path="quotes"
+              element={<Navigate to="/platform/briefs" replace />}
+            />
             <Route path="orders" element={<ProductionOrdersView />} />
             <Route
               path="orders/:orderId/chat"
               element={<OrderChatView notify={notify} />}
-            /> {/* ✅ restored */}
+            />{" "}
+            {/* ✅ restored */}
             <Route
               path="orders/track/:orderId"
               element={<Navigate to="/platform/orders" replace />}
             />
-
             {/* Keep: Chat, Profile, Settings, Search */}
-            <Route path="search" element={<SearchView onSelect={handleProductSelect} />} />
+            <Route
+              path="search"
+              element={<SearchView onSelect={handleProductSelect} />}
+            />
             <Route
               path="chat"
               element={
@@ -293,7 +310,6 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
                 />
               }
             />
-
             <Route path="*" element={<Navigate to="discovery" replace />} />
           </Routes>
         </div>
