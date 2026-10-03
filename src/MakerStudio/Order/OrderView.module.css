@@ -376,11 +376,14 @@ p.ordDetails {
       flex-direction: column;
       gap: 4px;
 
+      input:hover {
+        border-color: var(--brut-text);
+      }
       input {
         padding: 12px;
         border-radius: 12px;
         border: 1px solid var(--brut-border);
-        background-color: var(--brut-bg);
+        background-color: var(--brut-border);
         color: var(--brut-text);
         font-size: 16px; /* stops iOS zooming on focus */
         min-width: 0;
@@ -388,6 +391,7 @@ p.ordDetails {
     }
 
     .dropzone {
+      background-color: var(--brut-border);
       padding: 20px;
       border: 1px dashed var(--brut-border);
       border-radius: 12px;
@@ -448,6 +452,9 @@ p.ordDetails {
       justify-content: flex-end;
       gap: 8px;
 
+      button:hover {
+        border: 1px solid var(--brut-text);
+      }
       button {
         padding: 10px 16px;
         border-radius: 12px;
@@ -464,6 +471,26 @@ p.ordDetails {
       }
     }
   }
+}
+
+.state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.retryButton {
+  padding: 0.6rem 1.25rem;
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
 }
 
 /* ------------------------- responsive ------------------------- */

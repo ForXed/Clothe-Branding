@@ -1,32 +1,25 @@
 import { useParams } from "react-router-dom";
+import { useEffect, useRef, useState } from "react";
 import styles from "./OrderView.module.css";
 import { EscrowStatus, OrderStatus } from "../../types/order";
-import { useEffect, useRef, useState } from "react";
-import { ProductionOrder } from "../../data/mockTransform";
+import {
+  useOrder,
+  ActionResult,
+  OrderView as OrderViewModel,
+} from "../../hooks/useOrder";
+import type { DeliverPayload, DisputeInput } from "../../services/orderService";
 
-const dummOrder: ProductionOrder = {
-  id: "ord_005",
-  quoteId: "quo_006",
-  briefId: "brf_005",
-  makerName: "Abuja Studio",
-  garmentType: "Technical Windbreaker",
-  quantity: 25,
-  totalAmountNgn: 2100000,
-  status: "IN_ESCROW",
-  escrow: {
-    id: "esc_005",
-    orderId: "ord_005",
-    status: "HELD",
-    amountNgn: 2100000,
-    platformFeeNgn: 210000,
-    makerPayoutNgn: 1890000,
-  },
-  expectedDelivery: "2026-12-05",
-  createdAt: "2026-09-01T13:00:00Z",
-};
+/* ------------------------------------------------------------------ */
 
 const MAX_FILES = 6;
 const MAX_SIZE_MB = 5;
+
+// const DISPUTE_CATEGORIES = [
+//   { value: "QUALITY_MISMATCH", label: "Quality doesn't match the brief" },
+//   { value: "NOT_DELIVERED", label: "Order not delivered" },
+//   { value: "LATE_DELIVERY", label: "Delivered late" },
+//   { value: "OTHER", label: "Other" },
+// ];
 
 const formatCurrency = (amount: number): string =>
   `₦${amount.toLocaleString("en-NG")}`;
@@ -38,20 +31,17 @@ const formatCurrency = (amount: number): string =>
 type PreviewImage = { id: string; file: File; preview: string };
 
 const DeliveryProofModal = ({
-  orderId,
   onClose,
-  onSuccess,
+  onSubmit,
 }: {
-  orderId: string;
   onClose: () => void;
-  onSuccess: () => void;
+  onSubmit: (payload: DeliverPayload) => Promise<ActionResult>;
 }) => {
   const [tracking, setTracking] = useState("");
   const [images, setImages] = useState<PreviewImage[]>([]);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
-  // latest images in a ref so object URLs are freed on unmount
   const imagesRef = useRef<PreviewImage[]>(images);
   imagesRef.current = images;
   useEffect(() => {
@@ -59,9 +49,13 @@ const DeliveryProofModal = ({
       imagesRef.current.forEach((img) => URL.revokeObjectURL(img.preview));
   }, []);
 
+  const close = () => {
+    if (!submitting) onClose();
+  };
+
   const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
     const picked = Array.from(e.target.files ?? []);
-    e.target.value = ""; // allows re-picking the same file later
+    e.target.value = "";
     let message = "";
 
     const current = imagesRef.current;
@@ -77,9 +71,8 @@ const DeliveryProofModal = ({
         continue;
       }
       const id = `${file.name}-${file.size}-${file.lastModified}`;
-      const duplicate =
-        current.some((i) => i.id === id) || accepted.some((i) => i.id === id);
-      if (duplicate) continue;
+      if (current.some((i) => i.id === id) || accepted.some((i) => i.id === id))
+        continue;
 
       if (current.length + accepted.length >= MAX_FILES) {
         message = `You can upload a maximum of ${MAX_FILES} images.`;
@@ -101,42 +94,31 @@ const DeliveryProofModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-
-    if (!tracking.trim()) return setError("Tracking number is required.");
     if (images.length === 0) return setError("Add at least one image.");
 
-    const formData = new FormData();
-    formData.append("tracking", tracking.trim());
-    images.forEach((img) => formData.append("images", img.file));
+    setSubmitting(true);
+    const result = await onSubmit({
+      proofImages: images.map((i) => i.file),
+      trackingNumber: tracking.trim() || undefined,
+    });
+    setSubmitting(false);
 
-    try {
-      setSubmitting(true);
-      // Don't set Content-Type manually; the browser adds the multipart boundary
-      const res = await fetch(`/api/orders/${orderId}/delivery-proof`, {
-        method: "POST",
-        body: formData,
-      });
-      if (!res.ok) throw new Error("Upload failed. Please try again.");
-      onSuccess();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong.");
-    } finally {
-      setSubmitting(false);
-    }
+    if (result.ok) onClose();
+    else setError(result.message);
   };
 
   return (
-    <div className={styles.modal} onClick={onClose}>
+    <div className={styles.modal} onClick={close}>
       <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
         <section className={styles.header}>
           <p>Upload Delivery Proof</p>
-          <button type="button" onClick={onClose}>
+          <button type="button" onClick={close}>
             X
           </button>
         </section>
 
         <div>
-          <label htmlFor="tracking">Waybill / Tracking Number</label>
+          <label htmlFor="tracking">Waybill / Tracking Number (optional)</label>
           <input
             id="tracking"
             name="tracking"
@@ -201,7 +183,7 @@ const DeliveryProofModal = ({
         {error && <p className={styles.error}>{error}</p>}
 
         <section className={styles.actions}>
-          <button type="button" onClick={onClose} disabled={submitting}>
+          <button type="button" onClick={close} disabled={submitting}>
             Cancel
           </button>
           <button type="submit" disabled={submitting}>
@@ -214,172 +196,386 @@ const DeliveryProofModal = ({
 };
 
 /* ------------------------------------------------------------------ */
-/* Order view                                                          */
+/* Dispute modal                                                       */
+/* ------------------------------------------------------------------ */
+
+// const DisputeModal = ({
+//   onClose,
+//   onSubmit,
+// }: {
+//   onClose: () => void;
+//   onSubmit: (input: DisputeInput) => Promise<ActionResult>;
+// }) => {
+//   const [category, setCategory] = useState(DISPUTE_CATEGORIES[0].value);
+//   const [explanation, setExplanation] = useState("");
+//   const [error, setError] = useState("");
+//   const [submitting, setSubmitting] = useState(false);
+
+//   const close = () => {
+//     if (!submitting) onClose();
+//   };
+
+//   const handleSubmit = async (e: React.FormEvent) => {
+//     e.preventDefault();
+//     setError("");
+//     if (!explanation.trim()) return setError("Please explain the problem.");
+
+//     setSubmitting(true);
+//     const result = await onSubmit({
+//       reasonCategory: category,
+//       explanation: explanation.trim(),
+//     });
+//     setSubmitting(false);
+
+//     if (result.ok) onClose();
+//     else setError(result.message);
+//   };
+
+//   return (
+//     <div className={styles.modal} onClick={close}>
+//       <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
+//         <section className={styles.header}>
+//           <p>Raise a Dispute</p>
+//           <button type="button" onClick={close}>
+//             X
+//           </button>
+//         </section>
+
+//         <div>
+//           <label htmlFor="reasonCategory">Reason</label>
+//           <select
+//             id="reasonCategory"
+//             value={category}
+//             onChange={(e) => setCategory(e.target.value)}
+//           >
+//             {DISPUTE_CATEGORIES.map((c) => (
+//               <option key={c.value} value={c.value}>
+//                 {c.label}
+//               </option>
+//             ))}
+//           </select>
+//         </div>
+
+//         <div>
+//           <label htmlFor="explanation">What went wrong?</label>
+//           <textarea
+//             id="explanation"
+//             rows={4}
+//             value={explanation}
+//             onChange={(e) => setExplanation(e.target.value)}
+//           />
+//         </div>
+
+//         {error && <p className={styles.error}>{error}</p>}
+
+//         <section className={styles.actions}>
+//           <button type="button" onClick={close} disabled={submitting}>
+//             Cancel
+//           </button>
+//           <button type="submit" disabled={submitting}>
+//             {submitting ? "Submitting..." : "Submit Dispute"}
+//           </button>
+//         </section>
+//       </form>
+//     </div>
+//   );
+// };
+
+/* ------------------------------------------------------------------ */
+/* Helpers                                                             */
+/* ------------------------------------------------------------------ */
+
+const getOrderStatusColor = (status: OrderStatus): string => {
+  switch (status) {
+    case "AWAITING_PAYMENT":
+      return "#f59e0b";
+    case "IN_ESCROW":
+      return "#3b82f6";
+    case "IN_PRODUCTION":
+      return "#8b5cf6";
+    case "DELIVERED":
+      return "#14b8a6";
+    case "COMPLETED":
+      return "#10b981";
+    case "CANCELLED":
+      return "#6b7280";
+    case "DISPUTED":
+      return "#ef4444";
+    default:
+      return "#6b7280";
+  }
+};
+
+const getEscrowStatusColor = (status: EscrowStatus): string => {
+  switch (status) {
+    case "AWAITING":
+      return "#6b7280";
+    case "HELD":
+      return "#3b82f6";
+    case "RELEASED":
+      return "#10b981";
+    case "REFUNDED":
+      return "#f97316";
+    case "DISPUTED":
+      return "#ef4444";
+    default:
+      return "#6b7280";
+  }
+};
+
+const getStatusActionText = (order: OrderViewModel): string => {
+  switch (order.status) {
+    case "AWAITING_PAYMENT":
+      return `Quote accepted. Buyer must pay ${formatCurrency(order.totalAmountNgn)} into Brutige Escrow to lock specs.`;
+    case "IN_ESCROW":
+      return "Funds locked in Escrow. Mark production as started.";
+    case "IN_PRODUCTION":
+      return "Garments are being produced. Upload proof of delivery when complete.";
+    case "DELIVERED":
+      return "Batch delivered! Buyer has 7 days to inspect quality or dispute before auto-release.";
+    case "COMPLETED":
+      return `Order fully completed. ${formatCurrency(order.escrow.makerPayoutNgn)} net payout disbursed to ${order.makerName}.`;
+    case "CANCELLED":
+      return "Order cancelled. Escrow refunded or non-existent.";
+    case "DISPUTED":
+      return "Dispute active. Funds locked in escrow until Brutige Arbitrator resolves.";
+    default:
+      return "";
+  }
+};
+
+const getEscrowNote = (order: OrderViewModel): string => {
+  switch (order.escrow.status) {
+    case "AWAITING":
+      return "Waiting for the buyer's payment.";
+    case "HELD":
+      return `Funds locked in Escrow until delivery is confirmed.`;
+    case "RELEASED":
+      return `Funds released to ${order.makerName}.`;
+    case "REFUNDED":
+      return "Funds refunded to the buyer.";
+    default:
+      return "";
+  }
+};
+
+const statuses = [
+  "AWAITING_PAYMENT",
+  "IN_ESCROW",
+  "IN_PRODUCTION",
+  "DELIVERED",
+  "COMPLETED",
+  "CANCELLED",
+  "DISPUTED",
+];
+
+/* ------------------------------------------------------------------ */
+/* Page                                                                */
 /* ------------------------------------------------------------------ */
 
 const OrderView = () => {
-  const param = useParams();
-  const orderID = param.orderId; // use this to fetch the real order
-  void orderID;
+  const { orderId } = useParams();
+
+  const [source, setSource] = useState("mock");
+  const { order, loading, loadError, warning, pendingAction, reload, actions } =
+    useOrder(orderId, source);
 
   const [selected, setSelected] = useState<"specs" | "finance">("specs");
-  const [selectedOrder, setSelectedOrder] =
-    useState<ProductionOrder>(dummOrder);
-  const [modalOpen, setModalOpen] = useState(false);
+  const [modal, setModal] = useState<null | "deliver" | "dispute">(null);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const statuses = [
-    "AWAITING_PAYMENT",
-    "IN_ESCROW",
-    "IN_PRODUCTION",
-    "DELIVERED",
-    "COMPLETED",
-    "CANCELLED",
-    "DISPUTED",
-  ];
+  // a different source means different data, so clear stale UI state
+  useEffect(() => {
+    setActionError(null);
+    setModal(null);
+  }, [source]);
 
-  const setStatus = (status: OrderStatus) =>
-    setSelectedOrder((prev) => ({ ...prev, status }));
-
-  const getOrderStatusColor = (status: OrderStatus): string => {
-    switch (status) {
-      case "AWAITING_PAYMENT":
-        return "#f59e0b";
-      case "IN_ESCROW":
-        return "#3b82f6";
-      case "IN_PRODUCTION":
-        return "#8b5cf6";
-      case "DELIVERED":
-        return "#14b8a6";
-      case "COMPLETED":
-        return "#10b981";
-      case "CANCELLED":
-        return "#6b7280";
-      case "DISPUTED":
-        return "#ef4444";
-      default:
-        return "#6b7280";
-    }
+  const track = async (
+    fn: () => Promise<ActionResult>,
+  ): Promise<ActionResult> => {
+    setActionError(null);
+    const result = await fn();
+    if (!result.ok) setActionError(result.message);
+    return result;
   };
 
-  const getEscrowStatusColor = (status: EscrowStatus): string => {
-    switch (status) {
-      case "AWAITING":
-        return "#6b7280";
-      case "HELD":
-        return "#3b82f6";
-      case "RELEASED":
-        return "#10b981";
-      case "REFUNDED":
-        return "#f97316";
-      case "DISPUTED":
-        return "#ef4444";
-      default:
-        return "#6b7280";
-    }
-  };
+  /* dev-only switch between dummy data and real requests */
+  // const devToggle = import.meta.env.DEV && (
+  //   <div className={styles.devToggle}>
+  //     <span>
+  //       Data source:{" "}
+  //       <strong>{source === "mock" ? "Dummy data" : "Live API"}</strong>
+  //     </span>
+  //     <button
+  //       type="button"
+  //       onClick={() => setSource((s) => (s === "mock" ? "api" : "mock"))}
+  //     >
+  //       Switch to {source === "mock" ? "API" : "dummy data"}
+  //     </button>
+  //   </div>
+  // );
+
+  if (loading) {
+    return (
+      <div className={styles.main}>
+        {/* {devToggle} */}
+        <div className={styles.state}>
+          <p>Loading order...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (loadError || !order) {
+    return (
+      <div className={styles.main}>
+        {/* {devToggle} */}
+        <div className={styles.state}>
+          <p>{loadError ?? "Order not found."}</p>
+          <button className={styles.retryButton} type="button" onClick={reload}>
+            Try again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const busy = pendingAction !== null;
 
   const getStatusActions = () => {
-    if (selectedOrder.status == "AWAITING_PAYMENT")
-      return (
-        <button
-          style={{ background: "var(--brut-danger)" }}
-          onClick={() => setStatus("CANCELLED")}
-        >
-          Cancel Order
-        </button>
-      );
-
-    if (selectedOrder.status == "IN_ESCROW")
-      return (
-        <>
-          <button
-            style={{ background: "var(--brut-bg)" }}
-            onClick={() => setStatus("IN_PRODUCTION")}
-          >
-            Start Production
-          </button>
-          <button
-            style={{ background: "var(--brut-danger)" }}
-            onClick={() => setStatus("DISPUTED")}
-          >
-            Raise Dispute
-          </button>
-        </>
-      );
-
-    if (selectedOrder.status == "IN_PRODUCTION")
-      return (
-        <button
-          style={{ background: "var(--brut-bg)" }}
-          onClick={() => setModalOpen(true)}
-        >
-          Mark as Delivered
-        </button>
-      );
-
-    return null;
-  };
-
-  const getStatusActionText = () => {
-    switch (selectedOrder.status) {
+    switch (order.status) {
       case "AWAITING_PAYMENT":
-        return `Quote accepted. Buyer must pay ${formatCurrency(selectedOrder.totalAmountNgn)} into Brutige Escrow to lock specs.`;
+        return (
+          <>
+            <button
+              disabled={busy}
+              style={{ background: "var(--brut-bg)" }}
+              onClick={() => track(actions.pay)}
+            >
+              {pendingAction === "pay" ? "Processing..." : "Pay Now"}
+            </button>
+            <button
+              disabled={busy}
+              style={{ background: "var(--brut-danger)" }}
+              onClick={() => {
+                if (window.confirm("Cancel this order?")) track(actions.cancel);
+              }}
+            >
+              {pendingAction === "cancel" ? "Cancelling..." : "Cancel Order"}
+            </button>
+          </>
+        );
+
       case "IN_ESCROW":
-        return "Funds locked in Escrow. Mark production as started.";
+        return (
+          <>
+            <button
+              disabled={busy}
+              style={{ background: "var(--brut-bg)" }}
+              onClick={() => track(actions.startProduction)}
+            >
+              {pendingAction === "startProduction"
+                ? "Starting..."
+                : "Start Production"}
+            </button>
+            <button
+              disabled={busy}
+              style={{ background: "var(--brut-danger)" }}
+              // onClick={() => setModal("dispute")}
+            >
+              Raise Dispute
+            </button>
+          </>
+        );
+
       case "IN_PRODUCTION":
-        return "Garments are being produced. Upload courier tracking and image proof when complete.";
+        return (
+          <button
+            disabled={busy}
+            style={{ background: "var(--brut-bg)" }}
+            onClick={() => setModal("deliver")}
+          >
+            Mark as Delivered
+          </button>
+        );
+
       case "DELIVERED":
-        return "Batch delivered! Buyer has 7 days to inspect quality or dispute before auto-release.";
-      case "COMPLETED":
-        return `Order fully completed. ${formatCurrency(selectedOrder.escrow.makerPayoutNgn)} net payout disbursed to ${selectedOrder.makerName}.`;
-      case "CANCELLED":
-        return "Order cancelled. Escrow refunded or non-existent.";
-      case "DISPUTED":
-        return "Dispute active. Funds locked in escrow until Brutige Arbitrator resolves.";
+        return (
+          <>
+            <button
+              disabled={busy}
+              style={{ background: "var(--brut-bg)" }}
+              onClick={() => track(actions.confirm)}
+            >
+              {pendingAction === "confirm"
+                ? "Confirming..."
+                : "Confirm Receipt"}
+            </button>
+            <button
+              disabled={busy}
+              style={{ background: "var(--brut-danger)" }}
+              onClick={() => setModal("dispute")}
+            >
+              Raise Dispute
+            </button>
+          </>
+        );
+
       default:
-        return "";
+        return null;
     }
   };
 
   return (
     <div className={styles.main}>
-      {modalOpen && (
+      {/* {devToggle} */}
+
+      {warning && (
+        <div className={styles.banner + " " + styles.bannerWarn}>
+          <span>{warning}</span>
+          <button type="button" onClick={reload}>
+            Refresh
+          </button>
+        </div>
+      )}
+
+      {modal === "deliver" && (
         <DeliveryProofModal
-          orderId={selectedOrder.id}
-          onClose={() => setModalOpen(false)}
-          onSuccess={() => {
-            setStatus("DELIVERED");
-            setModalOpen(false);
-          }}
+          onClose={() => setModal(null)}
+          onSubmit={(payload) => track(() => actions.deliver(payload))}
         />
       )}
+      {/* {modal === "dispute" && (
+        <DisputeModal
+          onClose={() => setModal(null)}
+          onSubmit={(input) => track(() => actions.dispute(input))}
+        />
+      )} */}
 
       <div className={styles.container + " " + styles.prod}>
         <div className={styles.content}>
           <div>
             <div className={styles.header}>
-              <p>ORDER ID: {selectedOrder.id}</p>
+              <p>ORDER ID: {order.id}</p>
               <div
                 className={styles.orderStatus}
                 style={{
-                  background: getOrderStatusColor(
-                    selectedOrder.status as OrderStatus,
-                  ),
+                  background: getOrderStatusColor(order.status as OrderStatus),
                 }}
               >
-                <p>{selectedOrder.status}</p>
+                <p>{order.status}</p>
               </div>
               <p>
-                Brief: <span>{selectedOrder.briefId}</span>
+                Brief: <span>{order.briefId}</span>
               </p>
               <p>
-                Quote: <span>{selectedOrder.quoteId}</span>
+                Quote: <span>{order.quoteId}</span>
               </p>
             </div>
-            <h2 className={styles.prodName}>{selectedOrder.garmentType}</h2>
+            <h2 className={styles.prodName}>{order.garmentType}</h2>
             <p className={styles.ordDetails}>
-              Ordered by <span>{selectedOrder.briefId}</span> for production by{" "}
-              <span>{selectedOrder.makerName}</span>
+              Ordered by <span>{order.briefId}</span> for production by{" "}
+              <span>{order.makerName}</span>
             </p>
           </div>
 
@@ -389,7 +585,7 @@ const OrderView = () => {
                 <p>CONTRACT TOTAL</p>
               </div>
               <h3 className={styles.orderPrice}>
-                {formatCurrency(selectedOrder.totalAmountNgn)}
+                {formatCurrency(order.totalAmountNgn)}
               </h3>
             </div>
 
@@ -398,7 +594,7 @@ const OrderView = () => {
                 <p>TARGET DELIVERY</p>
               </div>
               <p className={styles.orderExpDelivery}>
-                {selectedOrder.expectedDelivery}
+                {order.expectedDelivery || "TBC"}
               </p>
             </div>
           </div>
@@ -409,18 +605,27 @@ const OrderView = () => {
         <p>ORDER LIFECYCLE</p>
         <div className={styles.lifeCycle}>
           {statuses.map((status) => (
-            <StatusCard
-              key={status}
-              selectedOrder={selectedOrder}
-              status={status}
-            />
+            <StatusCard key={status} order={order} status={status} />
           ))}
         </div>
+
+        {actionError && (
+          <div
+            className={styles.banner + " " + styles.bannerError}
+            role="alert"
+            style={{ marginTop: 24 }}
+          >
+            <span>{actionError}</span>
+            <button type="button" onClick={() => setActionError(null)}>
+              Dismiss
+            </button>
+          </div>
+        )}
 
         <div className={styles.statusAction}>
           <div className={styles.stack}>
             <p className={styles.head}>STATUS ACTION</p>
-            <p>{getStatusActionText()}</p>
+            <p>{getStatusActionText(order)}</p>
           </div>
           <div className={styles.actionButtons}>{getStatusActions()}</div>
         </div>
@@ -430,10 +635,7 @@ const OrderView = () => {
         <div className={styles.header}>
           <div className={styles.stack}>
             <h3>Brutige Escrow Vault</h3>
-            <p>
-              Funds locked in Escrow. {selectedOrder.makerName} is ready to
-              begin fabric cutting.
-            </p>
+            <p>{getEscrowNote(order)}</p>
           </div>
 
           <div className={styles.escrowStatus}>
@@ -441,12 +643,12 @@ const OrderView = () => {
             <p
               style={{
                 background: getEscrowStatusColor(
-                  selectedOrder.escrow.status as EscrowStatus,
+                  order.escrow.status as EscrowStatus,
                 ),
               }}
               className={styles.status}
             >
-              {selectedOrder.escrow.status}
+              {order.escrow.status}
             </p>
           </div>
         </div>
@@ -454,16 +656,16 @@ const OrderView = () => {
         <div className={styles.escrowDetails}>
           <div>
             <p className={styles.head}>TOTAL HELD FROM BUYER</p>
-            <h3>{formatCurrency(selectedOrder.escrow.amountNgn)}</h3>
+            <h3>{formatCurrency(order.escrow.amountNgn)}</h3>
           </div>
           <div>
             <p className={styles.head}>BRUTIGE FEES (10%)</p>
-            <h3>{formatCurrency(selectedOrder.escrow.platformFeeNgn)}</h3>
+            <h3>{formatCurrency(order.escrow.platformFeeNgn)}</h3>
           </div>
           <div>
             <p className={styles.head}>MAKER PAYOUT</p>
             <h3 style={{ color: "var(--brut-success)" }}>
-              {formatCurrency(selectedOrder.escrow.makerPayoutNgn)}
+              {formatCurrency(order.escrow.makerPayoutNgn)}
             </h3>
           </div>
         </div>
@@ -487,25 +689,24 @@ const OrderView = () => {
 
         {selected == "specs" ? (
           <div className={styles.specs}>
-            <div className={styles.prodImage}>
-              <img
-                src="https://i.animepahe.pw/uploads/posters/f3e/f3e7edb725783cd2f4bcc0deabc82c757214f3f0aa529c78f8a337a809316da1.th.webp"
-                alt={selectedOrder.garmentType}
-              />
-            </div>
+            {order.imageUrl && (
+              <div className={styles.prodImage}>
+                <img src={order.imageUrl} alt={order.garmentType} />
+              </div>
+            )}
             <div className={styles.prodDetails}>
               <div>
                 <p className={styles.head}>ITEM NAME</p>
-                <p>{selectedOrder.garmentType}</p>
+                <p>{order.garmentType}</p>
               </div>
               <div>
                 <p className={styles.head}>ORDER QUANTITY</p>
-                <p>{selectedOrder.quantity} Units</p>
+                <p>{order.quantity} Units</p>
               </div>
               <div>
                 <p className={styles.head}>DESCRIPTION</p>
                 <p className={styles.prodDesc}>
-                  Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet.
+                  {order.description || "No description provided."}
                 </p>
               </div>
             </div>
@@ -516,19 +717,19 @@ const OrderView = () => {
               <div>
                 <p>Gross Contract Amount</p>
                 <p style={{ color: "var(--brut-text)" }}>
-                  {formatCurrency(selectedOrder.escrow.amountNgn)}
+                  {formatCurrency(order.escrow.amountNgn)}
                 </p>
               </div>
               <div>
                 <p>Brutige Commission (10%)</p>
                 <p style={{ color: "var(--brut-warning)" }}>
-                  -{formatCurrency(selectedOrder.escrow.platformFeeNgn)}
+                  -{formatCurrency(order.escrow.platformFeeNgn)}
                 </p>
               </div>
               <div>
                 <p style={{ color: "var(--brut-text)" }}>Net Maker Payment</p>
                 <p style={{ color: "var(--brut-success)" }}>
-                  {formatCurrency(selectedOrder.escrow.makerPayoutNgn)}
+                  {formatCurrency(order.escrow.makerPayoutNgn)}
                 </p>
               </div>
             </div>
@@ -546,12 +747,12 @@ const OrderView = () => {
 
 const StatusCard = ({
   status,
-  selectedOrder,
+  order,
 }: {
   status: string;
-  selectedOrder: ProductionOrder;
+  order: OrderViewModel;
 }) => {
-  const isActive = status == selectedOrder.status;
+  const isActive = status == order.status;
   return (
     <div className={styles.statusCard + (isActive ? " " + styles.active : "")}>
       <p className={styles.head}>{status}</p>
