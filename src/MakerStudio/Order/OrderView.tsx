@@ -1,18 +1,14 @@
 import { useParams } from "react-router-dom";
 import { useEffect, useRef, useState } from "react";
 import styles from "./OrderView.module.css";
-import { EscrowStatus, OrderStatus } from "../../types/order";
-import {
-  useOrder,
-  ActionResult,
-  OrderView as OrderViewModel,
-} from "../../hooks/useOrder";
+import { OrderStatus, ProductionOrder } from "../../types/order";
+import { useOrder, ActionResult } from "../../hooks/useOrder";
 import type { DeliverPayload, DisputeInput } from "../../services/orderService";
+import { EscrowStatus } from "../../types/escrow";
+import DeliveryProof from "./DeliveryProof";
+import OrderViewSkeleton from "./OrderViewSkeleton";
 
 /* ------------------------------------------------------------------ */
-
-const MAX_FILES = 6;
-const MAX_SIZE_MB = 5;
 
 // const DISPUTE_CATEGORIES = [
 //   { value: "QUALITY_MISMATCH", label: "Quality doesn't match the brief" },
@@ -20,180 +16,6 @@ const MAX_SIZE_MB = 5;
 //   { value: "LATE_DELIVERY", label: "Delivered late" },
 //   { value: "OTHER", label: "Other" },
 // ];
-
-const formatCurrency = (amount: number): string =>
-  `₦${amount.toLocaleString("en-NG")}`;
-
-/* ------------------------------------------------------------------ */
-/* Delivery proof modal                                                */
-/* ------------------------------------------------------------------ */
-
-type PreviewImage = { id: string; file: File; preview: string };
-
-const DeliveryProofModal = ({
-  onClose,
-  onSubmit,
-}: {
-  onClose: () => void;
-  onSubmit: (payload: DeliverPayload) => Promise<ActionResult>;
-}) => {
-  const [tracking, setTracking] = useState("");
-  const [images, setImages] = useState<PreviewImage[]>([]);
-  const [error, setError] = useState("");
-  const [submitting, setSubmitting] = useState(false);
-
-  const imagesRef = useRef<PreviewImage[]>(images);
-  imagesRef.current = images;
-  useEffect(() => {
-    return () =>
-      imagesRef.current.forEach((img) => URL.revokeObjectURL(img.preview));
-  }, []);
-
-  const close = () => {
-    if (!submitting) onClose();
-  };
-
-  const handleFiles = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const picked = Array.from(e.target.files ?? []);
-    e.target.value = "";
-    let message = "";
-
-    const current = imagesRef.current;
-    const accepted: PreviewImage[] = [];
-
-    for (const file of picked) {
-      if (!file.type.startsWith("image/")) {
-        message = `"${file.name}" is not an image.`;
-        continue;
-      }
-      if (file.size > MAX_SIZE_MB * 1024 * 1024) {
-        message = `"${file.name}" is larger than ${MAX_SIZE_MB}MB.`;
-        continue;
-      }
-      const id = `${file.name}-${file.size}-${file.lastModified}`;
-      if (current.some((i) => i.id === id) || accepted.some((i) => i.id === id))
-        continue;
-
-      if (current.length + accepted.length >= MAX_FILES) {
-        message = `You can upload a maximum of ${MAX_FILES} images.`;
-        break;
-      }
-      accepted.push({ id, file, preview: URL.createObjectURL(file) });
-    }
-
-    setError(message);
-    if (accepted.length) setImages([...current, ...accepted]);
-  };
-
-  const removeImage = (id: string) => {
-    const target = images.find((i) => i.id === id);
-    if (target) URL.revokeObjectURL(target.preview);
-    setImages((prev) => prev.filter((i) => i.id !== id));
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
-    if (images.length === 0) return setError("Add at least one image.");
-
-    setSubmitting(true);
-    const result = await onSubmit({
-      proofImages: images.map((i) => i.file),
-      trackingNumber: tracking.trim() || undefined,
-    });
-    setSubmitting(false);
-
-    if (result.ok) onClose();
-    else setError(result.message);
-  };
-
-  return (
-    <div className={styles.modal} onClick={close}>
-      <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
-        <section className={styles.header}>
-          <p>Upload Delivery Proof</p>
-          <button type="button" onClick={close}>
-            X
-          </button>
-        </section>
-
-        <div>
-          <label htmlFor="tracking">Waybill / Tracking Number (optional)</label>
-          <input
-            id="tracking"
-            name="tracking"
-            type="text"
-            value={tracking}
-            onChange={(e) => setTracking(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label htmlFor="imageProof">
-            Attach Image Proof ({images.length}/{MAX_FILES})
-          </label>
-          <label htmlFor="imageProof" className={styles.dropzone}>
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              stroke-width="2"
-              stroke-linecap="round"
-              stroke-linejoin="round"
-              className="lucide lucide-image-plus preview-icon"
-            >
-              <path d="M16 5h6" />
-              <path d="M19 2v6" />
-              <path d="M21 11.5V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h7.5" />
-              <path d="m21 15-3.086-3.086a2 2 0 0 0-2.828 0L6 21" />
-              <circle cx="9" cy="9" r="2" />
-            </svg>
-          </label>
-          <input
-            id="imageProof"
-            name="imageProof"
-            type="file"
-            accept="image/*"
-            multiple
-            hidden
-            onChange={handleFiles}
-          />
-        </div>
-
-        {images.length > 0 && (
-          <ul className={styles.previewGrid}>
-            {images.map((img) => (
-              <li key={img.id}>
-                <img src={img.preview} alt={img.file.name} />
-                <button
-                  type="button"
-                  aria-label={`Remove ${img.file.name}`}
-                  onClick={() => removeImage(img.id)}
-                >
-                  ×
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-
-        {error && <p className={styles.error}>{error}</p>}
-
-        <section className={styles.actions}>
-          <button type="button" onClick={close} disabled={submitting}>
-            Cancel
-          </button>
-          <button type="submit" disabled={submitting}>
-            {submitting ? "Uploading..." : "Upload Proof"}
-          </button>
-        </section>
-      </form>
-    </div>
-  );
-};
 
 /* ------------------------------------------------------------------ */
 /* Dispute modal                                                       */
@@ -285,6 +107,9 @@ const DeliveryProofModal = ({
 /* Helpers                                                             */
 /* ------------------------------------------------------------------ */
 
+const formatCurrency = (amount: number): string =>
+  `₦${amount.toLocaleString("en-NG")}`;
+
 const getOrderStatusColor = (status: OrderStatus): string => {
   switch (status) {
     case "AWAITING_PAYMENT":
@@ -323,10 +148,10 @@ const getEscrowStatusColor = (status: EscrowStatus): string => {
   }
 };
 
-const getStatusActionText = (order: OrderViewModel): string => {
+const getStatusActionText = (order: ProductionOrder): string => {
   switch (order.status) {
     case "AWAITING_PAYMENT":
-      return `Quote accepted. Buyer must pay ${formatCurrency(order.totalAmountNgn)} into Brutige Escrow to lock specs.`;
+      return `Quote accepted. Buyer must pay ${formatCurrency(order.escrow.amountNgn)} into Brutige Escrow to lock specs.`;
     case "IN_ESCROW":
       return "Funds locked in Escrow. Mark production as started.";
     case "IN_PRODUCTION":
@@ -344,7 +169,7 @@ const getStatusActionText = (order: OrderViewModel): string => {
   }
 };
 
-const getEscrowNote = (order: OrderViewModel): string => {
+const getEscrowNote = (order: ProductionOrder): string => {
   switch (order.escrow.status) {
     case "AWAITING":
       return "Waiting for the buyer's payment.";
@@ -376,19 +201,14 @@ const statuses = [
 const OrderView = () => {
   const { orderId } = useParams();
 
-  const [source, setSource] = useState("mock");
-  const { order, loading, loadError, warning, pendingAction, reload, actions } =
-    useOrder(orderId, source);
+  const { order, loading, loadError, pendingAction, reload, actions } =
+    useOrder(orderId);
 
   const [selected, setSelected] = useState<"specs" | "finance">("specs");
   const [modal, setModal] = useState<null | "deliver" | "dispute">(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
   // a different source means different data, so clear stale UI state
-  useEffect(() => {
-    setActionError(null);
-    setModal(null);
-  }, [source]);
 
   const track = async (
     fn: () => Promise<ActionResult>,
@@ -399,37 +219,20 @@ const OrderView = () => {
     return result;
   };
 
-  /* dev-only switch between dummy data and real requests */
-  // const devToggle = import.meta.env.DEV && (
-  //   <div className={styles.devToggle}>
-  //     <span>
-  //       Data source:{" "}
-  //       <strong>{source === "mock" ? "Dummy data" : "Live API"}</strong>
-  //     </span>
-  //     <button
-  //       type="button"
-  //       onClick={() => setSource((s) => (s === "mock" ? "api" : "mock"))}
-  //     >
-  //       Switch to {source === "mock" ? "API" : "dummy data"}
-  //     </button>
-  //   </div>
-  // );
-
   if (loading) {
     return (
-      <div className={styles.main}>
-        {/* {devToggle} */}
-        <div className={styles.state}>
-          <p>Loading order...</p>
-        </div>
-      </div>
+      <OrderViewSkeleton />
+      // <div className={styles.main}>
+      //   <div className={styles.state}>
+      //     <p>Loading order...</p>
+      //   </div>
+      // </div>
     );
   }
 
   if (loadError || !order) {
     return (
       <div className={styles.main}>
-        {/* {devToggle} */}
         <div className={styles.state}>
           <p>{loadError ?? "Order not found."}</p>
           <button className={styles.retryButton} type="button" onClick={reload}>
@@ -447,13 +250,6 @@ const OrderView = () => {
       case "AWAITING_PAYMENT":
         return (
           <>
-            <button
-              disabled={busy}
-              style={{ background: "var(--brut-bg)" }}
-              onClick={() => track(actions.pay)}
-            >
-              {pendingAction === "pay" ? "Processing..." : "Pay Now"}
-            </button>
             <button
               disabled={busy}
               style={{ background: "var(--brut-danger)" }}
@@ -530,17 +326,8 @@ const OrderView = () => {
     <div className={styles.main}>
       {/* {devToggle} */}
 
-      {warning && (
-        <div className={styles.banner + " " + styles.bannerWarn}>
-          <span>{warning}</span>
-          <button type="button" onClick={reload}>
-            Refresh
-          </button>
-        </div>
-      )}
-
       {modal === "deliver" && (
-        <DeliveryProofModal
+        <DeliveryProof
           onClose={() => setModal(null)}
           onSubmit={(payload) => track(() => actions.deliver(payload))}
         />
@@ -566,16 +353,16 @@ const OrderView = () => {
                 <p>{order.status}</p>
               </div>
               <p>
-                Brief: <span>{order.briefId}</span>
+                Brief: <span>{order.brief.id}</span>
               </p>
               <p>
-                Quote: <span>{order.quoteId}</span>
+                Quote: <span>{order.quote.id}</span>
               </p>
             </div>
             <h2 className={styles.prodName}>{order.garmentType}</h2>
             <p className={styles.ordDetails}>
-              Ordered by <span>{order.briefId}</span> for production by{" "}
-              <span>{order.makerName}</span>
+              Ordered by <span>{order.buyer.displayName}</span> for production
+              by <span>{order.makerName}</span>
             </p>
           </div>
 
@@ -585,7 +372,7 @@ const OrderView = () => {
                 <p>CONTRACT TOTAL</p>
               </div>
               <h3 className={styles.orderPrice}>
-                {formatCurrency(order.totalAmountNgn)}
+                {formatCurrency(order.escrow.amountNgn)}
               </h3>
             </div>
 
@@ -689,11 +476,15 @@ const OrderView = () => {
 
         {selected == "specs" ? (
           <div className={styles.specs}>
-            {order.imageUrl && (
+            {order.brief.images.length > 0 && (
               <div className={styles.prodImage}>
-                <img src={order.imageUrl} alt={order.garmentType} />
+                <img
+                  src={order.brief.images[0].fileUrl}
+                  alt={order.garmentType}
+                />
               </div>
             )}
+
             <div className={styles.prodDetails}>
               <div>
                 <p className={styles.head}>ITEM NAME</p>
@@ -706,7 +497,7 @@ const OrderView = () => {
               <div>
                 <p className={styles.head}>DESCRIPTION</p>
                 <p className={styles.prodDesc}>
-                  {order.description || "No description provided."}
+                  {order.brief.description || "No description provided."}
                 </p>
               </div>
             </div>
@@ -750,7 +541,7 @@ const StatusCard = ({
   order,
 }: {
   status: string;
-  order: OrderViewModel;
+  order: ProductionOrder;
 }) => {
   const isActive = status == order.status;
   return (
