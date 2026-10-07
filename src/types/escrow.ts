@@ -7,13 +7,12 @@ export type EscrowStatus =
 
 export interface Escrow {
   id: string;
-  orderId: string;
-  status: EscrowStatus;
+  productionOrderId: string;
   amountNgn: number; // Total held from buyer
-  platformFeeNgn: number; // Brutige commission (fee transparency)
+  platformFeePercent: number; // Brutige commission (fee transparency)
+  feeAmountNgn: number; // Amount of fee charged
   makerPayoutNgn: number; // What the maker actually receives
-  heldAt?: string;
-  autoReleaseAt?: string; // 7-day auto-release window
-  releasedAt?: string;
-  refundedAt?: string;
+  status: EscrowStatus;
+  paidAt?: string | null;
+  releasedAt?: string | null;
 }

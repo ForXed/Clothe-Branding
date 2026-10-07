@@ -21,10 +21,6 @@ export interface ProductionOrder {
   brief: Brief;
   quote: Quote;
   escrow: Escrow;
-  garmentType: string;
-  makerName: string;
-  quantity: number;
-  expectedDelivery: string;
   buyer: {
     id: string;
     displayName: string;

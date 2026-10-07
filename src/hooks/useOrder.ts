@@ -22,6 +22,7 @@ export type ActionResult = { ok: true } | { ok: false; message: string };
 async function fetchOrderView(id: string): Promise<{ order: ProductionOrder }> {
   // The order and its escrow are essential: if either fails, the whole load fails.
   const order = await orderService.getOrderById(id);
+
   return { order };
 }
 

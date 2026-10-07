@@ -10,98 +10,98 @@ import OrderViewSkeleton from "./OrderViewSkeleton";
 
 /* ------------------------------------------------------------------ */
 
-// const DISPUTE_CATEGORIES = [
-//   { value: "QUALITY_MISMATCH", label: "Quality doesn't match the brief" },
-//   { value: "NOT_DELIVERED", label: "Order not delivered" },
-//   { value: "LATE_DELIVERY", label: "Delivered late" },
-//   { value: "OTHER", label: "Other" },
-// ];
+const DISPUTE_CATEGORIES = [
+  { value: "QUALITY_MISMATCH", label: "Quality doesn't match the brief" },
+  { value: "NOT_DELIVERED", label: "Order not delivered" },
+  { value: "LATE_DELIVERY", label: "Delivered late" },
+  { value: "OTHER", label: "Other" },
+];
 
 /* ------------------------------------------------------------------ */
 /* Dispute modal                                                       */
 /* ------------------------------------------------------------------ */
 
-// const DisputeModal = ({
-//   onClose,
-//   onSubmit,
-// }: {
-//   onClose: () => void;
-//   onSubmit: (input: DisputeInput) => Promise<ActionResult>;
-// }) => {
-//   const [category, setCategory] = useState(DISPUTE_CATEGORIES[0].value);
-//   const [explanation, setExplanation] = useState("");
-//   const [error, setError] = useState("");
-//   const [submitting, setSubmitting] = useState(false);
+const DisputeModal = ({
+  onClose,
+  onSubmit,
+}: {
+  onClose: () => void;
+  onSubmit: (input: DisputeInput) => Promise<ActionResult>;
+}) => {
+  const [category, setCategory] = useState(DISPUTE_CATEGORIES[0].value);
+  const [explanation, setExplanation] = useState("");
+  const [error, setError] = useState("");
+  const [submitting, setSubmitting] = useState(false);
 
-//   const close = () => {
-//     if (!submitting) onClose();
-//   };
+  const close = () => {
+    if (!submitting) onClose();
+  };
 
-//   const handleSubmit = async (e: React.FormEvent) => {
-//     e.preventDefault();
-//     setError("");
-//     if (!explanation.trim()) return setError("Please explain the problem.");
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    if (!explanation.trim()) return setError("Please explain the problem.");
 
-//     setSubmitting(true);
-//     const result = await onSubmit({
-//       reasonCategory: category,
-//       explanation: explanation.trim(),
-//     });
-//     setSubmitting(false);
+    setSubmitting(true);
+    const result = await onSubmit({
+      reasonCategory: category,
+      explanation: explanation.trim(),
+    });
+    setSubmitting(false);
 
-//     if (result.ok) onClose();
-//     else setError(result.message);
-//   };
+    if (result.ok) onClose();
+    else setError(result.message);
+  };
 
-//   return (
-//     <div className={styles.modal} onClick={close}>
-//       <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
-//         <section className={styles.header}>
-//           <p>Raise a Dispute</p>
-//           <button type="button" onClick={close}>
-//             X
-//           </button>
-//         </section>
+  return (
+    <div className={styles.modal + " " + styles.dispute} onClick={close}>
+      <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
+        <section className={styles.header}>
+          <p>Raise a Dispute</p>
+          <button type="button" onClick={close}>
+            X
+          </button>
+        </section>
 
-//         <div>
-//           <label htmlFor="reasonCategory">Reason</label>
-//           <select
-//             id="reasonCategory"
-//             value={category}
-//             onChange={(e) => setCategory(e.target.value)}
-//           >
-//             {DISPUTE_CATEGORIES.map((c) => (
-//               <option key={c.value} value={c.value}>
-//                 {c.label}
-//               </option>
-//             ))}
-//           </select>
-//         </div>
+        <div>
+          <label htmlFor="reasonCategory">Reason</label>
+          <select
+            id="reasonCategory"
+            value={category}
+            onChange={(e) => setCategory(e.target.value)}
+          >
+            {DISPUTE_CATEGORIES.map((c) => (
+              <option key={c.value} value={c.value}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </div>
 
-//         <div>
-//           <label htmlFor="explanation">What went wrong?</label>
-//           <textarea
-//             id="explanation"
-//             rows={4}
-//             value={explanation}
-//             onChange={(e) => setExplanation(e.target.value)}
-//           />
-//         </div>
+        <div>
+          <label htmlFor="explanation">What went wrong?</label>
+          <textarea
+            id="explanation"
+            rows={4}
+            value={explanation}
+            onChange={(e) => setExplanation(e.target.value)}
+          />
+        </div>
 
-//         {error && <p className={styles.error}>{error}</p>}
+        {error && <p className={styles.error}>{error}</p>}
 
-//         <section className={styles.actions}>
-//           <button type="button" onClick={close} disabled={submitting}>
-//             Cancel
-//           </button>
-//           <button type="submit" disabled={submitting}>
-//             {submitting ? "Submitting..." : "Submit Dispute"}
-//           </button>
-//         </section>
-//       </form>
-//     </div>
-//   );
-// };
+        <section className={styles.actions}>
+          <button type="button" onClick={close} disabled={submitting}>
+            Cancel
+          </button>
+          <button type="submit" disabled={submitting}>
+            {submitting ? "Submitting..." : "Submit Dispute"}
+          </button>
+        </section>
+      </form>
+    </div>
+  );
+};
 
 /* ------------------------------------------------------------------ */
 /* Helpers                                                             */
@@ -159,7 +159,7 @@ const getStatusActionText = (order: ProductionOrder): string => {
     case "DELIVERED":
       return "Batch delivered! Buyer has 7 days to inspect quality or dispute before auto-release.";
     case "COMPLETED":
-      return `Order fully completed. ${formatCurrency(order.escrow.makerPayoutNgn)} net payout disbursed to ${order.makerName}.`;
+      return `Order fully completed. ${formatCurrency(order.escrow.makerPayoutNgn)} net payout disbursed to ${order.maker.displayName}.`;
     case "CANCELLED":
       return "Order cancelled. Escrow refunded or non-existent.";
     case "DISPUTED":
@@ -176,7 +176,7 @@ const getEscrowNote = (order: ProductionOrder): string => {
     case "HELD":
       return `Funds locked in Escrow until delivery is confirmed.`;
     case "RELEASED":
-      return `Funds released to ${order.makerName}.`;
+      return `Funds released to ${order.maker.displayName}.`;
     case "REFUNDED":
       return "Funds refunded to the buyer.";
     default:
@@ -277,7 +277,7 @@ const OrderView = () => {
             <button
               disabled={busy}
               style={{ background: "var(--brut-danger)" }}
-              // onClick={() => setModal("dispute")}
+              onClick={() => setModal("dispute")}
             >
               Raise Dispute
             </button>
@@ -332,12 +332,12 @@ const OrderView = () => {
           onSubmit={(payload) => track(() => actions.deliver(payload))}
         />
       )}
-      {/* {modal === "dispute" && (
+      {modal === "dispute" && (
         <DisputeModal
           onClose={() => setModal(null)}
           onSubmit={(input) => track(() => actions.dispute(input))}
         />
-      )} */}
+      )}
 
       <div className={styles.container + " " + styles.prod}>
         <div className={styles.content}>
@@ -359,10 +359,10 @@ const OrderView = () => {
                 Quote: <span>{order.quote.id}</span>
               </p>
             </div>
-            <h2 className={styles.prodName}>{order.garmentType}</h2>
+            <h2 className={styles.prodName}>{order.brief.garmentType}</h2>
             <p className={styles.ordDetails}>
               Ordered by <span>{order.buyer.displayName}</span> for production
-              by <span>{order.makerName}</span>
+              by <span>{order.maker.displayName}</span>
             </p>
           </div>
 
@@ -381,7 +381,7 @@ const OrderView = () => {
                 <p>TARGET DELIVERY</p>
               </div>
               <p className={styles.orderExpDelivery}>
-                {order.expectedDelivery || "TBC"}
+                {order.brief.deadline || "TBC"}
               </p>
             </div>
           </div>
@@ -446,8 +446,10 @@ const OrderView = () => {
             <h3>{formatCurrency(order.escrow.amountNgn)}</h3>
           </div>
           <div>
-            <p className={styles.head}>BRUTIGE FEES (10%)</p>
-            <h3>{formatCurrency(order.escrow.platformFeeNgn)}</h3>
+            <p className={styles.head}>
+              BRUTIGE FEES ({order.escrow.platformFeePercent}%)
+            </p>
+            <h3>{formatCurrency(order.escrow.feeAmountNgn)}</h3>
           </div>
           <div>
             <p className={styles.head}>MAKER PAYOUT</p>
@@ -480,7 +482,7 @@ const OrderView = () => {
               <div className={styles.prodImage}>
                 <img
                   src={order.brief.images[0].fileUrl}
-                  alt={order.garmentType}
+                  alt={order.brief.garmentType}
                 />
               </div>
             )}
@@ -488,11 +490,11 @@ const OrderView = () => {
             <div className={styles.prodDetails}>
               <div>
                 <p className={styles.head}>ITEM NAME</p>
-                <p>{order.garmentType}</p>
+                <p>{order.brief.garmentType}</p>
               </div>
               <div>
                 <p className={styles.head}>ORDER QUANTITY</p>
-                <p>{order.quantity} Units</p>
+                <p>{order.brief.quantity} Units</p>
               </div>
               <div>
                 <p className={styles.head}>DESCRIPTION</p>
@@ -512,9 +514,9 @@ const OrderView = () => {
                 </p>
               </div>
               <div>
-                <p>Brutige Commission (10%)</p>
+                <p>Brutige Commission ({order.escrow.platformFeePercent}%)</p>
                 <p style={{ color: "var(--brut-warning)" }}>
-                  -{formatCurrency(order.escrow.platformFeeNgn)}
+                  -{formatCurrency(order.escrow.feeAmountNgn)}
                 </p>
               </div>
               <div>
@@ -547,7 +549,7 @@ const StatusCard = ({
   return (
     <div className={styles.statusCard + (isActive ? " " + styles.active : "")}>
       <p className={styles.head}>{status}</p>
-      <p>Buyer Payment</p>
+      {/* <p>Buyer Payment</p> */}
     </div>
   );
 };

@@ -16,6 +16,7 @@ export interface Quote {
   createdAt: string;
 }
 
+
 /** Request body for POST /briefs/{briefId}/quotes */
 export interface QuoteInput {
   priceNgn: number;      // required

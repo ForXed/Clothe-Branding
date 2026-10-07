@@ -102,6 +102,24 @@ p.ordDetails {
   margin-top: 4px;
 }
 
+.bannerError {
+  color: var(--brut-danger);
+  button:hover {
+    box-sizing: border-box;
+  }
+
+  button {
+    margin-left: 12px;
+    border: 0;
+    transition: 0.3s all;
+    cursor: pointer;
+    padding: 12px;
+    font-size: 12px;
+    /* color: var(--brut-text); */
+    border-radius: 12px;
+  }
+}
+
 /* lifecycle: one row on wide screens, swipeable row on narrow ones */
 .lifeCycle {
   display: flex;
@@ -258,14 +276,16 @@ p.ordDetails {
       }
     }
     .prodDesc {
-      padding: 12px;
+      /* padding: 12px; */
       border-radius: 12px;
-      background-color: var(--brut-border);
+      max-width: 400px;
+      /* background-color: var(--brut-border); */
     }
   }
   .prodImage {
     width: fit-content;
-    min-width: 400px;
+    max-width: 400px;
+    max-height: 300px;
     background-color: aqua;
     border-radius: 20px;
     overflow: hidden;
@@ -470,6 +490,19 @@ p.ordDetails {
         }
       }
     }
+  }
+}
+
+.dispute {
+  select,
+  textarea {
+    padding: 12px;
+    border-radius: 12px;
+    border: 1px solid var(--brut-border);
+    background-color: var(--brut-border);
+    color: var(--brut-text);
+    font-size: 14px; /* stops iOS zooming on focus */
+    min-width: 0;
   }
 }
 
