@@ -1,205 +1,140 @@
 // src/Transform/Orders/ProductionOrdersView.tsx
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { orderService } from '../../services/orderService';
-import type { ProductionOrder, OrderStatus, EscrowStatus } from '../../types/order';
-import styles from './ProductionOrdersView.module.css';
+import { useState, useEffect, useCallback, useRef } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  ApiOrder,
+  dummyOrders,
+  orderService,
+} from "../../services/orderService";
+import type { OrderStatus } from "../../types/order";
+import { getErrorMessage, getErrorStatus } from "../../utils/apiError";
+import ProductionOrdersSkeleton from "./ProductionOrdersSkeleton";
+import styles from "./ProductionOrdersView.module.css";
 
-const ProductionOrdersView: React.FC = () => {
+/* ------------------------------ constants ------------------------------ */
+
+// TODO: confirm both paths match your router
+const orderDetailPath = (id: string) => `/platform/orders/${id}`;
+const orderChatPath = (id: string) => `/platform/orders/${id}/chat`;
+
+const FILTER_TABS = [
+  "ALL",
+  "IN_ESCROW",
+  "IN_PRODUCTION",
+  "DELIVERED",
+  "COMPLETED",
+  "DISPUTED",
+];
+
+// Chat is available from IN_ESCROW onward (not AWAITING_PAYMENT or CANCELLED).
+const CHAT_STATUSES: OrderStatus[] = [
+  "IN_ESCROW",
+  "IN_PRODUCTION",
+  "DELIVERED",
+  "COMPLETED",
+  "DISPUTED",
+];
+
+const STATUS_COLORS: Record<string, string> = {
+  AWAITING_PAYMENT: "#f59e0b",
+  IN_ESCROW: "#3b82f6",
+  IN_PRODUCTION: "#8b5cf6",
+  DELIVERED: "#14b8a6",
+  COMPLETED: "#10b981",
+  CANCELLED: "#6b7280",
+  DISPUTED: "#ef4444",
+};
+
+/* ------------------------------- helpers ------------------------------- */
+
+const formatStatus = (status: string) => status.replace(/_/g, " ");
+
+const formatDate = (dateString: string): string =>
+  new Date(dateString).toLocaleDateString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+
+// Real ids are UUIDs, so show a short form
+const shortId = (id: string) => id.slice(0, 8);
+
+const canConfirm = (order: ApiOrder) => order.status === "DELIVERED";
+const canChat = (order: ApiOrder) => CHAT_STATUSES.includes(order.status);
+
+/* -------------------------------- page --------------------------------- */
+
+const ProductionOrdersView = () => {
   const navigate = useNavigate();
 
-  const [orders, setOrders] = useState<ProductionOrder[]>([]);
-  const [statusFilter, setStatusFilter] = useState<string>('ALL');
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
+  const [orders, setOrders] = useState<ApiOrder[]>([]);
+  const [statusFilter, setStatusFilter] = useState<string>("ALL");
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // load/refresh failures
+  const [actionError, setActionError] = useState<string | null>(null); // confirm failures
   const [actionLoadingId, setActionLoadingId] = useState<string | null>(null);
 
-  const filterTabs = [
-    'ALL',
-    'IN_ESCROW',
-    'IN_PRODUCTION',
-    'DELIVERED',
-    'COMPLETED',
-    'DISPUTED',
-  ];
+  const requestId = useRef(0); // ignores responses from outdated requests
 
-  const fetchOrders = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-
-    try {
-      const data = await orderService.getOrders();
-      setOrders(data);
-    } catch (err: any) {
-      console.error('Failed to fetch orders:', err);
-      setError(
-        err.response?.data?.message ||
-          'Failed to load orders. Please try again.',
-      );
-    } finally {
-      setIsLoading(false);
+  const fetchOrders = useCallback(async (opts?: { silent?: boolean }) => {
+    const current = ++requestId.current;
+    if (!opts?.silent) {
+      setIsLoading(true);
+      setError(null);
     }
+    setOrders(dummyOrders);
+    setIsLoading(false);
+
+    // try {
+    //   const data = await orderService.getOrders();
+    //   if (current !== requestId.current) return;
+    //   // setOrders(data);
+    //   setError(null);
+    // } catch (err) {
+    //   if (current !== requestId.current) return;
+    //   setError(
+    //     getErrorMessage(err, "Failed to load orders. Please try again."),
+    //   );
+    // } finally {
+    //   if (current === requestId.current) setIsLoading(false);
+    // }
   }, []);
 
   useEffect(() => {
-    fetchOrders();
+    void fetchOrders();
+    return () => {
+      requestId.current += 1; // drop in-flight response on unmount
+    };
   }, [fetchOrders]);
 
   const filteredOrders = orders.filter(
-    (o) => statusFilter === 'ALL' || o.status === statusFilter,
+    (o) => statusFilter === "ALL" || o.status === statusFilter,
   );
 
-  // ✅ VISIBILITY RULES — buttons exist ONLY in valid states, driven by REAL backend status
-  const canConfirm = (order: ProductionOrder): boolean =>
-    order.status === 'DELIVERED' && order.escrow.status === 'HELD';
-
-  const canDispute = (order: ProductionOrder): boolean =>
-    order.status === 'DELIVERED' && order.escrow.status === 'HELD';
-
-  // Chat is available from IN_ESCROW onward.
-  // Excludes AWAITING_PAYMENT and CANCELLED.
-  const chatEnabledStatuses: OrderStatus[] = [
-    'IN_ESCROW',
-    'IN_PRODUCTION',
-    'DELIVERED',
-    'COMPLETED',
-    'DISPUTED',
-  ];
-
-  const canChat = (order: ProductionOrder): boolean =>
-    chatEnabledStatuses.includes(order.status);
-
-  const getOrderStatusColor = (status: OrderStatus): string => {
-    switch (status) {
-      case 'AWAITING_PAYMENT':
-        return '#f59e0b';
-      case 'IN_ESCROW':
-        return '#3b82f6';
-      case 'IN_PRODUCTION':
-        return '#8b5cf6';
-      case 'DELIVERED':
-        return '#14b8a6';
-      case 'COMPLETED':
-        return '#10b981';
-      case 'CANCELLED':
-        return '#6b7280';
-      case 'DISPUTED':
-        return '#ef4444';
-      default:
-        return '#6b7280';
-    }
-  };
-
-  const getEscrowStatusColor = (status: EscrowStatus): string => {
-    switch (status) {
-      case 'AWAITING':
-        return '#6b7280';
-      case 'HELD':
-        return '#3b82f6';
-      case 'RELEASED':
-        return '#10b981';
-      case 'REFUNDED':
-        return '#f97316';
-      case 'DISPUTED':
-        return '#ef4444';
-      default:
-        return '#6b7280';
-    }
-  };
-
-  const getAutoReleaseDays = (autoReleaseAt?: string): number | null => {
-    if (!autoReleaseAt) return null;
-
-    const diffMs = new Date(autoReleaseAt).getTime() - new Date().getTime();
-    if (diffMs <= 0) return 0;
-
-    return Math.ceil(diffMs / (1000 * 60 * 60 * 24));
-  };
-
-  // ✅ Wire Confirm Action — with resync on invalid-state rejection
+  // Response bodies aren't documented, so refetch rather than patch local state
   const handleConfirmDelivery = async (orderId: string) => {
     if (
       !window.confirm(
-        'Confirm delivery and release funds to the maker? This action cannot be undone.',
+        "Confirm delivery and release funds to the maker? This action cannot be undone.",
       )
     )
       return;
 
     setActionLoadingId(orderId);
+    setActionError(null);
 
     try {
-      const updatedOrder = await orderService.confirmOrder(orderId);
-
-      if (updatedOrder && updatedOrder.id) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? updatedOrder : o)),
-        );
-      } else {
-        await fetchOrders();
-      }
-    } catch (err: any) {
-      if (err.response?.status === 409 || err.response?.status === 400) {
-        await fetchOrders();
-      }
-
-      alert(err.response?.data?.message || 'Failed to confirm delivery.');
+      await orderService.confirmOrder(orderId);
+      await fetchOrders({ silent: true });
+    } catch (err) {
+      setActionError(getErrorMessage(err, "Failed to confirm delivery."));
+      // 409 = the order isn't in the state we thought, so resync the list
+      if (getErrorStatus(err) === 409) await fetchOrders({ silent: true });
     } finally {
       setActionLoadingId(null);
     }
   };
-
-  // ✅ Wire Dispute Action — same resync discipline
-  const handleDispute = async (orderId: string) => {
-    const reason = window.prompt('Please provide a reason for the dispute:');
-    if (!reason) return;
-
-    setActionLoadingId(orderId);
-
-    try {
-      const updatedOrder = await orderService.disputeOrder(orderId, reason);
-
-      if (updatedOrder && updatedOrder.id) {
-        setOrders((prev) =>
-          prev.map((o) => (o.id === orderId ? updatedOrder : o)),
-        );
-      } else {
-        await fetchOrders();
-      }
-    } catch (err: any) {
-      if (err.response?.status === 409 || err.response?.status === 400) {
-        await fetchOrders();
-      }
-
-      alert(err.response?.data?.message || 'Failed to open dispute.');
-    } finally {
-      setActionLoadingId(null);
-    }
-  };
-
-  const handleOpenChat = (orderId: string) => {
-    navigate(`/platform/orders/${orderId}/chat`);
-  };
-
-  const formatCurrency = (amount: number): string =>
-    `₦${amount.toLocaleString('en-NG')}`;
-
-  const formatDate = (dateString: string): string =>
-    new Date(dateString).toLocaleDateString('en-NG', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    });
-
-  if (isLoading) {
-    return (
-      <div className={styles.container}>
-        <div className={styles.emptyState}>
-          <p>Loading orders...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className={styles.container}>
@@ -212,199 +147,119 @@ const ProductionOrdersView: React.FC = () => {
       </div>
 
       {error && (
-        <div className={styles.errorBox}>
+        <div className={styles.errorBox} role="alert">
           <span>{error}</span>
-          <button type="button" onClick={fetchOrders}>
+          <button type="button" onClick={() => fetchOrders()}>
             Retry
+          </button>
+        </div>
+      )}
+
+      {actionError && (
+        <div className={styles.errorBox} role="alert">
+          <span>{actionError}</span>
+          <button type="button" onClick={() => setActionError(null)}>
+            Dismiss
           </button>
         </div>
       )}
 
       {/* Filter Tabs */}
       <div className={styles.filterBar}>
-        {filterTabs.map((status) => (
+        {FILTER_TABS.map((status) => (
           <button
             key={status}
             type="button"
             onClick={() => setStatusFilter(status)}
             className={`${styles.filterBtn} ${
-              statusFilter === status ? styles.filterBtnActive : ''
+              statusFilter === status ? styles.filterBtnActive : ""
             }`}
           >
-            {status.toLowerCase().replace('_', ' ')}
+            {formatStatus(status).toLowerCase()}
           </button>
         ))}
       </div>
 
       {/* Orders List */}
-      {filteredOrders.length === 0 ? (
-        <div className={styles.emptyState}>
-          <p>No orders found with this status.</p>
-        </div>
+      {isLoading ? (
+        <ProductionOrdersSkeleton />
+      ) : filteredOrders.length === 0 ? (
+        // if the load failed, the error box above already explains why it's empty
+        !error && (
+          <div className={styles.emptyState}>
+            <p>No orders found with this status.</p>
+          </div>
+        )
       ) : (
         <div className={styles.orderList}>
-          {filteredOrders.map((order: ProductionOrder) => {
-            const autoReleaseDays = getAutoReleaseDays(
-              order.escrow.autoReleaseAt,
-            );
+          {filteredOrders.map((order) => {
             const isActionLoading = actionLoadingId === order.id;
+
+            const meta = [
+              `Placed ${formatDate(order.createdAt)}`,
+              order.deliveredAt && `Delivered ${formatDate(order.deliveredAt)}`,
+              order.completedAt && `Completed ${formatDate(order.completedAt)}`,
+            ]
+              .filter(Boolean)
+              .join(" • ");
 
             return (
               <div key={order.id} className={styles.orderCard}>
-                {/* Order Header */}
                 <div className={styles.cardHeader}>
                   <div>
                     <div className={styles.titleRow}>
-                      <h3 className={styles.orderTitle}>{order.garmentType}</h3>
+                      <h3 className={styles.orderTitle}>
+                        Order {shortId(order.id)}
+                      </h3>
                       <span
                         className={styles.statusBadge}
                         style={{
-                          backgroundColor: getOrderStatusColor(order.status),
+                          backgroundColor:
+                            STATUS_COLORS[order.status] ?? "#6b7280",
                         }}
                       >
-                        {order.status.replace('_', ' ')}
+                        {formatStatus(order.status)}
                       </span>
                     </div>
-                    <p className={styles.metaLine}>
-                      Order {order.id} • {order.makerName} • {order.quantity}{' '}
-                      units • Est. delivery {formatDate(order.expectedDelivery)}
-                    </p>
+                    <p className={styles.metaLine}>{meta}</p>
                   </div>
                 </div>
 
-                {/* 🔒 ESCROW SECTION */}
-                <div className={styles.escrowSection}>
-                  <div className={styles.escrowHeader}>
-                    <div className={styles.escrowTitleWrap}>
-                      <svg
-                        width="18"
-                        height="18"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="#3b82f6"
-                        strokeWidth="2"
-                      >
-                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-                        <path d="M7 11V7a5 5 0 0 1 10 0v4" />
-                      </svg>
-                      <h4 className={styles.escrowTitle}>Escrow Protection</h4>
-                    </div>
+                <div className={styles.actionRow}>
+                  {/* the detail page has escrow, specs and the dispute form */}
+                  <button
+                    type="button"
+                    className={styles.viewBtn}
+                    onClick={() => navigate(orderDetailPath(order.id))}
+                  >
+                    View Order
+                  </button>
 
-                    <span
-                      className={styles.escrowStatusBadge}
-                      style={{
-                        backgroundColor: getEscrowStatusColor(
-                          order.escrow.status,
-                        ),
-                      }}
+                  {canChat(order) && (
+                    <button
+                      type="button"
+                      className={styles.chatBtn}
+                      onClick={() => navigate(orderChatPath(order.id))}
                     >
-                      {order.escrow.status}
-                    </span>
-                  </div>
+                      Chat with Maker
+                    </button>
+                  )}
 
-                  {/* Fee Transparency Breakdown */}
-                  <div className={styles.feeBreakdown}>
-                    <div className={styles.feeRow}>
-                      <span className={styles.feeLabel}>Total Paid</span>
-                      <span className={styles.feeValue}>
-                        {formatCurrency(order.escrow.amountNgn)}
-                      </span>
-                    </div>
-
-                    <div className={styles.feeRow}>
-                      <span className={styles.feeLabel}>
-                        Brutige Platform Fee
-                      </span>
-                      <span className={styles.feeValueNegative}>
-                        −{formatCurrency(order.escrow.platformFeeNgn)}
-                      </span>
-                    </div>
-
-                    <div className={styles.feeTotalRow}>
-                      <span className={styles.feeTotalLabel}>Maker Receives</span>
-                      <span className={styles.feeTotalValue}>
-                        {formatCurrency(order.escrow.makerPayoutNgn)}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Auto-release countdown */}
-                  {order.escrow.status === 'HELD' &&
-                    autoReleaseDays !== null && (
-                      <p className={styles.autoReleaseInfo}>
-                        <svg
-                          width="14"
-                          height="14"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                        >
-                          <circle cx="12" cy="12" r="10" />
-                          <polyline points="12 6 12 12 16 14" />
-                        </svg>
-                        {autoReleaseDays > 0
-                          ? `Auto-releases in ${autoReleaseDays} day${
-                              autoReleaseDays !== 1 ? 's' : ''
-                            } (${formatDate(order.escrow.autoReleaseAt!)})`
-                          : 'Auto-release window reached'}
-                        {' '}
-                        — confirm delivery below, or funds release automatically.
-                      </p>
-                    )}
-
-                  {order.escrow.status === 'RELEASED' &&
-                    order.escrow.releasedAt && (
-                      <p className={styles.releasedInfo}>
-                        ✓ Funds released to maker on{' '}
-                        {formatDate(order.escrow.releasedAt)}
-                      </p>
-                    )}
+                  {canConfirm(order) && (
+                    <button
+                      type="button"
+                      className={styles.confirmBtn}
+                      onClick={() => handleConfirmDelivery(order.id)}
+                      disabled={isActionLoading}
+                    >
+                      {isActionLoading
+                        ? "Processing..."
+                        : "Confirm Delivery & Release Funds"}
+                    </button>
+                  )}
                 </div>
 
-                {/* ✅ BUYER ACTIONS — rendered ONLY when valid per real status + escrow state */}
-                {(canChat(order) ||
-                  canConfirm(order) ||
-                  canDispute(order)) && (
-                  <div className={styles.actionRow}>
-                    {canChat(order) && (
-                      <button
-                        type="button"
-                        className={styles.chatBtn}
-                        onClick={() => handleOpenChat(order.id)}
-                      >
-                        Chat with Maker
-                      </button>
-                    )}
-
-                    {canDispute(order) && (
-                      <button
-                        type="button"
-                        onClick={() => handleDispute(order.id)}
-                        className={styles.disputeBtn}
-                        disabled={isActionLoading}
-                      >
-                        Dispute Order
-                      </button>
-                    )}
-
-                    {canConfirm(order) && (
-                      <button
-                        type="button"
-                        onClick={() => handleConfirmDelivery(order.id)}
-                        className={styles.confirmBtn}
-                        disabled={isActionLoading}
-                      >
-                        {isActionLoading
-                          ? 'Processing...'
-                          : 'Confirm Delivery & Release Funds'}
-                      </button>
-                    )}
-                  </div>
-                )}
-
-                {/* Dispute Warning */}
-                {order.status === 'DISPUTED' && (
+                {order.status === "DISPUTED" && (
                   <div className={styles.disputeBox}>
                     <p className={styles.disputeText}>
                       ⚠️ This order is under dispute. Escrow funds are held

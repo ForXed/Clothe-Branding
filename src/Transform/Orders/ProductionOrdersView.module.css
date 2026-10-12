@@ -66,7 +66,13 @@
   gap: 1.5rem;
 }
 
+.orderCard:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: var(--brut-text);
+}
+
 .orderCard {
+  transition: all 0.2s ease;
   border: 1px solid var(--brut-border);
   border-radius: 12px;
   padding: 1.5rem;
@@ -253,6 +259,33 @@
   background: rgba(239, 68, 68, 0.08);
 }
 
+.chatBtn {
+  padding: 0.6rem 1.25rem;
+  background: var(--brut-text);
+  color: var(--brut-bg);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+.viewBtn {
+  padding: 0.6rem 1.25rem;
+  background: var(--brut-bg);
+  color: var(--brut-text);
+  border: none;
+  border-radius: 6px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.viewBtn:hover {
+  opacity: 0.85;
+}
+
 .confirmBtn {
   padding: 0.6rem 1.25rem;
   background: #10b981;
@@ -272,6 +305,7 @@
 /* Dispute Warning Box */
 .disputeBox {
   padding: 1rem;
+  margin-top: 1rem;
   background: rgba(239, 68, 68, 0.08);
   border-left: 3px solid #ef4444;
   border-radius: 6px;

@@ -1,0 +1,100 @@
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card {
+  background: var(--brut-card);
+  border: 1px solid var(--brut-border);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* shimmering placeholder block */
+.bar {
+  border-radius: 8px;
+  background: linear-gradient(
+    90deg,
+    var(--brut-border) 25%,
+    color-mix(in srgb, var(--brut-text) 12%, var(--brut-border)) 50%,
+    var(--brut-border) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.title {
+  height: 22px;
+  width: min(220px, 50%);
+}
+.badge {
+  height: 22px;
+  width: 90px;
+  border-radius: 100px;
+}
+.meta {
+  height: 14px;
+  width: min(340px, 80%);
+}
+.button {
+  height: 38px;
+  width: 120px;
+  border-radius: 12px;
+}
+.buttonWide {
+  height: 38px;
+  width: 160px;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bar {
+    animation: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .card {
+    padding: 16px;
+    border-radius: 16px;
+  }
+}
+
+/* visually hidden, still announced by screen readers */
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

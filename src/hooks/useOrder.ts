@@ -14,7 +14,8 @@ export type OrderAction =
   | "startProduction"
   | "deliver"
   | "confirm"
-  | "dispute";
+  | "dispute"
+  | "pay";
 export type ActionResult = { ok: true } | { ok: false; message: string };
 
 /* ------------------------- API -> view model ------------------------- */
@@ -118,6 +119,8 @@ export function useOrder(orderId: string | undefined) {
         (): Promise<ApiOrder> =>
           orderService.deliverOrder(requireId(), payload),
       ),
+
+    pay: () => run("pay", () => orderService.payOrder(requireId())),
 
     confirm: () => run("confirm", () => orderService.confirmOrder(requireId())),
 

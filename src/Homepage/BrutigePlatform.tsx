@@ -29,6 +29,7 @@ import SearchView from "./SearchView/SearchView";
 
 import styles from "./BrutigePlatform.module.css";
 import { Product, SavedItem } from "./BrutigeContext/BrutigeContext";
+import OrderView from "../Transform/Orders/OrderView";
 
 interface BrutigePlatformProps {
   isDarkMode: boolean;
@@ -254,6 +255,7 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
               element={<Navigate to="/platform/briefs" replace />}
             />
             <Route path="orders" element={<ProductionOrdersView />} />
+            <Route path="orders/:orderId" element={<OrderView />} />{" "}
             <Route
               path="orders/:orderId/chat"
               element={<OrderChatView notify={notify} />}

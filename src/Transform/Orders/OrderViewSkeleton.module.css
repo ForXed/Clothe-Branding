@@ -1,0 +1,396 @@
+.main {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  min-width: 0;
+}
+
+.container {
+  background: var(--brut-card);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 20px;
+  border: 1px solid var(--brut-border);
+  min-width: 0;
+}
+
+/* -------------------------------- */
+/* Skeleton animation               */
+/* -------------------------------- */
+
+.lineTiny,
+.lineSmall,
+.lineMedium,
+.lineLarge,
+.title,
+.price,
+.priceSmall,
+.heading,
+.status,
+.button,
+.image,
+.description,
+.sectionTitle,
+.tab,
+.escrowStatus {
+  position: relative;
+  overflow: hidden;
+  background: var(--brut-border);
+}
+
+.lineTiny::after,
+.lineSmall::after,
+.lineMedium::after,
+.lineLarge::after,
+.title::after,
+.price::after,
+.priceSmall::after,
+.heading::after,
+.status::after,
+.button::after,
+.image::after,
+.description::after,
+.sectionTitle::after,
+.tab::after,
+.escrowStatus::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--brut-text) 8%, transparent),
+    transparent
+  );
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* -------------------------------- */
+/* Basic skeleton shapes             */
+/* -------------------------------- */
+
+.lineTiny {
+  width: 80px;
+  height: 10px;
+  border-radius: 4px;
+}
+
+.lineSmall {
+  width: 140px;
+  height: 12px;
+  border-radius: 5px;
+}
+
+.lineMedium {
+  width: 220px;
+  height: 12px;
+  border-radius: 5px;
+}
+
+.lineLarge {
+  width: min(400px, 100%);
+  height: 14px;
+  border-radius: 5px;
+}
+
+.title {
+  width: min(280px, 70%);
+  height: 32px;
+  border-radius: 7px;
+}
+
+.price {
+  width: 130px;
+  height: 28px;
+  border-radius: 6px;
+}
+
+.priceSmall {
+  width: 110px;
+  height: 22px;
+  border-radius: 6px;
+}
+
+.heading {
+  width: 180px;
+  height: 20px;
+  border-radius: 5px;
+}
+
+.status {
+  width: 75px;
+  height: 24px;
+  border-radius: 100px;
+}
+
+/* -------------------------------- */
+/* Order header                     */
+/* -------------------------------- */
+
+.content {
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.orderInfo {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 20px;
+}
+
+.orderDetail {
+  padding: 24px;
+  gap: 24px;
+  border-left: 0.5px solid var(--brut-border);
+  display: flex;
+  align-items: center;
+}
+
+/* -------------------------------- */
+/* Lifecycle                        */
+/* -------------------------------- */
+
+.sectionTitle {
+  width: 130px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.lifeCycle {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+  overflow-x: hidden;
+}
+
+.statusCard {
+  flex: 1 0 150px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 12px;
+  background: var(--brut-border);
+  border: 1px solid var(--brut-border);
+  min-height: 65px;
+}
+
+.statusAction {
+  background: var(--brut-border);
+  border: 1px solid var(--brut-border);
+  padding: 20px;
+  border-radius: 12px;
+  margin-top: 24px;
+  display: flex;
+  gap: 24px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.actionButtons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.button {
+  width: 120px;
+  height: 40px;
+  border-radius: 12px;
+}
+
+/* -------------------------------- */
+/* Escrow                           */
+/* -------------------------------- */
+
+.escrowHeader {
+  display: flex;
+  justify-content: space-between;
+  padding-bottom: 24px;
+  border-bottom: 0.5px solid
+    color-mix(in srgb, var(--brut-text) 40%, transparent);
+}
+
+.escrowStatus {
+  width: 80px;
+  height: 28px;
+  border-radius: 100px;
+  margin-top: 4px;
+}
+
+.escrowDetails {
+  display: flex;
+  gap: 12px;
+  margin: 24px 0;
+}
+
+.escrowItem {
+  flex: 1;
+  min-width: 0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  border-radius: 12px;
+  background: var(--brut-border);
+  border: 1px solid var(--brut-border);
+}
+
+/* -------------------------------- */
+/* Specifications                   */
+/* -------------------------------- */
+
+.tabs {
+  display: flex;
+  gap: 20px;
+  padding-bottom: 12px;
+  border-bottom: 0.5px solid
+    color-mix(in srgb, var(--brut-text) 40%, transparent);
+}
+
+.tab {
+  width: 170px;
+  height: 12px;
+  border-radius: 4px;
+}
+
+.specs {
+  display: flex;
+  gap: 24px;
+  margin: 24px 0;
+}
+
+.image {
+  width: 400px;
+  min-width: 400px;
+  height: 260px;
+  border-radius: 20px;
+}
+
+.prodDetails {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.description {
+  width: 100%;
+  height: 80px;
+  border-radius: 12px;
+}
+
+/* -------------------------------- */
+/* Responsive                       */
+/* -------------------------------- */
+
+@media (max-width: 900px) {
+  .main {
+    gap: 24px;
+  }
+
+  .content {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .orderDetail {
+    border-left: 0;
+    border-top: 0.5px solid var(--brut-border);
+    padding: 20px 0 0;
+    justify-content: space-between;
+  }
+
+  .statusAction {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 16px;
+  }
+
+  .button {
+    flex: 1 1 auto;
+  }
+
+  .image {
+    width: 280px;
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .main {
+    gap: 16px;
+  }
+
+  .container {
+    padding: 16px;
+    border-radius: 16px;
+  }
+
+  .orderDetail {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .statusAction {
+    padding: 16px;
+  }
+
+  .lifeCycle {
+    overflow-x: hidden;
+  }
+
+  .statusCard {
+    flex-basis: 140px;
+  }
+
+  .escrowHeader {
+    flex-direction: column;
+    align-items: flex-start;
+    padding-bottom: 16px;
+    gap: 16px;
+  }
+
+  .escrowDetails {
+    flex-direction: column;
+  }
+
+  .specs {
+    flex-direction: column;
+    gap: 16px;
+    margin: 16px 0;
+  }
+
+  .image {
+    width: 100%;
+    min-width: 0;
+    aspect-ratio: 4 / 3;
+    height: auto;
+  }
+
+  .main .container {
+    width: 100%;
+    box-sizing: border-box;
+  }
+}
