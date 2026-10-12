@@ -1,0 +1,136 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap');
+
+.container {
+  max-width: 1000px;
+  margin: 0 auto;
+  padding: 32px 20px 80px;
+  font-family: 'Inter', sans-serif;
+  color: #000;
+}
+
+.header { margin-bottom: 24px; }
+
+.title {
+  font-size: clamp(2rem, 5vw, 2.8rem);
+  font-weight: 900;
+  letter-spacing: -2px;
+  line-height: 1;
+  margin: 0 0 8px;
+}
+
+.subtitle { color: #666; font-size: 0.98rem; margin: 0; line-height: 1.5; }
+
+.errorBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1.5px solid #ef4444;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 14px 16px;
+  font-weight: 800;
+  margin-bottom: 20px;
+}
+.errorBox button {
+  background: none; border: none; color: #ef4444;
+  font-family: 'Inter', sans-serif; font-weight: 900;
+  text-decoration: underline; text-underline-offset: 3px; cursor: pointer;
+}
+
+.emptyState {
+  border: 1.5px dashed #000;
+  background: #fafafa;
+  padding: 40px 20px;
+  text-align: center;
+  color: #666;
+  font-weight: 800;
+}
+
+.briefList { display: flex; flex-direction: column; gap: 18px; }
+
+.briefCard {
+  border: 1.5px solid #000;
+  background: #fff;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.08);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.titleRow { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 6px; }
+
+.briefTitle { margin: 0; font-size: 1.25rem; font-weight: 900; letter-spacing: -0.5px; }
+
+.statusBadge {
+  color: #fff; font-size: 0.68rem; font-weight: 900;
+  text-transform: uppercase; letter-spacing: 0.06em;
+  padding: 5px 8px; border-radius: 0;
+}
+
+.meta { margin: 0; color: #666; font-size: 0.86rem; }
+
+.expires {
+  font-size: 0.78rem; font-weight: 900; color: #f59e0b;
+  border: 1.5px solid #f59e0b; padding: 4px 8px; white-space: nowrap;
+}
+
+.description { margin: 0; color: #333; font-size: 0.95rem; line-height: 1.55; }
+
+.imageRow { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.thumb { width: 64px; height: 64px; object-fit: cover; border: 1.5px solid #000; }
+.moreImages { font-size: 0.8rem; font-weight: 900; color: #666; }
+
+.declinedBox {
+  border: 1.5px solid #ef4444; background: #fef2f2;
+  padding: 12px 14px; color: #b91c1c; font-size: 0.9rem; line-height: 1.45;
+}
+.waitingBox {
+  border: 1.5px solid #8b5cf6; background: #f5f3ff;
+  padding: 12px 14px; color: #6d28d9; font-weight: 800; font-size: 0.9rem;
+}
+.acceptedBox {
+  border: 1.5px solid #10b981; background: #ecfdf5;
+  padding: 12px 14px; color: #047857; font-weight: 800; font-size: 0.9rem;
+}
+
+.actions { display: flex; gap: 10px; justify-content: flex-end; flex-wrap: wrap; }
+
+.quoteBtn, .declineBtn {
+  font-family: 'Inter', sans-serif; font-weight: 900;
+  text-transform: uppercase; letter-spacing: 0.08em; font-size: 0.78rem;
+  padding: 12px 16px; cursor: pointer; border-radius: 0; transition: all 0.2s ease;
+}
+.quoteBtn { background: #000; color: #fff; border: 1.5px solid #000; }
+.quoteBtn:hover:not(:disabled) { background: #333; transform: translateY(-1px); }
+.declineBtn { background: #fff; color: #ef4444; border: 1.5px solid #ef4444; }
+.declineBtn:hover:not(:disabled) { background: #ef4444; color: #fff; }
+.quoteBtn:disabled, .declineBtn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
+
+.modalOverlay {
+  position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55);
+  display: flex; align-items: center; justify-content: center;
+  padding: 20px; z-index: 1000;
+}
+.modal {
+  background: #fff; border: 1.5px solid #000;
+  max-width: 560px; width: 100%; max-height: 90vh; overflow-y: auto;
+  box-shadow: 8px 8px 0 rgba(0, 0, 0, 0.2);
+}
+
+@media (max-width: 720px) {
+  .container { padding: 24px 16px 70px; }
+  .cardTop { flex-direction: column; }
+  .actions { flex-direction: column-reverse; }
+  .quoteBtn, .declineBtn { width: 100%; }
+}
