@@ -104,7 +104,7 @@ const MakerStudio: React.FC = () => {
             {/* ✅ KEEP: Existing routes (maker's production view) */}
             <Route path="overview" element={<OverView {...studioData} />} />
             <Route path="orders" element={<Order {...studioData} />} />
-            <Route path="/orders/:orderId" element={<OrderView />} />
+            <Route path="orders/:orderId" element={<OrderView />} />
             <Route
               path="messages"
               element={

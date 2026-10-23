@@ -74,7 +74,7 @@
 .orderCard {
   transition: all 0.2s ease;
   border: 1px solid var(--brut-border);
-  border-radius: 12px;
+  /* border-radius: 12px; */
   padding: 1.5rem;
   background: var(--brut-card);
 }

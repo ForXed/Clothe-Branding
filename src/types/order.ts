@@ -12,6 +12,18 @@ export type OrderStatus =
   | "CANCELLED"
   | "DISPUTED";
 
+export interface ApiOrder {
+  id: string;
+  briefId: string;
+  quoteId: string;
+  buyerId: string;
+  makerId: string;
+  status: OrderStatus;
+  deliveredAt: string | null;
+  completedAt: string | null;
+  createdAt: string;
+}
+
 export interface ProductionOrder {
   id: string;
   status: OrderStatus;

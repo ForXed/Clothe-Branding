@@ -2,15 +2,12 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import {
-  ApiOrder,
-  dummyOrders,
-  orderService,
-} from "../../services/orderService";
-import type { OrderStatus } from "../../types/order";
+import { orderService } from "../../services/orderService";
+import type { ApiOrder, OrderStatus } from "../../types/order";
 import { getErrorMessage, getErrorStatus } from "../../utils/apiError";
 import ProductionOrdersSkeleton from "./ProductionOrdersSkeleton";
 import styles from "./ProductionOrdersView.module.css";
+import { dummyOrders } from "../../data/mockOrders";
 
 /* ------------------------------ constants ------------------------------ */
 
@@ -83,22 +80,21 @@ const ProductionOrdersView = () => {
       setIsLoading(true);
       setError(null);
     }
-    setOrders(dummyOrders);
     setIsLoading(false);
 
-    // try {
-    //   const data = await orderService.getOrders();
-    //   if (current !== requestId.current) return;
-    //   // setOrders(data);
-    //   setError(null);
-    // } catch (err) {
-    //   if (current !== requestId.current) return;
-    //   setError(
-    //     getErrorMessage(err, "Failed to load orders. Please try again."),
-    //   );
-    // } finally {
-    //   if (current === requestId.current) setIsLoading(false);
-    // }
+    try {
+      const data = await orderService.getOrders();
+      if (current !== requestId.current) return;
+      setOrders(data);
+      setError(null);
+    } catch (err) {
+      if (current !== requestId.current) return;
+      setError(
+        getErrorMessage(err, "Failed to load orders. Please try again."),
+      );
+    } finally {
+      if (current === requestId.current) setIsLoading(false);
+    }
   }, []);
 
   useEffect(() => {
