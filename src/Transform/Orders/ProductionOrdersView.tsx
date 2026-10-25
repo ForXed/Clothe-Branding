@@ -7,7 +7,7 @@ import type { ApiOrder, OrderStatus } from "../../types/order";
 import { getErrorMessage, getErrorStatus } from "../../utils/apiError";
 import ProductionOrdersSkeleton from "./ProductionOrdersSkeleton";
 import styles from "./ProductionOrdersView.module.css";
-import { dummyOrders } from "../../data/mockOrders";
+// import { dummyOrders } from "../../data/mockOrders";
 
 /* ------------------------------ constants ------------------------------ */
 
@@ -80,7 +80,7 @@ const ProductionOrdersView = () => {
       setIsLoading(true);
       setError(null);
     }
-    setIsLoading(false);
+    // setIsLoading(false);
 
     try {
       const data = await orderService.getOrders();

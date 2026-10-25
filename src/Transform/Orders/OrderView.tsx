@@ -1,3 +1,4 @@
+// src/Transform/Orders/OrderView.tsx
 import { useParams } from "react-router-dom";
 import { useState } from "react";
 import styles from "./OrderView.module.css";
@@ -7,6 +8,8 @@ import type { DisputeInput } from "../../services/orderService";
 import { EscrowStatus } from "../../types/escrow";
 import OrderViewSkeleton from "./OrderViewSkeleton";
 
+/* ------------------------------------------------------------------ */
+/* Dispute categories                                                  */
 /* ------------------------------------------------------------------ */
 
 const DISPUTE_CATEGORIES = [
@@ -39,13 +42,18 @@ const DisputeModal = ({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    if (!explanation.trim()) return setError("Please explain the problem.");
+
+    if (!explanation.trim()) {
+      return setError("Please explain the problem.");
+    }
 
     setSubmitting(true);
+
     const result = await onSubmit({
       reasonCategory: category,
       explanation: explanation.trim(),
     });
+
     setSubmitting(false);
 
     if (result.ok) onClose();
@@ -53,11 +61,17 @@ const DisputeModal = ({
   };
 
   return (
-    <div className={styles.modal + " " + styles.dispute} onClick={close}>
+    <div
+      className={`${styles.modal} ${styles.dispute}`}
+      onClick={close}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Raise a dispute"
+    >
       <form onClick={(e) => e.stopPropagation()} onSubmit={handleSubmit}>
         <section className={styles.header}>
           <p>Raise a Dispute</p>
-          <button type="button" onClick={close}>
+          <button type="button" onClick={close} aria-label="Close dispute modal">
             X
           </button>
         </section>
@@ -84,6 +98,7 @@ const DisputeModal = ({
             rows={4}
             value={explanation}
             onChange={(e) => setExplanation(e.target.value)}
+            placeholder="Describe the issue clearly so Brutige can review it."
           />
         </div>
 
@@ -108,6 +123,8 @@ const DisputeModal = ({
 
 const formatCurrency = (amount: number): string =>
   `₦${amount.toLocaleString("en-NG")}`;
+
+const formatStatus = (status: string): string => status.replace(/_/g, " ");
 
 const getOrderStatusColor = (status: OrderStatus): string => {
   switch (status) {
@@ -147,22 +164,37 @@ const getEscrowStatusColor = (status: EscrowStatus): string => {
   }
 };
 
+/* ------------------------------------------------------------------ */
+/* Buyer-facing copy                                                   */
+/* ------------------------------------------------------------------ */
+
 const getStatusActionText = (order: ProductionOrder): string => {
   switch (order.status) {
     case "AWAITING_PAYMENT":
-      return `Quote accepted. pay ${formatCurrency(order.escrow.amountNgn)} into Brutige Escrow to lock specs.`;
+      return `Quote accepted. Fund ${formatCurrency(
+        order.escrow.amountNgn,
+      )} into Brutige Escrow to lock specs and start production.`;
+
     case "IN_ESCROW":
-      return "Funds locked in Escrow. Mark production as started.";
+      return "Funds are locked in escrow. The maker will start production soon.";
+
     case "IN_PRODUCTION":
-      return "Garments are being produced. Upload proof of delivery when complete.";
+      return "Garments are being produced. You can review delivery proof once the maker marks the order delivered.";
+
     case "DELIVERED":
-      return "Batch delivered! you have 7 days to inspect quality or dispute before auto-release.";
+      return "Batch delivered. Inspect quality and confirm receipt, or raise a dispute within 7 days.";
+
     case "COMPLETED":
-      return `Order fully completed. ${formatCurrency(order.escrow.makerPayoutNgn)} net payout disbursed to ${order.maker.displayName}.`;
+      return `Order complete. ${formatCurrency(
+        order.escrow.makerPayoutNgn,
+      )} net payout has been released to ${order.maker.displayName}.`;
+
     case "CANCELLED":
-      return "Order cancelled. Escrow refunded or non-existent.";
+      return "Order cancelled. Escrow was refunded or never funded.";
+
     case "DISPUTED":
-      return "Dispute active. Funds locked in escrow until Brutige Arbitrator resolves.";
+      return "Dispute active. Funds remain locked in escrow until Brutige arbitration resolves.";
+
     default:
       return "";
   }
@@ -171,13 +203,17 @@ const getStatusActionText = (order: ProductionOrder): string => {
 const getEscrowNote = (order: ProductionOrder): string => {
   switch (order.escrow.status) {
     case "AWAITING":
-      return "Waiting for payment.";
+      return "Waiting for your payment.";
+
     case "HELD":
-      return `Funds locked in Escrow until delivery is confirmed.`;
+      return "Funds locked in escrow until you confirm delivery.";
+
     case "RELEASED":
       return `Funds released to ${order.maker.displayName}.`;
+
     case "REFUNDED":
-      return "Funds have been refunded to you.";
+      return "Funds refunded to you.";
+
     default:
       return "";
   }
@@ -207,8 +243,6 @@ const OrderView = () => {
   const [modal, setModal] = useState<null | "dispute">(null);
   const [actionError, setActionError] = useState<string | null>(null);
 
-  // a different source means different data, so clear stale UI state
-
   const track = async (
     fn: () => Promise<ActionResult>,
   ): Promise<ActionResult> => {
@@ -219,14 +253,7 @@ const OrderView = () => {
   };
 
   if (loading) {
-    return (
-      <OrderViewSkeleton />
-      // <div className={styles.main}>
-      //   <div className={styles.state}>
-      //     <p>Loading order...</p>
-      //   </div>
-      // </div>
-    );
+    return <OrderViewSkeleton />;
   }
 
   if (loadError || !order) {
@@ -244,16 +271,36 @@ const OrderView = () => {
 
   const busy = pendingAction !== null;
 
+  /* ---------------------------------------------------------------- */
+  /* Buyer-only actions                                                */
+  /* ---------------------------------------------------------------- */
+
   const getStatusActions = () => {
     switch (order.status) {
       case "AWAITING_PAYMENT":
         return (
           <>
+            {/*
+              If POST /orders/{id}/pay is NOT confirmed in the v1.2 contract,
+              remove this button and remove actions.pay from useOrder.
+            */}
             <button
+              type="button"
+              className={styles.primaryBtn}
               disabled={busy}
-              style={{ background: "var(--brut-danger)" }}
+              onClick={() => track(actions.pay)}
+            >
+              {pendingAction === "pay" ? "Processing..." : "Fund Escrow"}
+            </button>
+
+            <button
+              type="button"
+              className={styles.dangerBtn}
+              disabled={busy}
               onClick={() => {
-                if (window.confirm("Cancel this order?")) track(actions.cancel);
+                if (window.confirm("Cancel this order?")) {
+                  track(actions.cancel);
+                }
               }}
             >
               {pendingAction === "cancel" ? "Cancelling..." : "Cancel Order"}
@@ -262,45 +309,27 @@ const OrderView = () => {
         );
 
       case "IN_ESCROW":
-        return (
-          <>
-            <button
-              disabled={busy}
-              style={{ background: "var(--brut-bg)" }}
-              onClick={() => track(actions.startProduction)}
-            >
-              {pendingAction === "startProduction"
-                ? "Starting..."
-                : "Start Production"}
-            </button>
-            <button
-              disabled={busy}
-              style={{ background: "var(--brut-danger)" }}
-              onClick={() => setModal("dispute")}
-            >
-              Raise Dispute
-            </button>
-          </>
-        );
-
       case "IN_PRODUCTION":
-        return <></>;
+        return null;
 
       case "DELIVERED":
         return (
           <>
             <button
+              type="button"
+              className={styles.successBtn}
               disabled={busy}
-              style={{ background: "var(--brut-bg)" }}
               onClick={() => track(actions.confirm)}
             >
               {pendingAction === "confirm"
                 ? "Confirming..."
                 : "Confirm Receipt"}
             </button>
+
             <button
+              type="button"
+              className={styles.dangerBtn}
               disabled={busy}
-              style={{ background: "var(--brut-danger)" }}
               onClick={() => setModal("dispute")}
             >
               Raise Dispute
@@ -315,8 +344,6 @@ const OrderView = () => {
 
   return (
     <div className={styles.main}>
-      {/* {devToggle} */}
-
       {modal === "dispute" && (
         <DisputeModal
           onClose={() => setModal(null)}
@@ -324,27 +351,33 @@ const OrderView = () => {
         />
       )}
 
-      <div className={styles.container + " " + styles.prod}>
+      {/* ---------------------------- Order header --------------------------- */}
+      <div className={`${styles.container} ${styles.prod}`}>
         <div className={styles.content}>
           <div>
             <div className={styles.header}>
               <p>ORDER ID: {order.id}</p>
+
               <div
                 className={styles.orderStatus}
                 style={{
                   background: getOrderStatusColor(order.status as OrderStatus),
                 }}
               >
-                <p>{order.status}</p>
+                <p>{formatStatus(order.status)}</p>
               </div>
+
               <p>
                 Brief: <span>{order.brief.id}</span>
               </p>
+
               <p>
                 Quote: <span>{order.quote.id}</span>
               </p>
             </div>
+
             <h2 className={styles.prodName}>{order.brief.garmentType}</h2>
+
             <p className={styles.ordDetails}>
               Ordered by <span>{order.buyer.displayName}</span> for production
               by <span>{order.maker.displayName}</span>
@@ -356,6 +389,7 @@ const OrderView = () => {
               <div className={styles.header}>
                 <p>CONTRACT TOTAL</p>
               </div>
+
               <h3 className={styles.orderPrice}>
                 {formatCurrency(order.escrow.amountNgn)}
               </h3>
@@ -365,6 +399,7 @@ const OrderView = () => {
               <div className={styles.header}>
                 <p>TARGET DELIVERY</p>
               </div>
+
               <p className={styles.orderExpDelivery}>
                 {order.brief.deadline || "TBC"}
               </p>
@@ -373,8 +408,10 @@ const OrderView = () => {
         </div>
       </div>
 
+      {/* ---------------------------- Lifecycle ----------------------------- */}
       <div className={styles.container}>
-        <p>ORDER LIFECYCLE</p>
+        <p className={styles.head}>ORDER LIFECYCLE</p>
+
         <div className={styles.lifeCycle}>
           {statuses.map((status) => (
             <StatusCard key={status} order={order} status={status} />
@@ -383,7 +420,7 @@ const OrderView = () => {
 
         {actionError && (
           <div
-            className={styles.banner + " " + styles.bannerError}
+            className={`${styles.banner} ${styles.bannerError}`}
             role="alert"
             style={{ marginTop: 24 }}
           >
@@ -399,11 +436,13 @@ const OrderView = () => {
             <p className={styles.head}>STATUS ACTION</p>
             <p>{getStatusActionText(order)}</p>
           </div>
+
           <div className={styles.actionButtons}>{getStatusActions()}</div>
         </div>
       </div>
 
-      <div className={styles.container + " " + styles.escrow}>
+      {/* ---------------------------- Escrow vault -------------------------- */}
+      <div className={`${styles.container} ${styles.escrow}`}>
         <div className={styles.header}>
           <div className={styles.stack}>
             <h3>Brutige Escrow Vault</h3>
@@ -411,14 +450,14 @@ const OrderView = () => {
           </div>
 
           <div className={styles.escrowStatus}>
-            <p>ESCROW STATUS</p>
+            <p className={styles.head}>ESCROW STATUS</p>
             <p
+              className={styles.status}
               style={{
                 background: getEscrowStatusColor(
                   order.escrow.status as EscrowStatus,
                 ),
               }}
-              className={styles.status}
             >
               {order.escrow.status}
             </p>
@@ -430,38 +469,44 @@ const OrderView = () => {
             <p className={styles.head}>TOTAL HELD FROM BUYER</p>
             <h3>{formatCurrency(order.escrow.amountNgn)}</h3>
           </div>
+
           <div>
             <p className={styles.head}>
               BRUTIGE FEES ({order.escrow.platformFeePercent}%)
             </p>
             <h3>{formatCurrency(order.escrow.feeAmountNgn)}</h3>
           </div>
+
           <div>
             <p className={styles.head}>MAKER PAYOUT</p>
-            <h3 style={{ color: "var(--brut-success)" }}>
+            <h3 style={{ color: "var(--brut-success, #10b981)" }}>
               {formatCurrency(order.escrow.makerPayoutNgn)}
             </h3>
           </div>
         </div>
       </div>
 
-      <div className={styles.container + " " + styles.garmentDesc}>
+      {/* ---------------------- Specs / financial breakdown ----------------- */}
+      <div className={`${styles.container} ${styles.garmentDesc}`}>
         <div className={styles.header}>
-          <a
+          <button
+            type="button"
             onClick={() => setSelected("specs")}
-            className={selected == "specs" ? styles.active : ""}
+            className={selected === "specs" ? styles.active : ""}
           >
             GARMENT SPECIFICATIONS
-          </a>
-          <a
+          </button>
+
+          <button
+            type="button"
             onClick={() => setSelected("finance")}
-            className={selected == "finance" ? styles.active : ""}
+            className={selected === "finance" ? styles.active : ""}
           >
             FINANCIAL BREAKDOWN
-          </a>
+          </button>
         </div>
 
-        {selected == "specs" ? (
+        {selected === "specs" ? (
           <div className={styles.specs}>
             {order.brief.images.length > 0 && (
               <div className={styles.prodImage}>
@@ -477,10 +522,12 @@ const OrderView = () => {
                 <p className={styles.head}>ITEM NAME</p>
                 <p>{order.brief.garmentType}</p>
               </div>
+
               <div>
                 <p className={styles.head}>ORDER QUANTITY</p>
                 <p>{order.brief.quantity} Units</p>
               </div>
+
               <div>
                 <p className={styles.head}>DESCRIPTION</p>
                 <p className={styles.prodDesc}>
@@ -494,25 +541,29 @@ const OrderView = () => {
             <div className={styles.content}>
               <div>
                 <p>Gross Contract Amount</p>
-                <p style={{ color: "var(--brut-text)" }}>
+                <p style={{ color: "var(--brut-text, #000)" }}>
                   {formatCurrency(order.escrow.amountNgn)}
                 </p>
               </div>
+
               <div>
                 <p>Brutige Commission ({order.escrow.platformFeePercent}%)</p>
-                <p style={{ color: "var(--brut-warning)" }}>
+                <p style={{ color: "var(--brut-warning, #f59e0b)" }}>
                   -{formatCurrency(order.escrow.feeAmountNgn)}
                 </p>
               </div>
+
               <div>
-                <p style={{ color: "var(--brut-text)" }}>Net Maker Payment</p>
-                <p style={{ color: "var(--brut-success)" }}>
+                <p style={{ color: "var(--brut-text, #000)" }}>
+                  Net Maker Payment
+                </p>
+                <p style={{ color: "var(--brut-success, #10b981)" }}>
                   {formatCurrency(order.escrow.makerPayoutNgn)}
                 </p>
               </div>
             </div>
 
-            <p style={{ color: "var(--brut-warning)" }}>
+            <p style={{ color: "var(--brut-warning, #f59e0b)" }}>
               * Funds are released automatically after 7 days from marked
               delivery, or immediately upon buyer manual confirmation.
             </p>
@@ -523,6 +574,10 @@ const OrderView = () => {
   );
 };
 
+/* ------------------------------------------------------------------ */
+/* Status card                                                         */
+/* ------------------------------------------------------------------ */
+
 const StatusCard = ({
   status,
   order,
@@ -530,11 +585,11 @@ const StatusCard = ({
   status: string;
   order: ProductionOrder;
 }) => {
-  const isActive = status == order.status;
+  const isActive = status === order.status;
+
   return (
-    <div className={styles.statusCard + (isActive ? " " + styles.active : "")}>
-      <p className={styles.head}>{status}</p>
-      {/* <p>Buyer Payment</p> */}
+    <div className={`${styles.statusCard} ${isActive ? styles.active : ""}`}>
+      <p className={styles.head}>{formatStatus(status)}</p>
     </div>
   );
 };
