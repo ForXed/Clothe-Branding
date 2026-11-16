@@ -11,6 +11,8 @@ export interface AuthUser {
   avatarUrl?: string | null; // ⚠️ CONFIRM — avatar field still unconfirmed from earlier
 }
 
+
+
 export interface AuthResponse {
   user: AuthUser;
   message?: string;

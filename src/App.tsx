@@ -11,9 +11,8 @@ import VerifyPassword from './Form/VerifyPassword';
 import ResetPassword from './Form/ResetPassword';
 import MakerStudio from './MakerStudio/MakerStudio';
 
-
 // Form Components
-import ChangePasswordForm from './Form/ChangePasswordForm';
+// import ChangePasswordForm from './Form/ChangePasswordForm';
 import TwoFactorSetup from './Form/TwoFactorSetup';
 import MakerApplication from './Form/MakerApplication';
 
@@ -33,6 +32,15 @@ import Terms from './Hub/Legal/Terms';
 import Cookies from './Hub/Legal/Cookies';
 import CustomOrderPolicy from './Hub/Legal/CustomOrderPolicy';
 
+// Admin
+import AdminLayout from './Admin/AdminLayout';
+import AdminDashboard from './Admin/AdminDashboard';
+import MakerList from './Admin/Makers/MakerList';
+import MakerDetail from './Admin/Makers/MakerDetail';
+import DisputeList from './Admin/Disputes/DisputeList';
+import DisputeDetail from './Admin/Disputes/DisputeDetail';
+import OrderList from './Admin/Orders/OrderList';
+import UserList from './Admin/Users/UserList';
 
 // Global Infrastructure Components
 import Preloader from './Homepage/Preloader/Preloader';
@@ -45,7 +53,10 @@ interface NotificationState {
   visible: boolean;
 }
 
-type NotifyFunction = (message: string, type?: 'success' | 'error' | 'info') => void;
+type NotifyFunction = (
+  message: string,
+  type?: 'success' | 'error' | 'info',
+) => void;
 
 interface AppRoutesProps {
   notify: NotifyFunction;
@@ -53,7 +64,11 @@ interface AppRoutesProps {
   toggleTheme: () => void;
 }
 
-const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }) => {
+const AppRoutes: React.FC<AppRoutesProps> = ({
+  notify,
+  isDarkMode,
+  toggleTheme,
+}) => {
   const navigate = useNavigate();
   const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
 
@@ -71,58 +86,74 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
         <Route path="/reset-password" element={<ResetPassword notify={notify} />} />
         <Route path="/maker-application" element={<MakerApplication notify={notify} />} />
 
-        {/* ✅ COMMENTED OUT: No backend endpoint exists for change-password */}
-        {/* <Route 
-          path="/change-password" 
+        {/*
+          COMMENTED OUT: No backend endpoint exists for change-password.
+          Keep import commented too if tsconfig has noUnusedLocals enabled.
+        */}
+        {/*
+        <Route
+          path="/change-password"
           element={
-            <ChangePasswordForm 
-              notify={notify} 
+            <ChangePasswordForm
+              notify={notify}
               onClose={() => navigate('/studio/settings')}
             />
-          } 
-        /> */}
-        
-        <Route 
-          path="/2fa-setup" 
+          }
+        />
+        */}
+
+        <Route
+          path="/2fa-setup"
           element={
-            <TwoFactorSetup 
+            <TwoFactorSetup
               onClose={() => navigate('/studio/settings')}
               onSuccess={() => notify('2FA enabled successfully', 'success')}
             />
-          } 
+          }
         />
 
         {/* MAKER STUDIO */}
-        <Route 
-          path="/studio/*" 
+        <Route
+          path="/studio/*"
           element={
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
               <MakerStudio />
             )
-          } 
+          }
         />
 
         {/* THE PLATFORM HUB */}
-        <Route 
-          path="/platform/*" 
+        <Route
+          path="/platform/*"
           element={
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
-              <BrutigePlatform 
-                isDarkMode={isDarkMode} 
-                toggleTheme={toggleTheme} 
+              <BrutigePlatform
+                isDarkMode={isDarkMode}
+                toggleTheme={toggleTheme}
                 notify={notify as (message: string, type?: string) => void}
               />
             )
-          } 
+          }
         />
 
+        {/* ADMIN DASHBOARD */}
+        <Route path="/admin/*" element={<AdminLayout />}>
+          <Route index element={<AdminDashboard />} />
+          <Route path="makers" element={<MakerList />} />
+          <Route path="makers/:makerId" element={<MakerDetail />} />
+          <Route path="disputes" element={<DisputeList />} />
+          <Route path="disputes/:orderId" element={<DisputeDetail />} />
+          <Route path="orders" element={<OrderList />} />
+          <Route path="users" element={<UserList />} />
+        </Route>
+
         {/* THE RESOURCE HUB */}
-        <Route 
-          path="/hub" 
+        <Route
+          path="/hub"
           element={
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
@@ -154,42 +185,49 @@ const AppRoutes: React.FC<AppRoutesProps> = ({ notify, isDarkMode, toggleTheme }
   );
 };
 
-// ✅ Main App component - owns the theme state
+// Main App component - owns the theme state
 const App: React.FC = () => {
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
     return localStorage.getItem('brutige_theme') === 'dark';
   });
-  const [notification, setNotification] = useState<NotificationState>({ 
-    message: '', 
-    type: 'success', 
-    visible: false 
+
+  const [notification, setNotification] = useState<NotificationState>({
+    message: '',
+    type: 'success',
+    visible: false,
   });
 
   const toggleTheme = (): void => {
-    setIsDarkMode(prev => !prev);
+    setIsDarkMode((prev) => !prev);
   };
 
   useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
+    document.documentElement.setAttribute(
+      'data-theme',
+      isDarkMode ? 'dark' : 'light',
+    );
     localStorage.setItem('brutige_theme', isDarkMode ? 'dark' : 'light');
   }, [isDarkMode]);
 
   const notify: NotifyFunction = (message, type = 'success') => {
     setNotification({ message, type, visible: true });
-    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 4000);
+
+    setTimeout(() => {
+      setNotification((prev) => ({ ...prev, visible: false }));
+    }, 4000);
   };
 
   return (
     <Router>
       {/* Global Notification Layer */}
-      <FloatingMessage 
-        message={notification.message} 
-        type={notification.type} 
-        isVisible={notification.visible} 
+      <FloatingMessage
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.visible}
       />
 
-      {/* ✅ Pass theme state down to AppRoutes */}
-      <AppRoutes 
+      {/* Pass theme state down to AppRoutes */}
+      <AppRoutes
         notify={notify}
         isDarkMode={isDarkMode}
         toggleTheme={toggleTheme}

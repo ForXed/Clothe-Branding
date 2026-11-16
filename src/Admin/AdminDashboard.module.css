@@ -1,0 +1,343 @@
+/* src/Admin/AdminDashboard.module.css */
+/* Brutalist admin dashboard. Sharp corners, Inter, theme variables. */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap");
+
+.container {
+  max-width: 1100px;
+}
+
+/* ─── Header ─── */
+
+.header {
+  margin-bottom: 28px;
+}
+
+.title {
+  margin: 0 0 6px;
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  color: var(--brut-text, #000);
+}
+
+.subtitle {
+  margin: 0;
+  font-size: 0.92rem;
+  color: var(--brut-muted, #666);
+}
+
+/* ─── Sections ─── */
+
+.section {
+  margin-bottom: 28px;
+}
+
+.sectionHeader {
+  margin-bottom: 14px;
+}
+
+.sectionTitle {
+  margin: 0 0 4px;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--brut-muted, #666);
+}
+
+.sectionSub {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--brut-muted, #666);
+}
+
+/* ─── Grids ─── */
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.gridSecondary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+/* ─── Stat card ─── */
+
+.statCard {
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 18px 20px;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.15s ease;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.statCard.clickable {
+  cursor: pointer;
+}
+
+.statCard.clickable:hover {
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.12);
+}
+
+.statCard.clickable:focus-visible {
+  outline: 2px solid var(--brut-text, #000);
+  outline-offset: 2px;
+}
+
+.statLabel {
+  margin: 0;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.statValue {
+  margin: 10px 0 0;
+  font-size: 1.7rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1;
+  color: var(--brut-text, #000);
+}
+
+.statHint {
+  margin: 10px 0 0;
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--brut-muted, #666);
+}
+
+.statAction {
+  margin: 12px 0 0;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brut-text, #000);
+}
+
+/* ─── Tone accents ─── */
+
+.toneAmber {
+  border-left: 5px solid #f59e0b;
+}
+
+.toneRed {
+  border-left: 5px solid #ef4444;
+}
+
+.toneBlue {
+  border-left: 5px solid #3b82f6;
+}
+
+.toneGreen {
+  border-left: 5px solid #10b981;
+}
+
+.toneNeutral {
+  border-left: 5px solid var(--brut-border, #000);
+}
+
+/* ─── Quick actions ─── */
+
+.actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.actionBtn {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  align-items: flex-start;
+  text-align: left;
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 16px 18px;
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.06);
+  font-family: "Inter", sans-serif;
+}
+
+.actionBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 6px 6px 0 rgba(0, 0, 0, 0.12);
+  background: var(--brut-bg, #f5f5f5);
+}
+
+.actionBtn:focus-visible {
+  outline: 2px solid var(--brut-text, #000);
+  outline-offset: 2px;
+}
+
+.actionLabel {
+  font-size: 0.88rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brut-text, #000);
+}
+
+.actionDesc {
+  font-size: 0.8rem;
+  color: var(--brut-muted, #666);
+  line-height: 1.4;
+}
+
+/* ─── Note card ─── */
+
+.noteCard {
+  border: 1.5px dashed var(--brut-border, #000);
+  background: var(--brut-bg, #f5f5f5);
+  padding: 18px 20px;
+  border-radius: 0;
+}
+
+.noteTitle {
+  margin: 0 0 8px;
+  font-size: 0.66rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.noteText {
+  margin: 0;
+  font-size: 0.85rem;
+  line-height: 1.55;
+  color: var(--brut-text, #000);
+}
+
+.noteText code {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 0.82rem;
+  background: var(--brut-card, #fff);
+  border: 1px solid var(--brut-border, #000);
+  padding: 2px 5px;
+  border-radius: 0;
+}
+
+/* ─── Error box ─── */
+
+.errorBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1.5px solid #ef4444;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 14px 16px;
+  font-weight: 800;
+  border-radius: 0;
+  margin-bottom: 18px;
+}
+
+.errorBox button {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.errorBox button:hover {
+  opacity: 0.75;
+}
+
+/* ─── Skeleton ─── */
+
+.skeletonGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.skeletonCard {
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 18px 20px;
+  border-radius: 0;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonBar {
+  height: 14px;
+  background: linear-gradient(
+    90deg,
+    var(--brut-border, #e5e5e5) 25%,
+    color-mix(in srgb, var(--brut-text, #000) 8%, var(--brut-border, #e5e5e5)) 50%,
+    var(--brut-border, #e5e5e5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 0;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonBar {
+    animation: none;
+  }
+
+  .statCard.clickable:hover,
+  .actionBtn:hover {
+    transform: none;
+  }
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 768px) {
+  .title {
+    font-size: 1.4rem;
+  }
+
+  .grid,
+  .gridSecondary,
+  .actions,
+  .skeletonGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .statValue {
+    font-size: 1.45rem;
+  }
+
+  .statCard {
+    min-height: auto;
+  }
+}
