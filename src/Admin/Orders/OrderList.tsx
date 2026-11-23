@@ -2,7 +2,7 @@
 // Brutige Admin — order monitoring list.
 // Read-only view of all orders across statuses.
 // DISPUTED orders link into /admin/disputes/:orderId.
-// Wired to adminService.getOrders.
+// Wired to adminService.listOrders (GET /api/v1/admin/orders).
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
@@ -204,9 +204,13 @@ const OrderList = () => {
     setError(null);
 
     try {
-      const data = await adminService.getOrders(status);
+      const page = await adminService.listOrders({
+        status,
+        page: 0,
+        size: 100,
+      });
       if (current !== requestId.current) return;
-      setOrders(data);
+      setOrders(page.content);
     } catch (err) {
       if (current !== requestId.current) return;
       setError(getErrorMessage(err, "Failed to load orders."));

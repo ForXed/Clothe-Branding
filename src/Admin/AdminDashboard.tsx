@@ -116,15 +116,16 @@ const QuickAction = ({
 const DashboardContent = ({ stats }: { stats: AdminDashboardStats }) => {
   const navigate = useNavigate();
 
+  // The API exposes counts, not money: totals below are order counts per state.
+  const count = (status: string) => stats.byStatus[status] ?? 0;
   const pendingMakers = stats.pendingMakers ?? 0;
-  const openDisputes = stats.openDisputes ?? 0;
-  const activeOrders = stats.activeOrders ?? 0;
-  const completedOrders = stats.completedOrders ?? 0;
-  const cancelledOrders = stats.cancelledOrders ?? 0;
-  const verifiedMakers = stats.verifiedMakers ?? 0;
-  const rejectedMakers = stats.rejectedMakers ?? 0;
-  const totalEscrowHeldNgn = stats.totalEscrowHeldNgn ?? 0;
-  const totalFeesEarnedNgn = stats.totalFeesEarnedNgn ?? 0;
+  const openDisputes = count("DISPUTED");
+  const activeOrders =
+    count("IN_ESCROW") + count("IN_PRODUCTION") + count("DELIVERED");
+  const completedOrders = count("COMPLETED");
+  const cancelledOrders = count("CANCELLED");
+  const awaitingPayment = count("AWAITING_PAYMENT");
+  const totalOrders = stats.totalOrders ?? 0;
 
   return (
     <>
@@ -167,13 +168,17 @@ const DashboardContent = ({ stats }: { stats: AdminDashboardStats }) => {
           <StatCard
             label="Active Orders"
             value={formatNumber(activeOrders)}
-            hint="Orders in escrow, production, or delivered."
+            hint={
+              awaitingPayment > 0
+                ? `${formatNumber(awaitingPayment)} more awaiting payment.`
+                : "Orders in escrow, production, or delivered."
+            }
             tone="blue"
           />
 
           <StatCard
-            label="Escrow Held"
-            value={formatCurrency(totalEscrowHeldNgn)}
+            label="Total Orders"
+            value={formatNumber(totalOrders)}
             hint="Total buyer funds currently protected by escrow."
             tone="blue"
           />
@@ -188,16 +193,16 @@ const DashboardContent = ({ stats }: { stats: AdminDashboardStats }) => {
 
         <div className={styles.gridSecondary}>
           <StatCard
-            label="Verified Makers"
-            value={formatNumber(verifiedMakers)}
-            hint="Makers approved to receive briefs."
+            label="In Production"
+            value={formatNumber(count("IN_PRODUCTION"))}
+            hint="Orders the makers are working on right now."
             tone="green"
           />
 
           <StatCard
-            label="Rejected Makers"
-            value={formatNumber(rejectedMakers)}
-            hint="Applications not approved."
+            label="Awaiting Payment"
+            value={formatNumber(awaitingPayment)}
+            hint="Orders created but not yet paid into escrow."
             tone="neutral"
           />
 
@@ -216,10 +221,10 @@ const DashboardContent = ({ stats }: { stats: AdminDashboardStats }) => {
           />
 
           <StatCard
-            label="Fees Earned"
-            value={formatCurrency(totalFeesEarnedNgn)}
-            hint="Total Brutige platform fees earned."
-            tone="green"
+            label="Escrow Totals"
+            value="—"
+            hint="Fee and escrow sums are not exposed by the API yet."
+            tone="neutral"
           />
         </div>
       </section>

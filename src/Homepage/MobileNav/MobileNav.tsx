@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './MobileNav.module.css';
+import { CHAT_ENABLED } from '../../config/features';
 
 interface NavItem {
   id: string;
@@ -40,11 +41,20 @@ const MobileNav: React.FC<MobileNavProps> = ({ activeTab, setActiveTab, goToStud
       label: 'Orders',
       icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg> 
     },
-    { 
-      id: 'chat', 
-      label: 'Messages',
-      icon: <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg> 
-    }
+    // Messages stays hidden until the chat endpoints ship (VITE_FEATURE_CHAT).
+    ...(CHAT_ENABLED
+      ? [
+          {
+            id: 'chat',
+            label: 'Messages',
+            icon: (
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+              </svg>
+            ),
+          },
+        ]
+      : []),
   ];
 
   useEffect(() => {

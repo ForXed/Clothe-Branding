@@ -23,6 +23,8 @@ import OrderChatView from "../Transform/Orders/OrderChatView"; // ✅ restored
 
 // Keep Components
 import ChatRoom from "./ChatRoom/ChatRoom";
+import { CHAT_ENABLED } from "../config/features";
+import ChatUnavailable from "../pages/ChatUnavailable";
 import ProfileView from "./ProfileView/ProfileView";
 import ProfileSettings from "./ProfileSettings/ProfileSettings";
 import SearchView from "./SearchView/SearchView";
@@ -258,7 +260,13 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
             <Route path="orders/:orderId" element={<OrderView />} />{" "}
             <Route
               path="orders/:orderId/chat"
-              element={<OrderChatView notify={notify} />}
+              element={
+                CHAT_ENABLED ? (
+                  <OrderChatView notify={notify} />
+                ) : (
+                  <ChatUnavailable backLabel="Back to the order" />
+                )
+              }
             />{" "}
             {/* ✅ restored */}
             <Route
@@ -273,10 +281,14 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
             <Route
               path="chat"
               element={
-                <ChatRoom
-                  initialData={location.state as any}
-                  onMobileNavChange={setHideMobileNav}
-                />
+                CHAT_ENABLED ? (
+                  <ChatRoom
+                    initialData={location.state as any}
+                    onMobileNavChange={setHideMobileNav}
+                  />
+                ) : (
+                  <ChatUnavailable />
+                )
               }
             />
             <Route

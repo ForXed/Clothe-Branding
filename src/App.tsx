@@ -40,6 +40,7 @@ import MakerDetail from './Admin/Makers/MakerDetail';
 import DisputeList from './Admin/Disputes/DisputeList';
 import DisputeDetail from './Admin/Disputes/DisputeDetail';
 import OrderList from './Admin/Orders/OrderList';
+import AdminOrderDetail from './Admin/Orders/AdminOrderDetail';
 import UserList from './Admin/Users/UserList';
 
 // Global Infrastructure Components
@@ -166,6 +167,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           <Route path="disputes" element={<DisputeList />} />
           <Route path="disputes/:orderId" element={<DisputeDetail />} />
           <Route path="orders" element={<OrderList />} />
+                <Route path="orders/:orderId" element={<AdminOrderDetail />} />
           <Route path="users" element={<UserList />} />
         </Route>
 

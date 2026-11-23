@@ -16,6 +16,8 @@ import StudioMobileNav from "./StudioMobileNav/StudioMobileNav";
 import OverView from "./OverView/OverView";
 import Order from "./Order/Order";
 import Messages from "./Messages/Messages";
+import { CHAT_ENABLED } from "../config/features";
+import ChatUnavailable from "../pages/ChatUnavailable";
 import Transaction from "./Transaction/Transaction";
 import StudioSettings from "./StudioSettings/StudioSettings";
 import Analytics from "./Analytics/Analytics";
@@ -109,11 +111,18 @@ const MakerStudio: React.FC = () => {
             <Route
               path="messages"
               element={
-                <Messages
-                  {...studioData}
-                  onMobileNavChange={setHideMobileNav}
-                  isCollapsed={isCollapsed}
-                />
+                CHAT_ENABLED ? (
+                  <Messages
+                    {...studioData}
+                    onMobileNavChange={setHideMobileNav}
+                    isCollapsed={isCollapsed}
+                  />
+                ) : (
+                  <ChatUnavailable
+                    backTo="/studio/orders"
+                    backLabel="Back to orders"
+                  />
+                )
               }
             />
             <Route

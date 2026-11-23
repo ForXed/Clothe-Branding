@@ -6,6 +6,7 @@ import { orderService } from "../../services/orderService";
 import type { ApiOrder, OrderStatus } from "../../types/order";
 import { getErrorMessage, getErrorStatus } from "../../utils/apiError";
 import { useAuth } from "../../auth/AuthContext";
+import { CHAT_ENABLED } from "../../config/features";
 import ProductionOrdersSkeleton from "./ProductionOrdersSkeleton";
 import styles from "./ProductionOrdersView.module.css";
 // import { dummyOrders } from "../../data/mockOrders";
@@ -276,13 +277,13 @@ const ProductionOrdersView = () => {
                     View Order
                   </button>
 
-                  {canChat(order) && (
+                  {CHAT_ENABLED && canChat(order) && (
                     <button
                       type="button"
                       className={styles.chatBtn}
                       onClick={() => navigate(orderChatPath(order.id, isMaker))}
                     >
-                      Chat with Maker
+                      {isMaker ? "Chat with Buyer" : "Chat with Maker"}
                     </button>
                   )}
 
