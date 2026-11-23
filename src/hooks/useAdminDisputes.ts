@@ -1,17 +1,18 @@
 // src/hooks/useAdminDisputes.ts
-// Fetches dispute queue and resolves individual disputes.
+// A dispute is an order in DISPUTED: the queue is GET /admin/orders?status=DISPUTED
+// and resolving posts the admin resolution (RELEASE or REFUND).
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { adminService } from "../services/adminService";
 import { getErrorMessage, getErrorStatus } from "../utils/apiError";
 import type {
-  DisputeRecord,
-  ResolveDisputeInput,
   AdminActionResult,
+  ResolveOrderInput,
 } from "../types/admin";
+import type { ProductionOrder } from "../types/order";
 
 export function useAdminDisputes() {
-  const [disputes, setDisputes] = useState<DisputeRecord[]>([]);
+  const [disputes, setDisputes] = useState<ProductionOrder[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pendingId, setPendingId] = useState<string | null>(null);
@@ -19,28 +20,25 @@ export function useAdminDisputes() {
   const requestId = useRef(0);
   const busy = useRef(false);
 
-  const fetchDisputes = useCallback(
-    async (opts?: { silent?: boolean }) => {
-      const current = ++requestId.current;
-      if (!opts?.silent) {
-        setLoading(true);
-        setError(null);
-      }
+  const fetchDisputes = useCallback(async (opts?: { silent?: boolean }) => {
+    const current = ++requestId.current;
+    if (!opts?.silent) {
+      setLoading(true);
+      setError(null);
+    }
 
-      try {
-        const data = await adminService.getDisputes();
-        if (current !== requestId.current) return;
-        setDisputes(data);
-        setError(null);
-      } catch (err) {
-        if (current !== requestId.current) return;
-        setError(getErrorMessage(err, "Failed to load disputes."));
-      } finally {
-        if (current === requestId.current) setLoading(false);
-      }
-    },
-    [],
-  );
+    try {
+      const page = await adminService.listDisputes({ size: 100 });
+      if (current !== requestId.current) return;
+      setDisputes(page.content);
+      setError(null);
+    } catch (err) {
+      if (current !== requestId.current) return;
+      setError(getErrorMessage(err, "Failed to load disputes."));
+    } finally {
+      if (current === requestId.current) setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     void fetchDisputes();
@@ -52,7 +50,7 @@ export function useAdminDisputes() {
   const resolveDispute = useCallback(
     async (
       orderId: string,
-      input: ResolveDisputeInput,
+      input: ResolveOrderInput,
     ): Promise<AdminActionResult> => {
       if (busy.current) {
         return { ok: false, message: "Another action is in progress." };
@@ -62,13 +60,14 @@ export function useAdminDisputes() {
       setError(null);
 
       try {
-        await adminService.resolveDispute(orderId, input);
+        await adminService.resolveOrder(orderId, input);
+        // The order leaves DISPUTED, so refetch the queue.
         await fetchDisputes({ silent: true });
         return { ok: true };
       } catch (err) {
         const status = getErrorStatus(err);
+        // 409 = already resolved, or the escrow is not HELD any more.
         if (status === 409) {
-          // Dispute already resolved or order state changed
           await fetchDisputes({ silent: true });
         }
         return { ok: false, message: getErrorMessage(err) };

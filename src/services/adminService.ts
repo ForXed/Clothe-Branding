@@ -1,202 +1,140 @@
 // src/services/adminService.ts
-// All /admin/* endpoints below are ASSUMED.
-// ⚠️ CONFIRM each path + method + body shape with backend before shipping.
-// If the backend reuses existing endpoints with an admin token instead of
-// dedicated /admin/* routes, swap the paths accordingly.
+// Admin calls, mapped onto the endpoints the backend actually serves.
+//
+// There is no "all makers" or "users" admin read in v1: the review surface is
+// the pending queue, and a dispute is an order in DISPUTED. Screens that need
+// something else say so explicitly instead of being fed invented data.
 
 import apiClient from "./apiClient";
-import type {
-  Maker,
-  VerificationStatus,
-} from "../types/maker";
-import type {
-  AdminUser,
-  VerifyMakerInput,
-  VerifyMakerResult,
-  DisputeRecord,
-  ResolveDisputeInput,
-  ResolveDisputeResult,
-  AdminUserSummary,
-  SuspendUserInput,
-  AdminDashboardStats,
-} from "../types/admin";
+import { toPage } from "../types/common";
+import type { Page, PageParams } from "../types/common";
 import type { ProductionOrder } from "../types/order";
+import type { MakerSummary } from "../types/maker";
+import type {
+  AdminDashboardStats,
+  DisputeRecord,
+  PendingMaker,
+  ResolveOrderInput,
+  VerifyMakerInput,
+} from "../types/admin";
+
+export interface AdminOrderParams extends PageParams {
+  status?: string;
+}
 
 export const adminService = {
-  /* ---------------------------------------------------------------- */
-  /* Auth / session                                                    */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * GET /authentication/me
-   * Returns the current authenticated user including roles.
-   * ⚠️ CONFIRM this endpoint exists and returns roles: string[].
-   * If it does not exist, the backend must expose a session/me route
-   * that includes the role array, otherwise the admin guard cannot work.
-   */
-  async getCurrentAdmin(): Promise<AdminUser> {
-    const res = await apiClient.get<AdminUser>("/authentication/me");
-    return res.data;
-  },
-
-  /* ---------------------------------------------------------------- */
-  /* Maker verification                                                */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * GET /admin/makers?status=PENDING
-   * ⚠️ CONFIRM endpoint. May alternatively be GET /makers with an
-   * admin-scoped token and a status query param.
-   */
-  async getMakersByStatus(status?: VerificationStatus): Promise<Maker[]> {
-    const res = await apiClient.get("/admin/makers", {
-      params: status ? { status } : undefined,
+  /** GET /admin/orders — paged, optional status filter. */
+  async listOrders(
+    params: AdminOrderParams = {},
+  ): Promise<Page<ProductionOrder>> {
+    const response = await apiClient.get("/admin/orders", {
+      params: { status: params.status, page: params.page, size: params.size },
     });
-    const data = res.data;
-    return Array.isArray(data) ? data : (data.makers ?? []);
+    return toPage<ProductionOrder>(response.data);
   },
 
-  /**
- * GET /admin/makers/{id}
- * ⚠️ CONFIRM endpoint. May alternatively be GET /makers/{id}
- * with an admin-scoped token.
- */
-async getMakerById(id: string): Promise<Maker> {
-  const res = await apiClient.get<Maker>(`/admin/makers/${id}`);
-  return res.data;
-},
-
-  /**
-   * PATCH /admin/makers/{id}/verify
-   * Body: { status: "VERIFIED" | "REJECTED", rejectionNote?: string }
-   * ⚠️ CONFIRM endpoint + method (PATCH vs POST).
-   */
-  async verifyMaker(id: string, input: VerifyMakerInput): Promise<VerifyMakerResult> {
-    const res = await apiClient.patch<VerifyMakerResult>(
-      `/admin/makers/${id}/verify`,
-      input,
-    );
-    return res.data;
+  /** GET /orders/{id} — participant scoped, and ADMIN is a participant. */
+  async getOrder(orderId: string): Promise<ProductionOrder> {
+    const response = await apiClient.get<ProductionOrder>(`/orders/${orderId}`);
+    return response.data;
   },
 
-  /* ---------------------------------------------------------------- */
-  /* Dispute review                                                    */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * GET /admin/disputes
-   * Returns orders with status DISPUTED + dispute metadata.
-   * ⚠️ CONFIRM endpoint. May alternatively be GET /orders?status=DISPUTED
-   * with dispute details embedded or fetched per-order.
-   */
-  async getDisputes(): Promise<DisputeRecord[]> {
-    const res = await apiClient.get("/admin/disputes");
-    const data = res.data;
-    return Array.isArray(data) ? data : (data.disputes ?? []);
-  },
-
-  /**
-   * GET /admin/disputes/{orderId}
-   * Single dispute detail with full order + evidence.
-   * ⚠️ CONFIRM endpoint.
-   */
-  async getDisputeDetail(orderId: string): Promise<DisputeRecord> {
-    const res = await apiClient.get<DisputeRecord>(
-      `/admin/disputes/${orderId}`,
-    );
-    return res.data;
-  },
-
-  /**
-   * POST /admin/disputes/{orderId}/resolve
-   * Body: ResolveDisputeInput
-   * ⚠️ CONFIRM endpoint + whether this triggers escrow release/refund
-   * via Payment Partner or just updates internal status.
-   */
-  async resolveDispute(
+  /** POST /admin/orders/{orderId}/resolve — RELEASE completes, REFUND cancels. */
+  async resolveOrder(
     orderId: string,
-    input: ResolveDisputeInput,
-  ): Promise<ResolveDisputeResult> {
-    const res = await apiClient.post<ResolveDisputeResult>(
-      `/admin/disputes/${orderId}/resolve`,
+    input: ResolveOrderInput,
+  ): Promise<ProductionOrder> {
+    const response = await apiClient.post<ProductionOrder>(
+      `/admin/orders/${orderId}/resolve`,
       input,
     );
-    return res.data;
+    return response.data;
   },
 
-  /**
- * PATCH /admin/disputes/{orderId}/status
- * Body: { status: DisputeStatus }
- * Used for OPEN → UNDER_REVIEW and UNDER_REVIEW → ESCALATED transitions.
- * ⚠️ CONFIRM endpoint. May alternatively be handled inside resolveDispute.
- */
-async updateDisputeStatus(
-  orderId: string,
-  status: "UNDER_REVIEW" | "ESCALATED",
-): Promise<void> {
-  await apiClient.patch(`/admin/disputes/${orderId}/status`, { status });
-},
-
-  /* ---------------------------------------------------------------- */
-  /* Orders (read-only monitoring)                                     */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * GET /admin/orders?status=...
-   * ⚠️ CONFIRM endpoint. May reuse GET /orders with admin scope.
-   */
-  async getOrders(status?: string): Promise<ProductionOrder[]> {
-    const res = await apiClient.get("/admin/orders", {
-      params: status ? { status } : undefined,
+  /** GET /admin/makers/pending — the only maker review read in v1. */
+  async listPendingMakers(
+    params: PageParams = {},
+  ): Promise<Page<PendingMaker>> {
+    const response = await apiClient.get("/admin/makers/pending", {
+      params: { page: params.page, size: params.size },
     });
-    const data = res.data;
-    return Array.isArray(data) ? data : (data.orders ?? []);
+    return toPage<PendingMaker>(response.data);
   },
 
-  /* ---------------------------------------------------------------- */
-  /* Users                                                             */
-  /* ---------------------------------------------------------------- */
+  /** PATCH /makers/{id}/verify (approve) or /reject (a note is required). */
+  async decideMaker(
+    makerId: string,
+    input: VerifyMakerInput,
+  ): Promise<MakerSummary> {
+    if (input.status === "VERIFIED") {
+      const response = await apiClient.patch<MakerSummary>(
+        `/makers/${makerId}/verify`,
+      );
+      return response.data;
+    }
 
-  /**
-   * GET /admin/users
-   * ⚠️ CONFIRM endpoint.
-   */
-  async getUsers(): Promise<AdminUserSummary[]> {
-    const res = await apiClient.get("/admin/users");
-    const data = res.data;
-    return Array.isArray(data) ? data : (data.users ?? []);
+    const response = await apiClient.patch<MakerSummary>(
+      `/makers/${makerId}/reject`,
+      { rejectionNote: input.rejectionNote ?? "" },
+    );
+    return response.data;
+  },
+
+  /** Disputes are orders in DISPUTED; the list stays lean like the order list. */
+  async listDisputes(params: PageParams = {}): Promise<Page<ProductionOrder>> {
+    return adminService.listOrders({ ...params, status: "DISPUTED" });
   },
 
   /**
-   * POST /admin/users/{id}/suspend
-   * Body: { reason, duration?, expiresAt? }
-   * ⚠️ CONFIRM endpoint + whether suspension is reversible.
+   * The reason lives in the DISPUTE_OPENED event ("<category>: <explanation>"),
+   * so the detail pairs the order with its trail; a missing trail must not hide
+   * the order itself.
    */
-  async suspendUser(id: string, input: SuspendUserInput): Promise<void> {
-    await apiClient.post(`/admin/users/${id}/suspend`, input);
+  async getDispute(orderId: string): Promise<DisputeRecord> {
+    const order = await adminService.getOrder(orderId);
+
+    let trail: Array<{
+      eventType?: string;
+      note?: string;
+      createdAt?: string;
+      actorId?: string;
+    }> = [];
+
+    try {
+      const response = await apiClient.get(`/orders/${orderId}/events`);
+      trail = Array.isArray(response.data) ? response.data : [];
+    } catch {
+      trail = [];
+    }
+
+    const opened = trail.find((event) => event?.eventType === "DISPUTE_OPENED");
+
+    return {
+      order,
+      reason: opened?.note ?? "No reason was recorded on this dispute.",
+      raisedAt: opened?.createdAt ?? null,
+      raisedBy: opened?.actorId ?? null,
+    };
   },
 
-  /**
-   * POST /admin/users/{id}/reinstate
-   * ⚠️ CONFIRM whether this exists. If not, un-suspend may be a
-   * separate PATCH or may not be supported in v1.
-   */
-  async reinstateUser(id: string): Promise<void> {
-    await apiClient.post(`/admin/users/${id}/reinstate`);
-  },
-
-  /* ---------------------------------------------------------------- */
-  /* Dashboard stats                                                   */
-  /* ---------------------------------------------------------------- */
-
-  /**
-   * GET /admin/stats
-   * ⚠️ CONFIRM endpoint. If it does not exist, the dashboard can
-   * compute counts client-side from getMakers + getDisputes + getOrders,
-   * but that is expensive. Prefer a dedicated stats endpoint.
-   */
+  /** Counts for the dashboard: one page of orders plus the pending queue. */
   async getDashboardStats(): Promise<AdminDashboardStats> {
-    const res = await apiClient.get<AdminDashboardStats>("/admin/stats");
-    return res.data;
+    const pageSize = 100;
+    const [orders, pending] = await Promise.all([
+      adminService.listOrders({ size: pageSize }),
+      adminService.listPendingMakers({ size: 1 }),
+    ]);
+
+    const byStatus: Record<string, number> = {};
+    for (const order of orders.content) {
+      byStatus[order.status] = (byStatus[order.status] ?? 0) + 1;
+    }
+
+    return {
+      byStatus,
+      totalOrders: orders.totalElements,
+      pendingMakers: pending.totalElements,
+      sampled: orders.totalElements > orders.content.length,
+    };
   },
 };

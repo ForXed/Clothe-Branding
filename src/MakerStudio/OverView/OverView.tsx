@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './OverView.module.css';
+import { CHAT_ENABLED } from '../../config/features';
 
 interface OverviewData {
   revenue?: number;
@@ -383,6 +384,7 @@ const OverView: React.FC<OverViewProps> = ({
               </div>
               <span>Orders</span>
             </button>
+            {CHAT_ENABLED && (
             <button 
               type="button" 
               className={styles.quickBtn} 
@@ -398,6 +400,7 @@ const OverView: React.FC<OverViewProps> = ({
                 <span className={styles.msgBadge}>{unreadMessages}</span>
               )}
             </button>
+            )}
             <button 
               type="button" 
               className={styles.quickBtn} 

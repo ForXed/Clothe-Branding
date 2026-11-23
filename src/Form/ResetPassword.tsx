@@ -163,7 +163,7 @@ const ResetPassword: React.FC<ResetPasswordProps> = ({ notify }) => {
 
     setIsLoading(true);
     try {
-      await authService.resetPassword(email, newPassword, otp);
+      await authService.resetPassword({ email, otp, password: newPassword });
       if (notify) notify('Password reset successfully! Please sign in.', 'success');
       setStep('success');
       setTimeout(() => navigate('/login'), 2000);

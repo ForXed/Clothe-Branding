@@ -155,17 +155,6 @@ const IncomingBriefs: React.FC<IncomingBriefsProps> = ({ notify }) => {
 
                 <p className={styles.description}>{brief.description}</p>
 
-                {brief.images?.length > 0 && (
-                  <div className={styles.imageRow}>
-                    {brief.images.slice(0, 4).map((img) => (
-                      <img key={img.id} src={img.fileUrl} alt="reference" className={styles.thumb} />
-                    ))}
-                    {brief.images.length > 4 && (
-                      <span className={styles.moreImages}>+{brief.images.length - 4}</span>
-                    )}
-                  </div>
-                )}
-
                 {brief.status === 'DECLINED' && brief.declineReason && (
                   <div className={styles.declinedBox}>
                     <strong>You declined this brief.</strong> Reason sent to brand: “{brief.declineReason}”

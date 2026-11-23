@@ -132,14 +132,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ initialData, onMobileNavChange }) =
   useEffect(() => {
     const loadData = async () => {
       try {
-        let conversations = await chatAPI.getConversations() as Chat[];
+        let conversations = await chatAPI.getConversations();
 
         if (initialData?.newConversation) {
           const { id, name, avatar, role, initialMessage } = initialData.newConversation;
           const exists = conversations.find(c => c.id === id || c.name === name);
 
           if (!exists) {
-            const newConv = await chatAPI.findOrCreateConversation({ id, name, avatar, role }) as Chat;
+            const newConv = chatAPI.findOrCreateConversation({ id, name, avatar, role });
             conversations = [newConv, ...conversations];
 
             if (initialMessage) {
@@ -150,7 +150,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ initialData, onMobileNavChange }) =
                   type: 'text',
                   senderId: 1
                 });
-                const res = await chatAPI.getMessages(newConv.id) as { content: Message[] };
+                const res = await chatAPI.getMessages(newConv.id);
                 setMessages(prev => ({
                   ...prev,
                   [newConv.id]: res.content.map(m => ({
@@ -183,7 +183,7 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ initialData, onMobileNavChange }) =
 
         const allMessages: Record<string | number, Message[]> = {};
         for (let chat of conversations) {
-          const res = await chatAPI.getMessages(chat.id) as { content: Message[] };
+          const res = await chatAPI.getMessages(chat.id);
           allMessages[chat.id] = res.content.map(m => ({
             ...m,
             time: new Date(m.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -350,11 +350,14 @@ const ChatRoom: React.FC<ChatRoomProps> = ({ initialData, onMobileNavChange }) =
     setAttachment(null);
     setVaultDesigns([]);
 
+    if (selectedChatId === null) return;
+    const conversationId = typeof selectedChatId === 'number' ? selectedChatId : Number(selectedChatId);
+
     try {
       await chatAPI.sendMessage({
-        conversationId: selectedChatId,
+        conversationId,
         content: newMsg.content,
-        type: newMsg.type,
+        type: newMsg.type === 'vault' ? 'file' : newMsg.type,
         senderId: 1,
         designs: newMsg.designs
       });

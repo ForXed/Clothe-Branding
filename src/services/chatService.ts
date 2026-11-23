@@ -36,6 +36,8 @@ interface SendMessagePayload {
   fileName?: string;
   fileType?: string;
   fileUrl?: string;
+  /** Design bundle forwarded from the Brand Vault; the mock transport ignores it. */
+  designs?: unknown[];
 }
 
 interface MakerData {

@@ -1,128 +1,86 @@
 // src/types/admin.ts
-// Admin-specific types for Brutige v1.
-// All admin endpoints below are ASSUMED until confirmed with backend.
-// ⚠️ CONFIRM each endpoint path before shipping.
+// What the admin surface actually gets from the API (v1.3).
+//
+// The backend exposes exactly three admin writes and two admin reads:
+//   GET  /api/v1/admin/orders                  (paged, optional ?status)
+//   GET  /api/v1/admin/makers/pending          (paged)
+//   POST /api/v1/admin/orders/{orderId}/resolve
+//   PATCH /api/v1/makers/{makerId}/verify
+//   PATCH /api/v1/makers/{makerId}/reject
+// There is no users list and no arbitrary maker-status query; a dispute is
+// simply an order in DISPUTED whose reason lives in the order's event trail.
+// Anything a screen cannot get from those calls is marked unavailable in the UI
+// rather than invented here.
 
-import type { AuthUser } from "./auth";
-import type { Maker, VerificationStatus } from "./maker";
-import type { ProductionOrder, OrderStatus } from "./order";
-import type { EscrowStatus } from "./escrow";
+import type { CurrentUser } from "./auth";
+import type { ProductionOrder } from "./order";
+import type { VerificationStatus } from "./maker";
 
 /* ------------------------------------------------------------------ */
-/* Admin user                                                          */
+/* Maker review                                                        */
 /* ------------------------------------------------------------------ */
 
-export interface AdminUser extends AuthUser {
-  /** Must include "ADMIN" in roles for access. ⚠️ CONFIRM role value. */
-  roles: string[];
+/** GET /admin/makers/pending — the reviewer sees the applicant's contact email. */
+export interface PendingMaker {
+  id: string;
+  brandName: string;
+  userEmail: string;
+  location?: string | null;
+  leadTimeDays?: number | null;
+  minBatch?: number | null;
+  maxBatch?: number | null;
+  specializations: string[];
 }
 
-/* ------------------------------------------------------------------ */
-/* Maker review (admin-side)                                           */
-/* ------------------------------------------------------------------ */
-
-export interface MakerReviewQueue {
-  pending: Maker[];
-  verified: Maker[];
-  rejected: Maker[];
-}
-
-export interface VerifyMakerInput {
+export type VerifyMakerInput = {
   status: Extract<VerificationStatus, "VERIFIED" | "REJECTED">;
-  rejectionNote?: string; // required when status === "REJECTED"
-}
-
-export interface VerifyMakerResult {
-  id: string;
-  verificationStatus: VerificationStatus;
-  verifiedAt: string | null;
-  rejectionNote: string | null;
-}
+  /** Required when status === "REJECTED". */
+  rejectionNote?: string;
+};
 
 /* ------------------------------------------------------------------ */
-/* Dispute review (admin-side)                                         */
+/* Order / dispute review                                              */
 /* ------------------------------------------------------------------ */
 
+export type ResolutionAction = "RELEASE" | "REFUND";
+
+export interface ResolveOrderInput {
+  resolution: ResolutionAction;
+  /** Visible to both parties in the order trail. */
+  note: string;
+}
+
+/** A DISPUTED order plus the reason its opener recorded. */
 export interface DisputeRecord {
-  orderId: string;
   order: ProductionOrder;
-  reasonCategory: string;
-  explanation: string;
-  raisedBy: "BUYER" | "MAKER"; // ⚠️ CONFIRM who can raise disputes
-  raisedAt: string;
-  status: DisputeStatus;
-  resolutionNote?: string | null;
-  resolvedAt?: string | null;
-  resolvedBy?: string | null; // admin user id
-}
-
-export type DisputeStatus =
-  | "OPEN"
-  | "UNDER_REVIEW"
-  | "RESOLVED_RELEASED"
-  | "RESOLVED_REFUNDED"
-  | "RESOLVED_PARTIAL"
-  | "ESCALATED";
-
-export interface ResolveDisputeInput {
-  action: "RELEASE_TO_MAKER" | "REFUND_TO_BRAND" | "PARTIAL";
-  /** Required when action === "PARTIAL". Must sum to escrow.amountNgn. */
-  releaseAmountNgn?: number;
-  refundAmountNgn?: number;
-  resolutionNote: string; // visible to both parties
-}
-
-export interface ResolveDisputeResult {
-  orderId: string;
-  disputeStatus: DisputeStatus;
-  escrowStatus: EscrowStatus;
-  resolvedAt: string;
-}
-
-/* ------------------------------------------------------------------ */
-/* User management (admin-side)                                        */
-/* ------------------------------------------------------------------ */
-
-export type UserAccountStatus = "ACTIVE" | "SUSPENDED" | "TERMINATED";
-
-export interface AdminUserSummary {
-  id: string;
-  email: string;
-  firstName: string;
-  lastName: string;
-  roles: string[];
-  accountStatus: UserAccountStatus;
-  createdAt: string;
-  /** Present if the user is a maker. */
-  makerId?: string;
-  makerVerificationStatus?: VerificationStatus;
-}
-
-export interface SuspendUserInput {
+  /** From the DISPUTE_OPENED event note ("category: explanation"). */
   reason: string;
-  duration?: "PERMANENT" | "TEMPORARY"; // ⚠️ CONFIRM if temp suspensions exist
-  expiresAt?: string; // ISO date, required when duration === "TEMPORARY"
+  raisedAt: string | null;
+  raisedBy: string | null;
 }
 
 /* ------------------------------------------------------------------ */
-/* Dashboard stats                                                     */
+/* Dashboard                                                           */
 /* ------------------------------------------------------------------ */
 
+/**
+ * Counts only: escrow totals are not exposed by the API yet, so the dashboard
+ * shows what it can count and says so instead of printing zeroes.
+ */
 export interface AdminDashboardStats {
+  byStatus: Record<string, number>;
+  totalOrders: number;
   pendingMakers: number;
-  verifiedMakers: number;
-  rejectedMakers: number;
-  openDisputes: number;
-  activeOrders: number; // IN_ESCROW + IN_PRODUCTION + DELIVERED
-  completedOrders: number;
-  cancelledOrders: number;
-  totalEscrowHeldNgn: number;
-  totalFeesEarnedNgn: number;
+  /** True when the order count exceeded one page, so the totals are a sample. */
+  sampled: boolean;
 }
 
 /* ------------------------------------------------------------------ */
-/* Admin action result (mirrors ActionResult pattern)                  */
+/* Session + action result                                             */
 /* ------------------------------------------------------------------ */
+
+/** The admin guard reads the same /me payload as the rest of the app. */
+export type AdminUser = CurrentUser;
 
 export type AdminActionResult =
   | { ok: true; data?: unknown }

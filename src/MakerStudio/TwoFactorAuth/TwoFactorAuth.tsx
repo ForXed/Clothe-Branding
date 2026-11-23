@@ -1,14 +1,19 @@
 import React, { useState, useRef } from 'react';
 import styles from './TwoFactorAuth.module.css';
 
-const TwoFactorAuth = ({ onClose, onEnable }) => {
+interface TwoFactorAuthProps {
+  onClose: () => void;
+  onEnable?: () => void;
+}
+
+const TwoFactorAuth: React.FC<TwoFactorAuthProps> = ({ onClose, onEnable }) => {
   const [step, setStep] = useState(1); // 1: Intro, 2: QR Code, 3: Verify, 4: Success
   const [qrCode] = useState('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==');
   const [secret] = useState('JBSWY3DPEHPK3PXP');
   const [verificationCode, setVerificationCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const inputRefs = useRef([]);
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   // Generate QR code (mock)
   const generateQR = async () => {
@@ -19,7 +24,7 @@ const TwoFactorAuth = ({ onClose, onEnable }) => {
   };
 
   // Handle verification code input
-  const handleCodeChange = (index, value) => {
+  const handleCodeChange = (index: number, value: string) => {
     if (value.length > 1) return;
     
     const newCode = [...verificationCode];
@@ -33,7 +38,7 @@ const TwoFactorAuth = ({ onClose, onEnable }) => {
   };
 
   // Handle backspace
-  const handleKeyDown = (index, e) => {
+  const handleKeyDown = (index: number, e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === 'Backspace' && !verificationCode[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
@@ -147,7 +152,9 @@ const TwoFactorAuth = ({ onClose, onEnable }) => {
               {verificationCode.map((digit, idx) => (
                 <input
                   key={idx}
-                  ref={el => inputRefs.current[idx] = el}
+                  ref={(el) => {
+                    inputRefs.current[idx] = el;
+                  }}
                   type="text"
                   maxLength={1}
                   value={digit}

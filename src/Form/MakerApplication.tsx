@@ -4,13 +4,20 @@ import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
 import { makerService } from '../services/makerService';
-import type { Maker } from '../types/maker';
 import { Link } from 'react-router-dom';
 import styles from './MakerApplication.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
 type NotifyFunction = (message: string, type: 'success' | 'error' | 'info') => void;
+
+/** What we can show on the confirmation step: the API returns the created profile. */
+interface SubmittedApplication {
+  id: string;
+  brandName: string;
+  verificationStatus: string;
+  createdAt: string;
+}
 
 interface MakerApplicationProps {
   notify?: NotifyFunction;
@@ -55,7 +62,7 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
   const [errors, setErrors] = useState<FormErrors>({});
   const [termsAccepted, setTermsAccepted] = useState<boolean>(false);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
-  const [submittedMaker, setSubmittedMaker] = useState<Maker | null>(null);
+  const [submittedMaker, setSubmittedMaker] = useState<SubmittedApplication | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState<boolean>(false);
 
   const [formData, setFormData] = useState<FormData>({
@@ -264,8 +271,14 @@ const MakerApplication: React.FC<MakerApplicationProps> = ({ notify }) => {
       // Store locally so app knows they have a pending application
       localStorage.setItem('brutige_maker_application', JSON.stringify(createdMaker));
 
-      // Show success state (Step 3)
-      setSubmittedMaker(createdMaker);
+      // Show success state (Step 3). The POST returns the profile, not a status
+      // report, so the PENDING badge is what we just asked for.
+      setSubmittedMaker({
+        id: createdMaker.id,
+        brandName: createdMaker.brandName,
+        verificationStatus: 'PENDING',
+        createdAt: new Date().toISOString(),
+      });
       setStep(3);
       if (notify) {
         notify('Application submitted successfully! Status: PENDING', 'success');

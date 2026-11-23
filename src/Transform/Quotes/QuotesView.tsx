@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { quoteService } from '../../services/quoteService';
+import { splitQuoteAmount } from '../../types/quote';
 import type { Quote, QuoteStatus } from '../../types/quote';
 import styles from './QuotesView.module.css';
 
@@ -116,17 +117,23 @@ const QuotesView: React.FC<QuotesViewProps> = ({ notify }) => {
   };
 
   const handleDecline = async (quoteId: string) => {
-    if (
-      !window.confirm(
-        'Decline this quote? The maker will be allowed ONE revised quote.',
-      )
-    )
+    const reason = window.prompt(
+      'Why are you declining this quote? The maker will see your reason.',
+      'Price is above my budget',
+    );
+
+    // Cancelling the prompt means "don't decline"; an empty reason is rejected
+    // by the API itself, so we keep the same rule here.
+    if (reason === null) return;
+    if (!reason.trim()) {
+      if (notify) notify('Please give the maker a reason.', 'error');
       return;
+    }
 
     setActionLoadingId(quoteId);
 
     try {
-      const updated = await quoteService.declineQuote(quoteId);
+      const updated = await quoteService.declineQuote(quoteId, reason.trim());
 
       if (updated && updated.id) {
         setQuotes((prev) =>
@@ -280,7 +287,7 @@ const QuotesView: React.FC<QuotesViewProps> = ({ notify }) => {
                   <div className={styles.detailItem}>
                     <p className={styles.detailLabel}>Maker Receives</p>
                     <p className={styles.detailValue}>
-                      {formatCurrency(quote.estimatedMakerPayoutNgn)}
+                      {formatCurrency(splitQuoteAmount(quote.priceNgn).makerPayoutNgn)}
                     </p>
                   </div>
                   <div className={styles.detailItem}>

@@ -1,72 +1,96 @@
-import apiClient from './apiClient';
+import apiClient, { OAUTH_BASE_URL } from './apiClient';
+import type {
+  CurrentUser,
+  LoginInput,
+  MessageResponse,
+  ResetPasswordInput,
+  SignupInput,
+  SignupResponse,
+  VerifyEmailInput,
+} from '../types/auth';
 
-export interface RegisterData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-}
-
-export interface AuthResponse {
-  user: {
-    id: string;
-    email: string;
-    firstName: string;
-    lastName: string;
-    isEmailVerified: boolean;
-  };
-  message?: string;
-}
-
+/**
+ * Auth client for the v1.3 API.
+ *
+ * Two things are easy to get wrong here:
+ * 1. Tokens live in HttpOnly cookies, so nothing in this file returns them and the
+ *    only way to learn who is signed in is `getMe()`.
+ * 2. `verify-email`, `resend-otp` and `logout` read the user from the session
+ *    cookie, not from the body — they must be called while the cookies are set.
+ */
 export const authService = {
-  // 🔐 AUTH CORE
-  async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/authentication/signup', data);
-    return response.data;
+  /** `POST /authentication/signup` — 201 + auth cookies; the user still has to verify the email. */
+  async signup(input: SignupInput): Promise<SignupResponse> {
+    const { data } = await apiClient.post<SignupResponse>('/authentication/signup', input);
+    return data;
   },
 
-  async login(email: string, password: string): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/authentication/login', { email, password });
-    return response.data;
+  /** `POST /authentication/login` — 200 + auth cookies. */
+  async login({ email, password }: LoginInput): Promise<MessageResponse> {
+    const { data } = await apiClient.post<MessageResponse>('/authentication/login', { email, password });
+    return data;
   },
 
+  /** `POST /authentication/logout` — clears the cookies. Never throws. */
   async logout(): Promise<void> {
     try {
       await apiClient.post('/authentication/logout');
-    } catch (e) {
-      console.warn('Logout API call failed:', e);
+    } catch {
+      // The session may already be gone; the client state is what matters.
     }
   },
 
-  // 🔄 SESSION LIFECYCLE
-  async verifyEmail(otp: string): Promise<AuthResponse> {
-    const response = await apiClient.post<AuthResponse>('/authentication/verify-email', { otp });
-    return response.data;
+  /** `GET /authentication/me` — 200 with the identity, 401 when there is no session. */
+  async getMe(): Promise<CurrentUser> {
+    const { data } = await apiClient.get<CurrentUser>('/authentication/me');
+    return data;
   },
 
-  async resendOtp(email: string): Promise<{ message: string }> {
-    const response = await apiClient.post<{ message: string }>('/authentication/resend-otp', { email });
-    return response.data;
+  /** `POST /authentication/verify-email` — the email comes from the session cookie. */
+  async verifyEmail({ otp }: VerifyEmailInput): Promise<MessageResponse> {
+    const { data } = await apiClient.post<MessageResponse>('/authentication/verify-email', { otp });
+    return data;
   },
 
-  async forgotPassword(email: string): Promise<{ message: string }> {
-    const response = await apiClient.post<{ message: string }>('/authentication/forgotten-password', { email });
-    return response.data;
+  /** `POST /authentication/resend-otp` — 202, or 409 OTP_STILL_VALID while the previous code is alive. */
+  async resendOtp(): Promise<MessageResponse> {
+    const { data } = await apiClient.post<MessageResponse>('/authentication/resend-otp');
+    return data;
   },
 
-  async resetPassword(email: string, password: string, otp: string): Promise<{ message: string }> {
-    const response = await apiClient.post<{ message: string }>('/authentication/verify-forgotten-password', {
+  /** `POST /authentication/forgotten-password` — 202, emails a 6-digit reset code. */
+  async forgotPassword(email: string): Promise<MessageResponse> {
+    const { data } = await apiClient.post<MessageResponse>('/authentication/forgotten-password', { email });
+    return data;
+  },
+
+  /**
+   * `POST /authentication/verify-forgotten-password-otp` — step 1 of the reset flow.
+   * Verifies the code without spending it; `resetPassword` is what changes the password.
+   */
+  async verifyForgottenPasswordOtp(email: string, otp: string): Promise<MessageResponse> {
+    const { data } = await apiClient.post<MessageResponse>('/authentication/verify-forgotten-password-otp', {
       email,
-      forgottenPassword: password,
       otp,
     });
-    return response.data;
+    return data;
   },
 
-  // 🌐 OAUTH
+  /**
+   * `POST /authentication/reset-password` — step 2 of the reset flow, and the only way
+   * to change a password. There is no `change-password` endpoint and no `?token=` link.
+   */
+  async resetPassword({ email, otp, password }: ResetPasswordInput): Promise<MessageResponse> {
+    const { data } = await apiClient.post<MessageResponse>('/authentication/reset-password', {
+      email,
+      otp,
+      password,
+    });
+    return data;
+  },
+
+  /** Google sign-in starts at the API root, not under `/api/v1`. */
   getGoogleOAuthUrl(): string {
-    // Google OAuth must be at the root, not under /api/v1
-    const API_ROOT = import.meta.env.VITE_API_URL?.replace('/api/v1', '') || 'http://localhost:8080';
-    return `${API_ROOT}/oauth2/authorization/google`;
+    return `${OAUTH_BASE_URL}/oauth2/authorization/google`;
   },
 };

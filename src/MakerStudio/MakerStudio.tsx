@@ -16,6 +16,8 @@ import StudioMobileNav from "./StudioMobileNav/StudioMobileNav";
 import OverView from "./OverView/OverView";
 import Order from "./Order/Order";
 import Messages from "./Messages/Messages";
+import { CHAT_ENABLED } from "../config/features";
+import ChatUnavailable from "../pages/ChatUnavailable";
 import Transaction from "./Transaction/Transaction";
 import StudioSettings from "./StudioSettings/StudioSettings";
 import Analytics from "./Analytics/Analytics";
@@ -23,6 +25,7 @@ import ProModal from "./ProModal/ProModal";
 
 // ✅ NEW: Maker-side B2B flow (incoming briefs + quote/decline in one screen)
 import IncomingBriefs from "../Transform/MakerBriefs/IncomingBriefs";
+import ProductionOrdersView from "../Transform/Orders/ProductionOrdersView";
 
 // @ts-ignore
 import useStudioData from "../hooks/useStudioData";
@@ -103,16 +106,23 @@ const MakerStudio: React.FC = () => {
 
             {/* ✅ KEEP: Existing routes (maker's production view) */}
             <Route path="overview" element={<OverView {...studioData} />} />
-            <Route path="orders" element={<Order {...studioData} />} />
+            <Route path="orders" element={<ProductionOrdersView />} />
             <Route path="orders/:orderId" element={<OrderView />} />
             <Route
               path="messages"
               element={
-                <Messages
-                  {...studioData}
-                  onMobileNavChange={setHideMobileNav}
-                  isCollapsed={isCollapsed}
-                />
+                CHAT_ENABLED ? (
+                  <Messages
+                    {...studioData}
+                    onMobileNavChange={setHideMobileNav}
+                    isCollapsed={isCollapsed}
+                  />
+                ) : (
+                  <ChatUnavailable
+                    backTo="/studio/orders"
+                    backLabel="Back to orders"
+                  />
+                )
               }
             />
             <Route

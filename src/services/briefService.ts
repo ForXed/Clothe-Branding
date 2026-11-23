@@ -1,61 +1,99 @@
 // src/services/briefService.ts
+// Briefs are directed at ONE maker, so creation is a multipart POST that carries
+// the brief JSON and its reference images in a single request (there is no
+// "add an image later" endpoint yet — POST /briefs/{id}/images is still planned).
 import apiClient from './apiClient';
-import type { Brief, BriefInput, BriefImage } from '../types/brief';
+import { toPage } from '../types/common';
+import type { Page, PageParams } from '../types/common';
+import type {
+  Brief,
+  BriefInput,
+  BriefStatus,
+  BriefUpdateInput,
+} from '../types/brief';
+
+export interface ListBriefsParams extends PageParams {
+  status?: BriefStatus;
+}
 
 export const briefService = {
-  /** POST /briefs — create a DRAFT brief, directed at one maker */
+  /** POST /briefs — create a DRAFT brief for one maker (multipart). */
   async createBrief(input: BriefInput): Promise<Brief> {
-    const response = await apiClient.post<Brief>('/briefs', input);
+    const form = new FormData();
+
+    // The JSON part must keep this name and type: the controller reads
+    // @RequestPart("brief") as application/json.
+    form.append(
+      'brief',
+      new Blob(
+        [
+          JSON.stringify({
+            makerProfileId: input.makerId,
+            garmentType: input.garmentType,
+            quantity: input.quantity,
+            budgetNgn: input.budgetNgn,
+            deadline: input.deadline,
+            description: input.description,
+          }),
+        ],
+        { type: 'application/json' },
+      ),
+    );
+
+    (input.images ?? []).forEach((file) => form.append('images', file));
+
+    const response = await apiClient.post<Brief>('/briefs', form);
     return response.data;
   },
 
-  /** GET /briefs — buyer sees sent briefs, maker sees received briefs */
-  async getBriefs(): Promise<Brief[]> {
-    const response = await apiClient.get('/briefs');
-    const data = response.data;
-    return Array.isArray(data) ? data : (data as any).briefs ?? [];
+  /**
+   * GET /briefs — the API scopes it by role: a buyer sees the briefs they sent,
+   * a maker sees the briefs addressed to them, an admin sees everything.
+   */
+  async listBriefs(params: ListBriefsParams = {}): Promise<Page<Brief>> {
+    const response = await apiClient.get('/briefs', { params });
+    return toPage<Brief>(response.data);
   },
 
-  /** GET /briefs/{briefId} — single brief detail */
+  /** Convenience wrapper for screens that only need the rows. */
+  async getBriefs(params: ListBriefsParams = {}): Promise<Brief[]> {
+    return (await briefService.listBriefs(params)).content;
+  },
+
+  /** GET /briefs/{briefId} — buyer, addressed maker or admin only. */
   async getBrief(briefId: string): Promise<Brief> {
     const response = await apiClient.get<Brief>(`/briefs/${briefId}`);
     return response.data;
   },
 
-  /** PATCH /briefs/{briefId} — edit while still DRAFT */
-  async updateBrief(briefId: string, input: Partial<BriefInput>): Promise<Brief> {
+  /** PATCH /briefs/{briefId} — edit while still DRAFT (409 once sent). */
+  async updateBrief(briefId: string, input: BriefUpdateInput): Promise<Brief> {
     const response = await apiClient.patch<Brief>(`/briefs/${briefId}`, input);
     return response.data;
   },
 
-  /**
-   * POST /briefs/{briefId}/images — upload ONE reference image (multipart).
-   * ⚠️ CONFIRM field name: 'file' vs 'image'
-   */
-  async uploadImage(briefId: string, file: File): Promise<BriefImage> {
-    const form = new FormData();
-    form.append('file', file);
-    const response = await apiClient.post<BriefImage>(`/briefs/${briefId}/images`, form, {
-      headers: { 'Content-Type': 'multipart/form-data' },
+  /** PATCH /briefs/{briefId}/send — DRAFT -> SENT, expiresAt = +7 days. */
+  async sendBrief(briefId: string): Promise<Brief> {
+    const response = await apiClient.patch<Brief>(`/briefs/${briefId}/send`);
+    return response.data;
+  },
+
+  /** PATCH /briefs/{briefId}/withdraw — buyer pulls it back before acceptance. */
+  async withdrawBrief(briefId: string): Promise<Brief> {
+    const response = await apiClient.patch<Brief>(`/briefs/${briefId}/withdraw`);
+    return response.data;
+  },
+
+  /** PATCH /briefs/{briefId}/decline — maker declines without quoting. */
+  async declineBrief(briefId: string, reason: string): Promise<Brief> {
+    const response = await apiClient.patch<Brief>(`/briefs/${briefId}/decline`, {
+      reason,
     });
     return response.data;
   },
 
-  /** POST /briefs/{briefId}/send — DRAFT -> SENT, expiresAt = +7 days */
-  async sendBrief(briefId: string): Promise<Brief> {
-    const response = await apiClient.post<Brief>(`/briefs/${briefId}/send`);
-    return response.data;
-  },
-
-  /** POST /briefs/{briefId}/withdraw — buyer pulls it back before acceptance */
-  async withdrawBrief(briefId: string): Promise<Brief> {
-    const response = await apiClient.post<Brief>(`/briefs/${briefId}/withdraw`);
-    return response.data;
-  },
-
-  /** POST /briefs/{briefId}/decline — maker declines WITHOUT quoting. Reason mandatory. */
-  async declineBrief(briefId: string, reason: string): Promise<Brief> {
-    const response = await apiClient.post<Brief>(`/briefs/${briefId}/decline`, { reason });
-    return response.data;
+  /** DELETE /briefs/{briefId}/delete — admin cleanup path. */
+  async deleteBrief(briefId: string): Promise<void> {
+    await apiClient.delete(`/briefs/${briefId}/delete`);
   },
 };
