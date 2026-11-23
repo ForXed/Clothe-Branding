@@ -1,12 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
   orderService,
-  ApiOrder,
   DisputeInput,
   DeliverPayload,
 } from "../services/orderService";
 import { getErrorMessage, getErrorStatus } from "../utils/apiError";
-import { ProductionOrder } from "../types/order";
+import { ApiOrder, ProductionOrder } from "../types/order";
 
 // export type DataSource = "mock" | "api";
 export type OrderAction =
