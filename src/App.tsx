@@ -12,7 +12,7 @@ import ResetPassword from './Form/ResetPassword';
 import MakerStudio from './MakerStudio/MakerStudio';
 
 // Form Components
-// import ChangePasswordForm from './Form/ChangePasswordForm';
+import ChangePasswordForm from './Form/ChangePasswordForm';
 import TwoFactorSetup from './Form/TwoFactorSetup';
 import MakerApplication from './Form/MakerApplication';
 
@@ -45,6 +45,13 @@ import UserList from './Admin/Users/UserList';
 // Global Infrastructure Components
 import Preloader from './Homepage/Preloader/Preloader';
 import FloatingMessage from './Notification/FloatingMessage';
+
+// Session + route guards
+import { AuthProvider } from './auth/AuthContext';
+import { RequireAuth } from './auth/RequireAuth';
+import { ADMIN_ROLES, STUDIO_ROLES } from './auth/homePath';
+import OAuthCallback from './pages/OAuthCallback';
+import AccountBadge from './auth/AccountBadge';
 
 // --- Type Definitions ---
 interface NotificationState {
@@ -86,21 +93,18 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="/reset-password" element={<ResetPassword notify={notify} />} />
         <Route path="/maker-application" element={<MakerApplication notify={notify} />} />
 
-        {/*
-          COMMENTED OUT: No backend endpoint exists for change-password.
-          Keep import commented too if tsconfig has noUnusedLocals enabled.
-        */}
-        {/*
+        {/* Now backed by the two-step reset (forgotten-password -> verify -> reset). */}
         <Route
           path="/change-password"
           element={
-            <ChangePasswordForm
-              notify={notify}
-              onClose={() => navigate('/studio/settings')}
-            />
+            <RequireAuth>
+              <ChangePasswordForm
+                notify={notify}
+                onClose={() => navigate('/platform')}
+              />
+            </RequireAuth>
           }
         />
-        */}
 
         <Route
           path="/2fa-setup"
@@ -112,15 +116,20 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           }
         />
 
+        {/* Google sign-in lands here: the backend already set the cookies. */}
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
+
         {/* MAKER STUDIO */}
         <Route
           path="/studio/*"
           element={
-            isAppLoading ? (
-              <Preloader onComplete={() => setIsAppLoading(false)} />
-            ) : (
-              <MakerStudio />
-            )
+            <RequireAuth roles={STUDIO_ROLES}>
+              {isAppLoading ? (
+                <Preloader onComplete={() => setIsAppLoading(false)} />
+              ) : (
+                <MakerStudio />
+              )}
+            </RequireAuth>
           }
         />
 
@@ -128,20 +137,29 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route
           path="/platform/*"
           element={
-            isAppLoading ? (
-              <Preloader onComplete={() => setIsAppLoading(false)} />
-            ) : (
-              <BrutigePlatform
-                isDarkMode={isDarkMode}
-                toggleTheme={toggleTheme}
-                notify={notify as (message: string, type?: string) => void}
-              />
-            )
+            <RequireAuth>
+              {isAppLoading ? (
+                <Preloader onComplete={() => setIsAppLoading(false)} />
+              ) : (
+                <BrutigePlatform
+                  isDarkMode={isDarkMode}
+                  toggleTheme={toggleTheme}
+                  notify={notify as (message: string, type?: string) => void}
+                />
+              )}
+            </RequireAuth>
           }
         />
 
         {/* ADMIN DASHBOARD */}
-        <Route path="/admin/*" element={<AdminLayout />}>
+        <Route
+          path="/admin/*"
+          element={
+            <RequireAuth roles={ADMIN_ROLES}>
+              <AdminLayout />
+            </RequireAuth>
+          }
+        >
           <Route index element={<AdminDashboard />} />
           <Route path="makers" element={<MakerList />} />
           <Route path="makers/:makerId" element={<MakerDetail />} />
@@ -226,12 +244,19 @@ const App: React.FC = () => {
         isVisible={notification.visible}
       />
 
-      {/* Pass theme state down to AppRoutes */}
-      <AppRoutes
-        notify={notify}
-        isDarkMode={isDarkMode}
-        toggleTheme={toggleTheme}
-      />
+      {/* Session state has to sit inside the Router: the guards round-trip. */}
+      <AuthProvider>
+        {/* Session badge + sign out, so both sides of the marketplace can be
+            demoed in one browser without clearing cookies by hand. */}
+        <AccountBadge />
+
+        {/* Pass theme state down to AppRoutes */}
+        <AppRoutes
+          notify={notify}
+          isDarkMode={isDarkMode}
+          toggleTheme={toggleTheme}
+        />
+      </AuthProvider>
     </Router>
   );
 };

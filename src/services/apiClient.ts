@@ -36,6 +36,10 @@ const NO_REFRESH_PATHS = [
   '/authentication/forgot',
   '/authentication/verify-forgotten',
   '/authentication/reset-password',
+  // The session bootstrap answers 401 for every anonymous visitor. Trying to
+  // refresh there would double every cold page load for no reason, and its 401
+  // is the expected "not signed in" answer, not an expired session.
+  '/authentication/me',
 ];
 
 /** A request that the caller may retry after `refreshSession()` succeeds. */

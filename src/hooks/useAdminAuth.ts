@@ -1,26 +1,23 @@
 // src/hooks/useAdminAuth.ts
-// Protects /admin/* routes.
-// In production: verifies ADMIN role via GET /authentication/me.
-// In development with VITE_ADMIN_DEV_BYPASS=true: skips the API call
-// so you can build and view the admin UI without a running backend.
+// Protects /admin/* routes by reading the shared session (see auth/AuthContext).
+//
+// It used to call GET /authentication/me through adminService and then inspect a
+// `roles` array; the real answer has a single `role` field, and the app boots that
+// once now. The return shape is unchanged so the admin screens can adopt
+// CurrentUser incrementally (F4).
+//
+// In development with VITE_ADMIN_DEV_BYPASS=true the API check is skipped so the
+// admin UI can be built and viewed without a running backend.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { adminService } from "../services/adminService";
-import { getErrorMessage } from "../utils/apiError";
-import type { AuthUser } from "../types/auth";
 
-/* ------------------------------------------------------------------ */
-/* Dev bypass flag                                                     */
-/* ------------------------------------------------------------------ */
+import { useAuth } from "../auth/AuthContext";
+import type { AuthUser } from "../types/auth";
 
 const DEV_BYPASS =
   import.meta.env.VITE_ADMIN_DEV_BYPASS === "true" &&
   import.meta.env.DEV;
-
-/* ------------------------------------------------------------------ */
-/* Mock admin user for dev bypass                                      */
-/* ------------------------------------------------------------------ */
 
 const MOCK_ADMIN: AuthUser = {
   id: "dev-admin-001",
@@ -32,10 +29,6 @@ const MOCK_ADMIN: AuthUser = {
   avatarUrl: null,
 };
 
-/* ------------------------------------------------------------------ */
-/* Hook return type                                                    */
-/* ------------------------------------------------------------------ */
-
 export interface UseAdminAuthReturn {
   admin: AuthUser | null;
   loading: boolean;
@@ -44,86 +37,56 @@ export interface UseAdminAuthReturn {
   refresh: () => void;
 }
 
-/* ------------------------------------------------------------------ */
-/* Hook                                                                */
-/* ------------------------------------------------------------------ */
-
 export function useAdminAuth(): UseAdminAuthReturn {
   const navigate = useNavigate();
+  const { status, user, error, refresh } = useAuth();
+  const redirected = useRef(false);
 
-  const [admin, setAdmin] = useState<AuthUser | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  const requestId = useRef(0);
-
-  const check = useCallback(async () => {
-    /* -------------------------------------------------------------- */
-    /* Dev bypass: skip API entirely                                   */
-    /* -------------------------------------------------------------- */
-
-    if (DEV_BYPASS) {
-      setAdmin(MOCK_ADMIN);
-      setError(null);
-      setLoading(false);
-      return;
-    }
-
-    /* -------------------------------------------------------------- */
-    /* Real auth check                                                 */
-    /* -------------------------------------------------------------- */
-
-    const current = ++requestId.current;
-    setLoading(true);
-    setError(null);
-
-    try {
-      const user = await adminService.getCurrentAdmin();
-
-      if (current !== requestId.current) return;
-
-      const roles = Array.isArray(user.roles) ? user.roles : [];
-      const isAdmin = roles.includes("ADMIN");
-
-      if (!isAdmin) {
-        setError("You do not have admin access.");
-        setAdmin(null);
-        navigate("/login", { replace: true });
-        return;
-      }
-
-      setAdmin(user);
-    } catch (err) {
-      if (current !== requestId.current) return;
-
-      const message = getErrorMessage(
-        err,
-        "Could not verify admin session.",
-      );
-
-      setError(message);
-      setAdmin(null);
-      navigate("/login", { replace: true });
-    } finally {
-      if (current === requestId.current) {
-        setLoading(false);
-      }
-    }
-  }, [navigate]);
+  const isAdmin = user?.role === "ADMIN";
+  const loading = !DEV_BYPASS && status === "loading";
 
   useEffect(() => {
-    void check();
+    if (DEV_BYPASS || redirected.current || status === "loading") return;
 
-    return () => {
-      requestId.current += 1;
+    if (status === "anonymous" || !isAdmin) {
+      redirected.current = true;
+      navigate("/login", { replace: true });
+    }
+  }, [isAdmin, navigate, status]);
+
+  const refreshSession = useCallback((): void => {
+    void refresh();
+  }, [refresh]);
+
+  if (DEV_BYPASS) {
+    return {
+      admin: MOCK_ADMIN,
+      loading: false,
+      error: null,
+      isDevBypass: true,
+      refresh: refreshSession,
     };
-  }, [check]);
+  }
 
   return {
-    admin,
+    admin:
+      user && isAdmin
+        ? {
+            id: user.id,
+            email: user.email,
+            firstName: user.firstName ?? "",
+            lastName: user.lastName ?? "",
+            isEmailVerified: user.emailVerified,
+            roles: user.role ? [user.role] : [],
+            avatarUrl: null,
+          }
+        : null,
     loading,
-    error,
-    isDevBypass: DEV_BYPASS,
-    refresh: () => void check(),
+    error:
+      status === "authenticated" && !isAdmin
+        ? "You do not have admin access."
+        : error,
+    isDevBypass: false,
+    refresh: refreshSession,
   };
 }

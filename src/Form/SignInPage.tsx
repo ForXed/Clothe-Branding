@@ -1,11 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
 import { validateEmail } from '../utils/validators';
 import { authService } from '../services/authService';
 import { toApiError } from '../services/apiClient';
+import { useAuth } from '../auth/AuthContext';
+import { homePathFor } from '../auth/homePath';
 import styles from './SignInPage.module.css';
 
 gsap.registerPlugin(TextPlugin);
@@ -56,6 +58,8 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
   const textRef = useRef<HTMLSpanElement>(null);
   const cursorRef = useRef<HTMLSpanElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
@@ -128,16 +132,17 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
 
     setIsLoading(true);
     try {
-      // Cookies are set by the browser; the identity has to be fetched separately.
-      await authService.login({ email, password });
-      const user = await authService.getMe();
-
-      // Cached for display only - the cookie is the source of truth.
-      localStorage.setItem('brutige_user', JSON.stringify(user));
+      // login() sets the cookies and then loads /me, so the guard and the
+      // redirect below both see the same identity.
+      const user = await login({ email, password });
 
       if (notify) notify(`Welcome back, ${user.firstName || user.email}!`, 'success');
 
-      navTimerRef.current = setTimeout(() => navigate('/platform/discovery'), 800);
+      // Deep link first: a guard sent the visitor here from a protected page.
+      const state = location.state as { from?: string } | null;
+      const destination = state?.from || homePathFor(user);
+
+      navTimerRef.current = setTimeout(() => navigate(destination), 800);
     } catch (error: any) {
       const apiError = toApiError(error);
       const serverMessage = apiError.message;
