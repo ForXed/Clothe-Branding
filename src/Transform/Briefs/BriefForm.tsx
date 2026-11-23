@@ -1,10 +1,9 @@
 // src/Transform/Briefs/BriefForm.tsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import apiClient from '../../services/apiClient';
 import { briefService } from '../../services/briefService';
+import { makerService } from '../../services/makerService';
 import type { BriefInput } from '../../types/brief';
-import type { Maker } from '../../types/maker';
 import styles from './BriefForm.module.css';
 
 interface NotifyFunction {
@@ -84,21 +83,15 @@ const BriefForm: React.FC<BriefFormProps> = ({ notify, initialMakerId }) => {
   useEffect(() => {
     let cancelled = false;
 
-    apiClient
-      .get('/makers')
-      .then((res) => {
+    makerService
+      .getMakers()
+      .then((makers) => {
         if (cancelled) return;
 
-        const raw = Array.isArray(res.data)
-          ? res.data
-          : (res.data.makers ?? []);
-
-        const verified = (raw as Maker[]).filter(
-          (maker) => maker.verificationStatus === 'VERIFIED'
-        );
-
+        // GET /makers only ever returns VERIFIED profiles, and the id it gives
+        // us is the MakerProfile id this form has to send as makerProfileId.
         setMakers(
-          verified.map((maker) => ({
+          makers.map((maker) => ({
             id: maker.id,
             displayName: maker.brandName,
           }))

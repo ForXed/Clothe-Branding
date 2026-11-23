@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { orderService } from "../../services/orderService";
 import type { ApiOrder, OrderStatus } from "../../types/order";
 import { getErrorMessage, getErrorStatus } from "../../utils/apiError";
+import { useAuth } from "../../auth/AuthContext";
 import ProductionOrdersSkeleton from "./ProductionOrdersSkeleton";
 import styles from "./ProductionOrdersView.module.css";
 // import { dummyOrders } from "../../data/mockOrders";
@@ -12,8 +13,11 @@ import styles from "./ProductionOrdersView.module.css";
 /* ------------------------------ constants ------------------------------ */
 
 // TODO: confirm both paths match your router
-const orderDetailPath = (id: string) => `/platform/orders/${id}`;
-const orderChatPath = (id: string) => `/platform/orders/${id}/chat`;
+/** Buyers live under /platform, makers under /studio; same list, same data. */
+const orderDetailPath = (id: string, isMaker: boolean) =>
+  isMaker ? `/studio/orders/${id}` : `/platform/orders/${id}`;
+const orderChatPath = (id: string, isMaker: boolean) =>
+  isMaker ? `/studio/orders/${id}` : `/platform/orders/${id}/chat`;
 
 const FILTER_TABS = [
   "ALL",
@@ -58,12 +62,16 @@ const formatDate = (dateString: string): string =>
 const shortId = (id: string) => id.slice(0, 8);
 
 const canConfirm = (order: ApiOrder) => order.status === "DELIVERED";
+const canStartProduction = (order: ApiOrder) => order.status === "IN_ESCROW";
+const canPay = (order: ApiOrder) => order.status === "AWAITING_PAYMENT";
 const canChat = (order: ApiOrder) => CHAT_STATUSES.includes(order.status);
 
 /* -------------------------------- page --------------------------------- */
 
 const ProductionOrdersView = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const isMaker = user?.role === "MAKER";
 
   const [orders, setOrders] = useState<ApiOrder[]>([]);
   const [statusFilter, setStatusFilter] = useState<string>("ALL");
@@ -107,6 +115,43 @@ const ProductionOrdersView = () => {
   const filteredOrders = orders.filter(
     (o) => statusFilter === "ALL" || o.status === statusFilter,
   );
+
+  const handleStartProduction = async (orderId: string) => {
+    setActionLoadingId(orderId);
+    setActionError(null);
+
+    try {
+      await orderService.startProduction(orderId);
+      await fetchOrders({ silent: true });
+    } catch (err) {
+      setActionError(getErrorMessage(err, "Failed to start production."));
+      if (getErrorStatus(err) === 409) await fetchOrders({ silent: true });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
+
+  const handlePay = async (orderId: string) => {
+    if (
+      !window.confirm(
+        "Pay into escrow? Brutige holds the money until you confirm delivery.",
+      )
+    )
+      return;
+
+    setActionLoadingId(orderId);
+    setActionError(null);
+
+    try {
+      await orderService.payOrder(orderId);
+      await fetchOrders({ silent: true });
+    } catch (err) {
+      setActionError(getErrorMessage(err, "Failed to pay for this order."));
+      if (getErrorStatus(err) === 409) await fetchOrders({ silent: true });
+    } finally {
+      setActionLoadingId(null);
+    }
+  };
 
   // Response bodies aren't documented, so refetch rather than patch local state
   const handleConfirmDelivery = async (orderId: string) => {
@@ -226,7 +271,7 @@ const ProductionOrdersView = () => {
                   <button
                     type="button"
                     className={styles.viewBtn}
-                    onClick={() => navigate(orderDetailPath(order.id))}
+                    onClick={() => navigate(orderDetailPath(order.id, isMaker))}
                   >
                     View Order
                   </button>
@@ -235,13 +280,35 @@ const ProductionOrdersView = () => {
                     <button
                       type="button"
                       className={styles.chatBtn}
-                      onClick={() => navigate(orderChatPath(order.id))}
+                      onClick={() => navigate(orderChatPath(order.id, isMaker))}
                     >
                       Chat with Maker
                     </button>
                   )}
 
-                  {canConfirm(order) && (
+                  {!isMaker && canPay(order) && (
+                    <button
+                      type="button"
+                      className={styles.confirmBtn}
+                      onClick={() => handlePay(order.id)}
+                      disabled={isActionLoading}
+                    >
+                      {isActionLoading ? "Processing..." : "Pay into Escrow"}
+                    </button>
+                  )}
+
+                  {isMaker && canStartProduction(order) && (
+                    <button
+                      type="button"
+                      className={styles.confirmBtn}
+                      onClick={() => handleStartProduction(order.id)}
+                      disabled={isActionLoading}
+                    >
+                      {isActionLoading ? "Processing..." : "Start Production"}
+                    </button>
+                  )}
+
+                  {!isMaker && canConfirm(order) && (
                     <button
                       type="button"
                       className={styles.confirmBtn}

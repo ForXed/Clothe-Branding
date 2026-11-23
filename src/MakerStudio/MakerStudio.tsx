@@ -23,6 +23,7 @@ import ProModal from "./ProModal/ProModal";
 
 // ✅ NEW: Maker-side B2B flow (incoming briefs + quote/decline in one screen)
 import IncomingBriefs from "../Transform/MakerBriefs/IncomingBriefs";
+import ProductionOrdersView from "../Transform/Orders/ProductionOrdersView";
 
 // @ts-ignore
 import useStudioData from "../hooks/useStudioData";
@@ -103,7 +104,7 @@ const MakerStudio: React.FC = () => {
 
             {/* ✅ KEEP: Existing routes (maker's production view) */}
             <Route path="overview" element={<OverView {...studioData} />} />
-            <Route path="orders" element={<Order {...studioData} />} />
+            <Route path="orders" element={<ProductionOrdersView />} />
             <Route path="orders/:orderId" element={<OrderView />} />
             <Route
               path="messages"
