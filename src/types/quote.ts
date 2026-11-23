@@ -1,38 +1,45 @@
 // src/types/quote.ts
-// Generated from the frozen contract — Quotes endpoints
+// Mirrors the v1.3 draft contract (QuoteResponse, QuoteCreateRequest).
 
-export type QuoteStatus = 'PENDING' | 'ACCEPTED' | 'DECLINED' | 'SUPERSEDED';
+export type QuoteStatus =
+  | 'PENDING'
+  | 'ACCEPTED'
+  | 'DECLINED'
+  | 'SUPERSEDED'
+  | 'REVISION_REQUESTED';
 
 export interface Quote {
   id: string;
   briefId: string;
+  /** users.id of the maker who wrote it. */
   makerId: string;
   priceNgn: number;
   timelineDays: number;
-  terms: string;
+  terms: string | null;
   status: QuoteStatus;
-  revisionNumber: number; // max: 2
-  estimatedMakerPayoutNgn: number; // priceNgn minus platform fee
+  /** 1 for the first quote, 2 for the single allowed revision. */
+  revisionNumber: number;
   createdAt: string;
 }
-
 
 /** Request body for POST /briefs/{briefId}/quotes */
 export interface QuoteInput {
-  priceNgn: number;      // required
-  timelineDays: number;  // required
+  priceNgn: number;
+  timelineDays: number;
   terms?: string;
 }
 
-/** Response of POST /quotes/{quoteId}/accept — a newborn ProductionOrder */
-export interface ProductionOrderFromQuote {
-  id: string;
-  briefId: string;
-  quoteId: string;
-  buyerId: string;
-  makerId: string;
-  status: string; // 'AWAITING_PAYMENT' at creation (escrow NOT funded yet!)
-  deliveredAt: string | null;
-  completedAt: string | null;
-  createdAt: string;
+/**
+ * The platform fee is 10% and is frozen when the buyer accepts; the API exposes
+ * the split through the escrow, not on the quote, so this is computed locally for
+ * display only. Never send it back.
+ */
+export const PLATFORM_FEE_PERCENT = 10;
+
+export function splitQuoteAmount(priceNgn: number): {
+  feeAmountNgn: number;
+  makerPayoutNgn: number;
+} {
+  const feeAmountNgn = Math.round(priceNgn * (PLATFORM_FEE_PERCENT / 100) * 100) / 100;
+  return { feeAmountNgn, makerPayoutNgn: Math.round((priceNgn - feeAmountNgn) * 100) / 100 };
 }

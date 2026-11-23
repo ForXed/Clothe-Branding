@@ -74,7 +74,7 @@ const DeliveryProof = ({
 
     setSubmitting(true);
     const result = await onSubmit({
-      proofImages: images.map((i) => i.file),
+      proofFiles: images.map((i) => i.file),
     });
     setSubmitting(false);
 

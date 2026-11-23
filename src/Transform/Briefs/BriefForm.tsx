@@ -222,20 +222,9 @@ const BriefForm: React.FC<BriefFormProps> = ({ notify, initialMakerId }) => {
     setIsSubmitting(true);
 
     try {
-      const draft = await briefService.createBrief(form);
-
-      // Upload images one-by-one after draft creation.
-      if (images.length > 0) {
-        for (const file of images) {
-          try {
-            await briefService.uploadImage(draft.id, file);
-          } catch {
-            console.warn(
-              `Image upload failed: ${file.name}; brief still created.`
-            );
-          }
-        }
-      }
+      // Brief + images travel in one multipart request: there is no
+      // "attach later" endpoint yet, so a failed image fails the brief.
+      const draft = await briefService.createBrief({ ...form, images });
 
       if (sendNow) {
         await briefService.sendBrief(draft.id);

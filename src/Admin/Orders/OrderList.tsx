@@ -28,6 +28,7 @@ const STATUS_FILTERS: { value: OrderStatus | "ALL"; label: string }[] = [
 ];
 
 const ORDER_STATUS_COLORS: Record<OrderStatus, string> = {
+  PENDING: "#64748b",
   AWAITING_PAYMENT: "#f59e0b",
   IN_ESCROW: "#3b82f6",
   IN_PRODUCTION: "#8b5cf6",

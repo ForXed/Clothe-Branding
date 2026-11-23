@@ -2,7 +2,7 @@
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { makerService } from '../../services/makerService';
-import type { Maker } from '../../types/maker';
+import type { MakerSummary } from '../../types/maker';
 import styles from './MakerDiscoveryView.module.css';
 
 // ===== ICONS =====
@@ -79,7 +79,7 @@ const MakerDiscoveryView: React.FC = () => {
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // ✅ REAL DATA STATE — mocks fully removed
-  const [makers, setMakers] = useState<Maker[]>([]);
+  const [makers, setMakers] = useState<MakerSummary[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [fetchError, setFetchError] = useState<string | null>(null);
 
@@ -124,10 +124,9 @@ const MakerDiscoveryView: React.FC = () => {
   // Normalize for bulletproof matching (hyphens, ampersands, casing)
   const normalize = (str: string) => str.toLowerCase().replace(/[^a-z0-9]/g, '');
 
-  // ✅ DoD: only VERIFIED makers appear in discovery
-  // ✅ specializations is an ARRAY in the contract — match against any entry
+  // GET /makers already filters on verificationStatus = VERIFIED server side,
+  // so the only thing left to do here is the specialty match.
   const filteredMakers = makers.filter(maker => {
-    if (maker.verificationStatus !== 'VERIFIED') return false;
     if (selectedSpecialty === 'all') return true;
     return maker.specializations.some(spec =>
       normalize(spec).includes(normalize(selectedSpecialty))
@@ -218,7 +217,7 @@ const MakerDiscoveryView: React.FC = () => {
           </div>
         ) : (
           <div className={styles.grid}>
-            {filteredMakers.map((maker: Maker) => (
+            {filteredMakers.map((maker) => (
               <div key={maker.id} className={styles.card}>
                 <div className={styles.cardHeader}>
                   <div className={styles.avatarFallback} aria-hidden="true">

@@ -116,7 +116,7 @@ export function useOrder(orderId: string | undefined) {
       run(
         "deliver",
         (): Promise<ApiOrder> =>
-          orderService.deliverOrder(requireId(), payload),
+          orderService.deliverOrder(requireId(), payload.proofFiles),
       ),
 
     pay: () => run("pay", () => orderService.payOrder(requireId())),

@@ -1,17 +1,22 @@
 // src/types/order.ts
-import { Brief } from "./brief";
-import { Escrow } from "./escrow";
-import { Quote } from "./quote";
+// Mirrors the v1.3 draft contract: ProductionOrder (list rows / transitions) and
+// ProductionOrderDetail (GET /orders/{id}), plus the event and escrow shapes.
+
+import type { BriefDetail } from './brief';
+import type { Escrow } from './escrow';
+import type { Quote } from './quote';
 
 export type OrderStatus =
-  | "AWAITING_PAYMENT"
-  | "IN_ESCROW"
-  | "IN_PRODUCTION"
-  | "DELIVERED"
-  | "COMPLETED"
-  | "CANCELLED"
-  | "DISPUTED";
+  | 'PENDING'
+  | 'AWAITING_PAYMENT'
+  | 'IN_ESCROW'
+  | 'IN_PRODUCTION'
+  | 'DELIVERED'
+  | 'COMPLETED'
+  | 'CANCELLED'
+  | 'DISPUTED';
 
+/** A row from GET /orders (and every state transition answer). */
 export interface ApiOrder {
   id: string;
   briefId: string;
@@ -24,24 +29,47 @@ export interface ApiOrder {
   createdAt: string;
 }
 
+export interface OrderParty {
+  id: string;
+  displayName: string;
+  role: 'BUYER' | 'MAKER' | 'ADMIN';
+}
+
+/** GET /orders/{id} — the populated detail. */
 export interface ProductionOrder {
   id: string;
   status: OrderStatus;
   deliveredAt: string | null;
   completedAt: string | null;
+  expectedCompletionAt: string | null;
   createdAt: string;
-  brief: Brief;
+  brief: BriefDetail;
   quote: Quote;
+  /** Created together with the order (AWAITING until the buyer pays). */
   escrow: Escrow;
-  buyer: {
-    id: string;
-    displayName: string;
-    role: string;
-  };
-  maker: {
-    id: string;
-    displayName: string;
-    role: string;
-  };
-  // Add other fields from your backend response here if they differ
+  buyer: OrderParty;
+  maker: OrderParty;
 }
+
+/** One line of the audit trail (actorId is null for system actions). */
+export interface OrderEvent {
+  id: string;
+  productionOrderId: string;
+  actorId: string | null;
+  eventType: string;
+  fromStatus: string | null;
+  toStatus: string | null;
+  note: string | null;
+  createdAt: string;
+}
+
+export const ORDER_STATUS_LABEL: Record<OrderStatus, string> = {
+  PENDING: 'Pending',
+  AWAITING_PAYMENT: 'Awaiting payment',
+  IN_ESCROW: 'Funded in escrow',
+  IN_PRODUCTION: 'In production',
+  DELIVERED: 'Delivered',
+  COMPLETED: 'Completed',
+  CANCELLED: 'Cancelled',
+  DISPUTED: 'Disputed',
+};

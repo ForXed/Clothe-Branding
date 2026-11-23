@@ -1,7 +1,17 @@
-import apiClient from "./apiClient"; // TODO: adjust to wherever your axios instance lives
-import type { ApiOrder, OrderStatus, ProductionOrder } from "../types/order";
-
-/* ---- Shapes straight from the OpenAPI spec (v1.0.0-draft) ---- */
+// src/services/orderService.ts
+// The order is the escrow-backed part of the One Loop. Every transition is its own
+// endpoint, guarded server side by role and current status, so the UI can simply
+// surface the 409 the API returns.
+import apiClient from './apiClient';
+import { toPage } from '../types/common';
+import type { Page, PageParams } from '../types/common';
+import type { Escrow } from '../types/escrow';
+import type {
+  ApiOrder,
+  OrderEvent,
+  OrderStatus,
+  ProductionOrder,
+} from '../types/order';
 
 export interface DisputeInput {
   reasonCategory: string;
@@ -9,78 +19,110 @@ export interface DisputeInput {
   proofFileUrls?: string[];
 }
 
+/** What the delivery form hands back: the proof files it collected. */
 export interface DeliverPayload {
-  proofImages: File[];
-  /** Not in the spec yet, sent only if provided. See note in deliverOrder. */
+  proofFiles: File[];
+}
+
+export interface ListOrdersParams extends PageParams {
+  status?: OrderStatus;
+}
+
+/** The detail nests the brief as imageUrls; screens want {fileUrl} objects. */
+function withImageObjects(order: ProductionOrder): ProductionOrder {
+  const urls = order.brief?.imageUrls ?? [];
+
+  return {
+    ...order,
+    brief: {
+      ...order.brief,
+      imageUrls: urls,
+      images: urls.map((fileUrl, index) => ({
+        id: `${order.brief.id}-${index}`,
+        briefId: order.brief.id,
+        fileUrl,
+        uploadedAt: order.brief.createdAt,
+      })),
+    },
+  };
 }
 
 export const orderService = {
-  /** GET /orders */
-  async getOrders(status?: OrderStatus): Promise<ApiOrder[]> {
-    const response = await apiClient.get("/orders", { params: { status } });
-    const data = response.data;
-    return Array.isArray(data) ? data : (data.orders ?? []);
+  /** GET /orders — scoped by role (buyer's orders, maker's orders, admin's all). */
+  async listOrders(params: ListOrdersParams = {}): Promise<Page<ApiOrder>> {
+    const response = await apiClient.get('/orders', { params });
+    return toPage<ApiOrder>(response.data);
   },
 
-  /** GET /orders/{id} */
-  async getOrderById(id: string): Promise<ProductionOrder> {
-    const response = await apiClient.get(`/orders/${id}`);
+  async getOrders(params: ListOrdersParams = {}): Promise<ApiOrder[]> {
+    return (await orderService.listOrders(params)).content;
+  },
+
+  /** GET /orders/{orderId} — populated detail (brief, quote, escrow, parties). */
+  async getOrderById(orderId: string): Promise<ProductionOrder> {
+    const response = await apiClient.get<ProductionOrder>(`/orders/${orderId}`);
+    return withImageObjects(response.data);
+  },
+
+  /** POST /orders/{orderId}/pay — buyer, simulated. AWAITING_PAYMENT -> IN_ESCROW. */
+  async payOrder(orderId: string): Promise<ApiOrder> {
+    const response = await apiClient.post<ApiOrder>(`/orders/${orderId}/pay`);
     return response.data;
   },
 
-  /** POST /orders/{id}/pay: buyer, simulated. AWAITING_PAYMENT -> IN_ESCROW */
-  async payOrder(id: string): Promise<ApiOrder> {
-    const response = await apiClient.post(`/orders/${id}/pay`);
+  /** POST /orders/{orderId}/cancel — buyer, only while AWAITING_PAYMENT. */
+  async cancelOrder(orderId: string): Promise<ApiOrder> {
+    const response = await apiClient.post<ApiOrder>(`/orders/${orderId}/cancel`);
     return response.data;
   },
 
-  /** POST /orders/{id}/cancel: only while AWAITING_PAYMENT (409 otherwise) */
-  async cancelOrder(id: string): Promise<void> {
-    await apiClient.post(`/orders/${id}/cancel`);
-  },
-
-  /** POST /orders/{id}/start-production: maker. IN_ESCROW -> IN_PRODUCTION */
-  async startProduction(id: string): Promise<void> {
-    await apiClient.post(`/orders/${id}/start-production`);
+  /** PATCH /orders/{orderId}/start-production — maker. IN_ESCROW -> IN_PRODUCTION. */
+  async startProduction(orderId: string): Promise<ApiOrder> {
+    const response = await apiClient.patch<ApiOrder>(
+      `/orders/${orderId}/start-production`,
+    );
+    return response.data;
   },
 
   /**
-   * POST /orders/{id}/deliver: maker. IN_PRODUCTION -> DELIVERED.
-   * The spec says multipart/form-data with `proofImages` (binary array),
-   * NOT a JSON body of image URLs.
+   * POST /orders/{orderId}/deliver — maker. IN_PRODUCTION -> DELIVERED.
+   * Multipart with a `proofFiles` part (one or more files).
    */
-  async deliverOrder(id: string, payload: DeliverPayload): Promise<ApiOrder> {
+  async deliverOrder(orderId: string, proofFiles: File[]): Promise<ApiOrder> {
     const form = new FormData();
-    payload.proofImages.forEach((file) => form.append("proofImages", file));
-    // The spec has no tracking field yet. Remove this line if the backend rejects unknown parts.
+    proofFiles.forEach((file) => form.append('proofFiles', file));
 
-    const response = await apiClient.post(`/orders/${id}/deliver`, form, {
-      headers: { "Content-Type": "multipart/form-data" },
-    });
+    const response = await apiClient.post<ApiOrder>(
+      `/orders/${orderId}/deliver`,
+      form,
+    );
     return response.data;
   },
 
-  /** POST /orders/{id}/confirm: buyer. DELIVERED -> COMPLETED, escrow released */
-  async confirmOrder(id: string): Promise<void> {
-    await apiClient.post(`/orders/${id}/confirm`);
+  /** POST /orders/{orderId}/confirm — buyer. DELIVERED -> COMPLETED, escrow released. */
+  async confirmOrder(orderId: string): Promise<ApiOrder> {
+    const response = await apiClient.post<ApiOrder>(`/orders/${orderId}/confirm`);
+    return response.data;
   },
 
-  /**
-   * PLACEHOLDER: not implemented, no backend endpoint exists yet.
-   * The state diagram lets the buyer attach optional proof when disputing, and
-   * POST /dispute accepts `proofFileUrls`, but the spec has no endpoint for
-   * uploading dispute evidence. Once it exists, implement this to upload the
-   * files and return their URLs, then pass them as `proofFileUrls` in disputeOrder.
-   */
-  async uploadDisputeProof(
-    _orderId: string,
-    _files: File[],
-  ): Promise<string[]> {
-    throw new Error("Uploading dispute proof isn't available yet.");
+  /** POST /orders/{orderId}/dispute — buyer or maker, while escrow is held. */
+  async disputeOrder(orderId: string, input: DisputeInput): Promise<ApiOrder> {
+    const response = await apiClient.post<ApiOrder>(
+      `/orders/${orderId}/dispute`,
+      input,
+    );
+    return response.data;
   },
 
-  /** POST /orders/{id}/dispute: body is required: reasonCategory + explanation */
-  async disputeOrder(id: string, input: DisputeInput): Promise<void> {
-    await apiClient.post(`/orders/${id}/dispute`, input);
+  /** GET /orders/{orderId}/events — the audit trail (actorId null = system). */
+  async getOrderEvents(orderId: string): Promise<OrderEvent[]> {
+    const response = await apiClient.get<OrderEvent[]>(`/orders/${orderId}/events`);
+    return Array.isArray(response.data) ? response.data : [];
+  },
+
+  /** GET /orders/{orderId}/escrow — money split frozen when the quote was accepted. */
+  async getOrderEscrow(orderId: string): Promise<Escrow> {
+    const response = await apiClient.get<Escrow>(`/orders/${orderId}/escrow`);
+    return response.data;
   },
 };
