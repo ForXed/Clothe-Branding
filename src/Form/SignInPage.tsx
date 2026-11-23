@@ -5,6 +5,7 @@ import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
 import { validateEmail } from '../utils/validators';
 import { authService } from '../services/authService';
+import { toApiError } from '../services/apiClient';
 import styles from './SignInPage.module.css';
 
 gsap.registerPlugin(TextPlugin);
@@ -127,23 +128,23 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
 
     setIsLoading(true);
     try {
-      // ✅ v1.2: cookies are set by the browser automatically on login success
-      const { user } = await authService.login(email, password);
+      // Cookies are set by the browser; the identity has to be fetched separately.
+      await authService.login({ email, password });
+      const user = await authService.getMe();
 
-      // Store user info for display only (auth is handled via cookies)
+      // Cached for display only - the cookie is the source of truth.
       localStorage.setItem('brutige_user', JSON.stringify(user));
 
       if (notify) notify(`Welcome back, ${user.firstName || user.email}!`, 'success');
 
       navTimerRef.current = setTimeout(() => navigate('/platform/discovery'), 800);
     } catch (error: any) {
-      const status = error.response?.status;
-      const serverMessage = error.response?.data?.message;
+      const apiError = toApiError(error);
+      const serverMessage = apiError.message;
 
       let message = 'Login failed. Please check your credentials.';
 
-      // ✅ v1.2: handle specific error states
-      if (status === 403 && serverMessage?.toLowerCase().includes('verif')) {
+      if (apiError.code === 'EMAIL_NOT_VERIFIED') {
         message = 'Please verify your email first. Redirecting...';
         if (notify) notify(message, 'error');
         setTimeout(
@@ -152,7 +153,7 @@ const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
         );
         return;
       }
-      if (status === 400 && serverMessage?.toLowerCase().includes('google')) {
+      if (apiError.code === 'OAUTH_ONLY_ACCOUNT') {
         message = 'This account uses Google sign-in. Please use "Continue with Google".';
       } else if (serverMessage) {
         message = serverMessage;

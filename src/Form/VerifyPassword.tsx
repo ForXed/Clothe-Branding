@@ -72,7 +72,7 @@ const VerifyPassword: React.FC<VerifyPasswordProps> = ({ notify }) => {
     setIsLoading(true);
     setError('');
     try {
-      await authService.verifyEmail(token);
+      await authService.verifyEmail({ otp: token });
       if (notify) notify('Email verified successfully! You can now sign in.', 'success');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err: any) {
@@ -137,7 +137,7 @@ const VerifyPassword: React.FC<VerifyPasswordProps> = ({ notify }) => {
     setIsLoading(true);
     setError('');
     try {
-      await authService.verifyEmail(fullCode);
+      await authService.verifyEmail({ otp: fullCode });
       if (notify) notify('Email verified successfully! You can now sign in.', 'success');
       setTimeout(() => navigate('/login'), 1500);
     } catch (err: any) {

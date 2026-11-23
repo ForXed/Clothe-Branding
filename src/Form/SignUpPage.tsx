@@ -5,6 +5,7 @@ import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
 import { validateEmail } from '../utils/validators';
 import { authService } from '../services/authService';
+import { toApiError } from '../services/apiClient';
 import styles from './SignUpPage.module.css';
 
 gsap.registerPlugin(TextPlugin);
@@ -164,14 +165,16 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
     setIsLoading(true);
     try {
       // ✅ v1.2: signup may return 200 (already registered, unverified) or 201 (new)
-      const response = await authService.register({
+      const response = await authService.signup({
         firstName: formData.firstName.trim(),
         lastName: formData.lastName.trim(),
         email: formData.email,
         password: formData.password,
+        role: 'BUYER',
       });
 
-      const alreadyRegistered = response.user && !response.user.isEmailVerified;
+      // 200 means the address already existed unverified (a fresh code was sent).
+      const alreadyRegistered = response.success === true && response.message?.toLowerCase().includes('already');
       if (notify) {
         notify(
           alreadyRegistered
@@ -187,9 +190,7 @@ const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
         1500
       );
     } catch (error: any) {
-      const message =
-        error.response?.data?.message ||
-        'Registration failed. Please try again.';
+      const message = toApiError(error).firstFieldError || toApiError(error).message || 'Registration failed. Please try again.';
       if (notify) notify(message, 'error');
     } finally {
       setIsLoading(false);
