@@ -27,7 +27,7 @@ import { CHAT_ENABLED } from "../config/features";
 import ChatUnavailable from "../pages/ChatUnavailable";
 import ProfileView from "./ProfileView/ProfileView";
 import ProfileSettings from "./ProfileSettings/ProfileSettings";
-import SearchView from "./SearchView/SearchView";
+import MakerSearchView from "./MakerSearch/MakerSearchView";
 
 import styles from "./BrutigePlatform.module.css";
 import { Product, SavedItem } from "./BrutigeContext/BrutigeContext";
@@ -274,10 +274,8 @@ const BrutigePlatform: React.FC<BrutigePlatformProps> = ({
               element={<Navigate to="/platform/orders" replace />}
             />
             {/* Keep: Chat, Profile, Settings, Search */}
-            <Route
-              path="search"
-              element={<SearchView onSelect={handleProductSelect} />}
-            />
+            {/* v1 search is maker search: the API has no product catalogue. */}
+            <Route path="search" element={<MakerSearchView />} />
             <Route
               path="chat"
               element={
