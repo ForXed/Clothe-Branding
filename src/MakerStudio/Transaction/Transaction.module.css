@@ -161,3 +161,9 @@
     grid-template-columns: 1fr;
   }
 }
+
+.note {
+  margin: 16px 2px 0;
+  font-size: 13px;
+  color: #94a3b8;
+}
