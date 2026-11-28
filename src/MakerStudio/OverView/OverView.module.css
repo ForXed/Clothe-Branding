@@ -472,6 +472,13 @@
   color: var(--brut-text);
 }
 
+.statHint {
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--brut-text);
+  opacity: 0.6;
+}
+
 .orderDate {
   font-size: 0.75rem;
   color: var(--brut-text);
@@ -548,6 +555,10 @@
   color: var(--brut-success, #22c55e);
 }
 
+.orderStatus.disputed {
+  background: #fee2e2;
+  color: #b91c1c;
+}
 .emptyState {
   display: flex;
   flex-direction: column;

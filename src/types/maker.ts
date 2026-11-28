@@ -33,6 +33,10 @@ export interface MakerProfile {
   minBatch: number | null;
   maxBatch: number | null;
   specializations: MakerSpecialization[];
+  /** Only the owner sees this: PENDING until an admin reviews the application. */
+  verificationStatus?: VerificationStatus;
+  /** The reviewer's note after a rejection. */
+  rejectionNote?: string | null;
 }
 
 /** POST /makers/apply */
