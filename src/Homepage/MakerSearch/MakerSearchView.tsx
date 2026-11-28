@@ -10,6 +10,9 @@ import styles from './MakerSearchView.module.css';
  * one field the server can filter on — a maker's craft (garmentType) — and/or the batch
  * size a buyer needs. Results are real Verified makers from GET /api/v1/makers.
  */
+/** One page of results; the count line says when there are more. */
+const PAGE_SIZE = 24;
+
 const MakerSearchView: React.FC = () => {
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -20,10 +23,17 @@ const MakerSearchView: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [searched, setSearched] = useState(false);
+  const [reloadKey, setReloadKey] = useState(0);
+  const [total, setTotal] = useState(0);
   const requestId = useRef(0);
 
   const activeQuery = (searchParams.get('q') ?? '').trim();
   const activeMinBatch = searchParams.get('minBatch') ?? '';
+  // A hand-edited URL can carry anything, and Number('abc') would be sent as NaN.
+  const parsedMinBatch =
+    activeMinBatch !== '' && Number.isFinite(Number(activeMinBatch))
+      ? Number(activeMinBatch)
+      : undefined;
 
   useEffect(() => {
     const id = ++requestId.current;
@@ -33,23 +43,26 @@ const MakerSearchView: React.FC = () => {
     makerService
       .listMakers({
         garmentType: activeQuery || undefined,
-        minBatch: activeMinBatch ? Number(activeMinBatch) : undefined,
+        minBatch: parsedMinBatch,
         page: 0,
-        size: 24,
+        size: PAGE_SIZE,
       })
       .then((page: Page<MakerSummary>) => {
         if (id !== requestId.current) return;
         setMakers(page.content);
+        setTotal(page.totalElements);
         setSearched(true);
       })
       .catch((e: unknown) => {
         if (id !== requestId.current) return;
+        // A failure is still an attempt, so the heading should say what was searched.
+        setSearched(true);
         setError(e instanceof Error ? e.message : 'Could not load makers.');
       })
       .finally(() => {
         if (id === requestId.current) setLoading(false);
       });
-  }, [activeQuery, activeMinBatch]);
+  }, [activeQuery, parsedMinBatch, reloadKey]);
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -102,7 +115,9 @@ const MakerSearchView: React.FC = () => {
         <h2 className={styles.resultsTitle}>{heading}</h2>
         {!loading && !error && makers.length > 0 && (
           <span className={styles.count}>
-            {makers.length} {makers.length === 1 ? 'maker' : 'makers'}
+            {total > makers.length
+              ? `showing ${makers.length} of ${total} makers`
+              : `${total} ${total === 1 ? 'maker' : 'makers'}`}
           </span>
         )}
       </div>
@@ -118,7 +133,7 @@ const MakerSearchView: React.FC = () => {
       {error && !loading && (
         <div className={styles.errorBox} role="alert">
           <p>{error}</p>
-          <button type="button" className={styles.retry} onClick={() => setSearchParams(new URLSearchParams(searchParams), { replace: true })}>
+          <button type="button" className={styles.retry} onClick={() => setReloadKey((n) => n + 1)}>
             Try again
           </button>
         </div>
