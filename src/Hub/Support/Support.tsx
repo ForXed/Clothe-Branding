@@ -61,6 +61,7 @@ const Support: React.FC = () => {
   // Once the visitor edits the body we stop touching it, including when they clear it.
   const appliedPrefill = useRef({ key: '', body: '' });
   const messageTouched = useRef(false);
+  const subjectTouched = useRef(false);
 
   useEffect(() => {
     const rawSubject = searchParams.get('subject')?.trim() ?? '';
@@ -76,7 +77,13 @@ const Support: React.FC = () => {
     appliedPrefill.current = { key, body };
     setFormData((prev) => ({
       ...prev,
-      subject: isTopicCode ? rawSubject.toLowerCase() : prev.subject,
+      // Same rule as the body: only overwrite the dropdown while the visitor has not
+      // chosen a topic themselves, so a plain link clears our prefill and not theirs.
+      subject: subjectTouched.current
+        ? prev.subject
+        : isTopicCode
+          ? rawSubject.toLowerCase()
+          : '',
       message: messageTouched.current ? prev.message : body,
     }));
   }, [searchParams]);
@@ -114,6 +121,7 @@ const Support: React.FC = () => {
     setTimeout(() => {
       setFormStatus('success');
       messageTouched.current = false;
+    subjectTouched.current = false;
     appliedPrefill.current = { key: '', body: '' };
     setFormData({ email: '', subject: '', message: '' });
       setFile(null);
@@ -124,6 +132,7 @@ const Support: React.FC = () => {
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     if (name === 'message') messageTouched.current = true;
+    if (name === 'subject') subjectTouched.current = true;
     setFormData({ ...formData, [name]: value });
     if (errors[name as keyof FormErrors]) {
       setErrors({ ...errors, [name]: null });
