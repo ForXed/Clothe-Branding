@@ -1,4 +1,5 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useEffect, useRef, useState, ChangeEvent, FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styles from './Support.module.css';
 import { validateEmail } from '../../utils/validators'; 
 
@@ -38,14 +39,54 @@ const topicsData: Topic[] = [
   ]},
 ];
 
+// The dropdown only accepts these codes; anything else the caller sends is context.
+const TOPIC_CODES = new Set(['order', 'product', 'billing', 'other']);
+
 const Support: React.FC = () => {
+  // A studio screen can hand this form a request (?subject=&message=), so "View
+  // Blueprint" lands on a form that already says which project it is about.
+  const [searchParams] = useSearchParams();
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [activeArticle, setActiveArticle] = useState<Article | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  
+
   const [formData, setFormData] = useState<FormData>({ email: '', subject: '', message: '' });
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Applied on every query-string change, not just the first render: a second
+  // "View Blueprint" click while this screen is mounted must retarget the form, and
+  // following a plain /hub/support link must drop the previous context again.
+  // Once the visitor edits the body we stop touching it, including when they clear it.
+  const appliedPrefill = useRef({ key: '', body: '' });
+  const messageTouched = useRef(false);
+  const subjectTouched = useRef(false);
+
+  useEffect(() => {
+    const rawSubject = searchParams.get('subject')?.trim() ?? '';
+    const rawMessage = searchParams.get('message')?.trim() ?? '';
+    const key = `${rawSubject}||${rawMessage}`;
+    if (key === appliedPrefill.current.key) return;
+
+    const isTopicCode = TOPIC_CODES.has(rawSubject.toLowerCase());
+    // A blueprint link sends a sentence, not a dropdown code, so it becomes context
+    // in the body instead of silently failing to match an option.
+    const body = isTopicCode ? rawMessage : [rawSubject, rawMessage].filter(Boolean).join('\n\n');
+
+    appliedPrefill.current = { key, body };
+    setFormData((prev) => ({
+      ...prev,
+      // Same rule as the body: only overwrite the dropdown while the visitor has not
+      // chosen a topic themselves, so a plain link clears our prefill and not theirs.
+      subject: subjectTouched.current
+        ? prev.subject
+        : isTopicCode
+          ? rawSubject.toLowerCase()
+          : '',
+      message: messageTouched.current ? prev.message : body,
+    }));
+  }, [searchParams]);
 
   const filteredTopics = topicsData.filter(topic => 
     topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -79,6 +120,9 @@ const Support: React.FC = () => {
     setFormStatus('submitting');
     setTimeout(() => {
       setFormStatus('success');
+      messageTouched.current = false;
+      subjectTouched.current = false;
+      appliedPrefill.current = { key: '', body: '' };
       setFormData({ email: '', subject: '', message: '' });
       setFile(null);
       setTimeout(() => setFormStatus('idle'), 4000);
@@ -87,6 +131,8 @@ const Support: React.FC = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'message') messageTouched.current = true;
+    if (name === 'subject') subjectTouched.current = true;
     setFormData({ ...formData, [name]: value });
     if (errors[name as keyof FormErrors]) {
       setErrors({ ...errors, [name]: null });

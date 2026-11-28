@@ -29,8 +29,14 @@ const ShowCase: React.FC = () => {
     return matchesCategory && matchesMode;
   });
 
+  // v1 has no blueprint viewer, so "View Blueprint" asks the team instead of
+  // pretending to open one.
   const handleViewBlueprint = (project: Project) => {
-    console.log("Viewing blueprint for:", project.title);
+    const subject = encodeURIComponent(`Blueprint request: ${project.title}`);
+    const message = encodeURIComponent(
+      `I would like to see the blueprint behind "${project.title}".`,
+    );
+    navigate(`/hub/support?subject=${subject}&message=${message}`);
   };
 
   return (
