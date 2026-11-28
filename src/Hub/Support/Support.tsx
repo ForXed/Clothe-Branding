@@ -56,16 +56,15 @@ const Support: React.FC = () => {
   const [errors, setErrors] = useState<FormErrors>({});
 
   // Applied on every query-string change, not just the first render: a second
-  // "View Blueprint" click while this screen is mounted must retarget the form.
-  // Text the visitor typed is left alone; only what we filled in is replaced.
+  // "View Blueprint" click while this screen is mounted must retarget the form, and
+  // following a plain /hub/support link must drop the previous context again.
+  // Once the visitor edits the body we stop touching it, including when they clear it.
   const appliedPrefill = useRef({ key: '', body: '' });
-  const { message: typedMessage } = formData;
+  const messageTouched = useRef(false);
 
   useEffect(() => {
     const rawSubject = searchParams.get('subject')?.trim() ?? '';
     const rawMessage = searchParams.get('message')?.trim() ?? '';
-    if (!rawSubject && !rawMessage) return;
-
     const key = `${rawSubject}||${rawMessage}`;
     if (key === appliedPrefill.current.key) return;
 
@@ -73,15 +72,14 @@ const Support: React.FC = () => {
     // A blueprint link sends a sentence, not a dropdown code, so it becomes context
     // in the body instead of silently failing to match an option.
     const body = isTopicCode ? rawMessage : [rawSubject, rawMessage].filter(Boolean).join('\n\n');
-    const typedByVisitor = typedMessage !== '' && typedMessage !== appliedPrefill.current.body;
 
     appliedPrefill.current = { key, body };
     setFormData((prev) => ({
       ...prev,
       subject: isTopicCode ? rawSubject.toLowerCase() : prev.subject,
-      message: typedByVisitor ? prev.message : body,
+      message: messageTouched.current ? prev.message : body,
     }));
-  }, [searchParams, typedMessage]);
+  }, [searchParams]);
 
   const filteredTopics = topicsData.filter(topic => 
     topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -115,7 +113,9 @@ const Support: React.FC = () => {
     setFormStatus('submitting');
     setTimeout(() => {
       setFormStatus('success');
-      setFormData({ email: '', subject: '', message: '' });
+      messageTouched.current = false;
+    appliedPrefill.current = { key: '', body: '' };
+    setFormData({ email: '', subject: '', message: '' });
       setFile(null);
       setTimeout(() => setFormStatus('idle'), 4000);
     }, 1500);
@@ -123,6 +123,7 @@ const Support: React.FC = () => {
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
+    if (name === 'message') messageTouched.current = true;
     setFormData({ ...formData, [name]: value });
     if (errors[name as keyof FormErrors]) {
       setErrors({ ...errors, [name]: null });
