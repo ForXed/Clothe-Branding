@@ -46,9 +46,18 @@ class RouteErrorBoundary extends React.Component<RouteErrorBoundaryProps, RouteE
             ? 'A newer version of Brutige was deployed while this tab was open, so part of the app could not load.'
             : 'The page failed to render. Reloading usually fixes it; if it keeps happening, the details are in the browser console.'}
         </p>
-        <button type="button" style={styles.button} onClick={() => window.location.reload()}>
-          Reload
-        </button>
+        <div style={styles.actions}>
+          <button
+            type="button"
+            style={styles.secondary}
+            onClick={() => this.setState({ error: null })}
+          >
+            Try again
+          </button>
+          <button type="button" style={styles.button} onClick={() => window.location.reload()}>
+            Reload
+          </button>
+        </div>
       </div>
     );
   }
@@ -66,9 +75,19 @@ const styles: Record<string, React.CSSProperties> = {
     textAlign: 'center',
   },
   title: { fontSize: '20px', fontWeight: 700, margin: 0, color: 'var(--brut-text, #0f172a)' },
-  text: { fontSize: '14px', color: '#64748b', margin: 0, maxWidth: '420px', lineHeight: 1.55 },
+  text: { fontSize: '14px', color: 'var(--brut-muted, #64748b)', margin: 0, maxWidth: '420px', lineHeight: 1.55 },
+  actions: { display: 'flex', gap: '10px', marginTop: '8px' },
+  secondary: {
+    padding: '11px 20px',
+    border: '1.5px solid #e2e8f0',
+    borderRadius: '10px',
+    background: 'transparent',
+    color: 'var(--brut-text, #0f172a)',
+    fontWeight: 600,
+    fontSize: '14px',
+    cursor: 'pointer',
+  },
   button: {
-    marginTop: '8px',
     padding: '11px 22px',
     border: 'none',
     borderRadius: '10px',

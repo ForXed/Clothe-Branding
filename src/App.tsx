@@ -88,6 +88,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
 
   return (
     <>
+      <RouteErrorBoundary>
       <Suspense fallback={<RouteFallback />}>
         <Routes>
         {/* Public Landing Page */}
@@ -209,6 +210,7 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </Suspense>
+      </RouteErrorBoundary>
     </>
   );
 };
