@@ -1,9 +1,17 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, type ReactNode } from 'react';
 import styles from './FadeIn.module.css';
 
-const FadeIn = ({ children, delay = 0, direction = 'up' }) => {
+type FadeDirection = 'up' | 'down' | 'left' | 'right';
+
+interface FadeInProps {
+  children?: ReactNode;
+  delay?: number;
+  direction?: FadeDirection;
+}
+
+const FadeIn = ({ children, delay = 0, direction = 'up' }: FadeInProps) => {
   const [isVisible, setIsVisible] = useState(false);
-  const domRef = useRef();
+  const domRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(entries => {

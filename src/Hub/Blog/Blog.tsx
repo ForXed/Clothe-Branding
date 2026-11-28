@@ -2,7 +2,20 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Blog.module.css';
 
-const featuredPost = {
+// --- TypeScript Interfaces ---
+interface Post {
+  id: number;
+  slug: string;
+  title: string;
+  excerpt: string;
+  author: string;
+  date: string;
+  readTime: string;
+  category: string;
+  image: string;
+}
+
+const featuredPost: Post = {
   id: 0,
   slug: "death-of-fast-fashion",
   title: "The Death of Fast Fashion: Building Infrastructure for Longevity",
@@ -14,7 +27,7 @@ const featuredPost = {
   image: "https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=800"
 };
 
-const posts = [
+const posts: Post[] = [
   { id: 1, slug: "tech-packs-101", title: "Tech Packs 101: How to Speak Maker", excerpt: "Stop guessing. Learn the universal language of production.", author: "Marcus Chen", date: "Oct 20, 2024", readTime: "5 min read", category: "Guides", image: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?w=600" },
   { id: 2, slug: "sustainable-fibers", title: "Sustainable Fibers: Beyond Organic Cotton", excerpt: "Exploring hemp, tencel, and recycled blends for modern streetwear.", author: "Sarah Jenkins", date: "Oct 15, 2024", readTime: "6 min read", category: "Materials", image: "https://images.unsplash.com/photo-1528458909336-e7a0adfed0a5?w=600" },
   { id: 3, slug: "void-case-study", title: "Case Study: How 'Void' Scaled to 10k Units", excerpt: "From garage startup to global brand in 12 months using Brutige.", author: "Editorial Team", date: "Oct 10, 2024", readTime: "7 min read", category: "Case Study", image: "https://images.unsplash.com/photo-1441984904996-e0b6ba687e04?w=600" },
@@ -23,36 +36,35 @@ const posts = [
   { id: 6, slug: "rise-of-micro-brands", title: "The Rise of Micro-Brands", excerpt: "Why small batches and high quality are winning over mass market.", author: "Elena Rostova", date: "Sep 20, 2024", readTime: "6 min read", category: "Industry", image: "https://images.unsplash.com/photo-1483985988355-763728e1935b?w=600" },
 ];
 
-const categories = ["All", "Industry", "Guides", "Materials", "Design", "Case Study"];
+const categories: string[] = ["All", "Industry", "Guides", "Materials", "Design", "Case Study"];
 
-const Blog = () => {
+const Blog: React.FC = () => {
   const navigate = useNavigate();
-  const [activeCategory, setActiveCategory] = useState("All");
+  const [activeCategory, setActiveCategory] = useState<string>("All");
   
   // Newsletter State
-  const [email, setEmail] = useState("");
-  const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState<string>("");
+  const [error, setError] = useState<string>("");
+  const [success, setSuccess] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
   const filteredPosts = activeCategory === "All" 
     ? posts 
     : posts.filter(post => post.category === activeCategory);
 
-  const handleReadArticle = (slug) => {
+  const handleReadArticle = (slug: string) => {
     navigate(`/hub/blog/${slug}`);
   };
 
-  const validateEmail = (email) => {
-    // Simple regex for email validation
+  const validateEmail = (email: string): boolean => {
     return String(email)
       .toLowerCase()
       .match(
         /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/
-      );
+      ) !== null;
   };
 
-  const handleSubscribe = (e) => {
+  const handleSubscribe = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
     setSuccess(false);
@@ -67,7 +79,6 @@ const Blog = () => {
       return;
     }
 
-    // Simulate API call
     setIsLoading(true);
     setTimeout(() => {
       setIsLoading(false);
@@ -86,6 +97,7 @@ const Blog = () => {
           {categories.map(cat => (
             <button
               key={cat}
+              type="button"
               className={`${styles.filterBtn} ${activeCategory === cat ? styles.active : ''}`}
               onClick={() => setActiveCategory(cat)}
             >
@@ -111,7 +123,7 @@ const Blog = () => {
           <p className={styles.excerpt}>{featuredPost.excerpt}</p>
           <div className={styles.authorRow}>
             <span className={styles.author}>By {featuredPost.author}</span>
-            <button className={styles.readMoreBtn} onClick={() => handleReadArticle(featuredPost.slug)}>
+            <button type="button" className={styles.readMoreBtn} onClick={() => handleReadArticle(featuredPost.slug)}>
               Read Article →
             </button>
           </div>
@@ -134,7 +146,7 @@ const Blog = () => {
               <p className={styles.cardExcerpt}>{post.excerpt}</p>
               <div className={styles.footer}>
                 <span className={styles.authorSmall}>By {post.author}</span>
-                <button className={styles.iconBtn} onClick={() => handleReadArticle(post.slug)}>
+                <button type="button" className={styles.iconBtn} onClick={() => handleReadArticle(post.slug)}>
                   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                     <polyline points="12 5 19 12 12 19"></polyline>
@@ -169,7 +181,6 @@ const Blog = () => {
               onChange={(e) => setEmail(e.target.value)}
               disabled={isLoading || success}
             />
-            {/* Custom Error Message */}
             {error && <span className={styles.errorMessage}>{error}</span>}
             {success && <span className={styles.successMessage}>Thanks for subscribing!</span>}
           </div>

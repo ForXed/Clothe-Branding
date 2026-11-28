@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 
 // Pages
 import LandingPage from './LandingPage/LandingPage';
@@ -7,15 +7,16 @@ import BrutigePlatform from './Homepage/BrutigePlatform';
 import SignInPage from './Form/SignInPage';
 import SignUpPage from './Form/SignUpPage';
 import MakerSignUp from './Form/MakerSignUp';
-import ForgottenPassword from './Form/ForgottenPassword';
 import VerifyPassword from './Form/VerifyPassword';
-import MakerStudio from './MakerStudio/MakerStudio/MakerStudio';
+import ResetPassword from './Form/ResetPassword';
+import MakerStudio from './MakerStudio/MakerStudio';
 
-// New Form Components
+// Form Components
 import ChangePasswordForm from './Form/ChangePasswordForm';
-import TwoStepSetup from './Form/TwoFactorSetup';
+import TwoFactorSetup from './Form/TwoFactorSetup';
+import MakerApplication from './Form/MakerApplication';
 
-// Hub Pages (Clean Names)
+// Hub Pages
 import HubLayout from './Hub/HubLayout';
 import Collections from './Hub/Collections/Collections';
 import Process from './Hub/Process/Process';
@@ -29,101 +30,155 @@ import Support from './Hub/Support/Support';
 import Privacy from './Hub/Legal/Privacy';
 import Terms from './Hub/Legal/Terms';
 import Cookies from './Hub/Legal/Cookies';
+import CustomOrderPolicy from './Hub/Legal/CustomOrderPolicy';
 
-// Pricing Page (NEW IMPORT)
-import Pricing from './Pricing/Pricing';
+// Admin
+import AdminLayout from './Admin/AdminLayout';
+import AdminDashboard from './Admin/AdminDashboard';
+import MakerList from './Admin/Makers/MakerList';
+import MakerDetail from './Admin/Makers/MakerDetail';
+import DisputeList from './Admin/Disputes/DisputeList';
+import DisputeDetail from './Admin/Disputes/DisputeDetail';
+import OrderList from './Admin/Orders/OrderList';
+import AdminOrderDetail from './Admin/Orders/AdminOrderDetail';
+import UserList from './Admin/Users/UserList';
 
 // Global Infrastructure Components
 import Preloader from './Homepage/Preloader/Preloader';
 import FloatingMessage from './Notification/FloatingMessage';
 
-// Global Validation Helper
-export const validateEmail = (email) => {
-  return String(email).toLowerCase().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/);
-};
+// Session + route guards
+import { AuthProvider } from './auth/AuthContext';
+import { RequireAuth } from './auth/RequireAuth';
+import { ADMIN_ROLES, STUDIO_ROLES } from './auth/homePath';
+import OAuthCallback from './pages/OAuthCallback';
+import AccountBadge from './auth/AccountBadge';
 
-function App() {
-  // --- GLOBAL STATE ---
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    return localStorage.getItem('brutige_theme') === 'dark';
-  });
-  const [isAppLoading, setIsAppLoading] = useState(true);
-  const [notification, setNotification] = useState({ message: '', type: 'success', visible: false });
+// --- Type Definitions ---
+interface NotificationState {
+  message: string;
+  type: 'success' | 'error' | 'info';
+  visible: boolean;
+}
 
-  // --- THEME SYNC ---
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', isDarkMode ? 'dark' : 'light');
-    localStorage.setItem('brutige_theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+type NotifyFunction = (
+  message: string,
+  type?: 'success' | 'error' | 'info',
+) => void;
 
-  const toggleTheme = () => setIsDarkMode(prev => !prev);
+interface AppRoutesProps {
+  notify: NotifyFunction;
+  isDarkMode: boolean;
+  toggleTheme: () => void;
+}
 
-  // --- NOTIFICATION HANDLER ---
-  const notify = (message, type = 'success') => {
-    setNotification({ message, type, visible: true });
-    // Auto-hide after 4 seconds
-    setTimeout(() => setNotification(prev => ({ ...prev, visible: false })), 4000);
-  };
+const AppRoutes: React.FC<AppRoutesProps> = ({
+  notify,
+  isDarkMode,
+  toggleTheme,
+}) => {
+  const navigate = useNavigate();
+  const [isAppLoading, setIsAppLoading] = useState<boolean>(true);
 
   return (
-    <Router>
-      {/* 1. Global Notification Layer (Floats at bottom) */}
-      <FloatingMessage 
-        message={notification.message} 
-        type={notification.type} 
-        isVisible={notification.visible} 
-      />
-
+    <>
       <Routes>
-        {/* 2. Public Landing Page */}
+        {/* Public Landing Page */}
         <Route path="/" element={<LandingPage />} />
 
-        {/* 3. Pricing Page (NEW ROUTE) */}
-        <Route path="/pricing" element={<Pricing />} />
-
-        {/* 4. Auth Flow - Passing 'notify' to every page */}
+        {/* Auth Flow */}
         <Route path="/login" element={<SignInPage notify={notify} />} />
         <Route path="/signup" element={<SignUpPage notify={notify} />} />
-        <Route path="/maker-signup" element={<MakerSignUp notify={notify} />} />
-        <Route path="/forgot-password" element={<ForgottenPassword notify={notify} />} />
-        <Route path="/verify" element={<VerifyPassword notify={notify} />} />
-        
-        {/* 5. Account Management Forms (Modal Routes) */}
-        <Route path="/change-password" element={<ChangePasswordForm notify={notify} />} />
-        <Route path="/2fa-setup" element={<TwoStepSetup notify={notify} />} />
+        <Route path="/maker-signup" element={<MakerSignUp />} />
+        <Route path="/verify-email" element={<VerifyPassword />} />
+        <Route path="/reset-password" element={<ResetPassword notify={notify} />} />
+        <Route path="/maker-application" element={<MakerApplication notify={notify} />} />
 
-        {/* 6. MAKER STUDIO (Standalone Sub-Routes) */}
-        <Route 
-          path="/studio/*" 
+        {/* Now backed by the two-step reset (forgotten-password -> verify -> reset). */}
+        <Route
+          path="/change-password"
           element={
-            isAppLoading ? (
-              <Preloader onComplete={() => setIsAppLoading(false)} />
-            ) : (
-              <MakerStudio isDarkMode={isDarkMode} toggleTheme={toggleTheme} notify={notify} />
-            )
-          } 
+            <RequireAuth>
+              <ChangePasswordForm
+                notify={notify}
+                onClose={() => navigate('/platform')}
+              />
+            </RequireAuth>
+          }
         />
 
-        {/* 7. THE PLATFORM HUB (Shop, Chat, Profile) */}
-        <Route 
-          path="/platform/*" 
+        <Route
+          path="/2fa-setup"
           element={
-            isAppLoading ? (
-              <Preloader onComplete={() => setIsAppLoading(false)} />
-            ) : (
-              <BrutigePlatform isDarkMode={isDarkMode} toggleTheme={toggleTheme} notify={notify} />
-            )
-          } 
+            <TwoFactorSetup
+              onClose={() => navigate('/studio/settings')}
+              onSuccess={() => notify('2FA enabled successfully', 'success')}
+            />
+          }
         />
 
-        {/* 8. THE RESOURCE HUB (Collections, Guides, Support, etc.) */}
-        <Route 
-          path="/hub" 
+        {/* Google sign-in lands here: the backend already set the cookies. */}
+        <Route path="/oauth/callback" element={<OAuthCallback />} />
+
+        {/* MAKER STUDIO */}
+        <Route
+          path="/studio/*"
+          element={
+            <RequireAuth roles={STUDIO_ROLES}>
+              {isAppLoading ? (
+                <Preloader onComplete={() => setIsAppLoading(false)} />
+              ) : (
+                <MakerStudio />
+              )}
+            </RequireAuth>
+          }
+        />
+
+        {/* THE PLATFORM HUB */}
+        <Route
+          path="/platform/*"
+          element={
+            <RequireAuth>
+              {isAppLoading ? (
+                <Preloader onComplete={() => setIsAppLoading(false)} />
+              ) : (
+                <BrutigePlatform
+                  isDarkMode={isDarkMode}
+                  toggleTheme={toggleTheme}
+                  notify={notify as (message: string, type?: string) => void}
+                />
+              )}
+            </RequireAuth>
+          }
+        />
+
+        {/* ADMIN DASHBOARD */}
+        <Route
+          path="/admin/*"
+          element={
+            <RequireAuth roles={ADMIN_ROLES}>
+              <AdminLayout />
+            </RequireAuth>
+          }
+        >
+          <Route index element={<AdminDashboard />} />
+          <Route path="makers" element={<MakerList />} />
+          <Route path="makers/:makerId" element={<MakerDetail />} />
+          <Route path="disputes" element={<DisputeList />} />
+          <Route path="disputes/:orderId" element={<DisputeDetail />} />
+          <Route path="orders" element={<OrderList />} />
+                <Route path="orders/:orderId" element={<AdminOrderDetail />} />
+          <Route path="users" element={<UserList />} />
+        </Route>
+
+        {/* THE RESOURCE HUB */}
+        <Route
+          path="/hub"
           element={
             isAppLoading ? (
               <Preloader onComplete={() => setIsAppLoading(false)} />
             ) : (
-              <HubLayout isDarkMode={isDarkMode} toggleTheme={toggleTheme} notify={notify} />
+              <HubLayout />
             )
           }
         >
@@ -137,18 +192,75 @@ function App() {
           <Route path="guides" element={<Guides />} />
           <Route path="guides/:slug" element={<GuideDetail />} />
           <Route path="support" element={<Support />} />
-          
-          {/* Legal Pages */}
           <Route path="privacy" element={<Privacy />} />
           <Route path="terms" element={<Terms />} />
           <Route path="cookies" element={<Cookies />} />
+          <Route path="custom-order-policy" element={<CustomOrderPolicy />} />
         </Route>
 
-        {/* 9. Catch-all: Back to Landing */}
+        {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+    </>
+  );
+};
+
+// Main App component - owns the theme state
+const App: React.FC = () => {
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    return localStorage.getItem('brutige_theme') === 'dark';
+  });
+
+  const [notification, setNotification] = useState<NotificationState>({
+    message: '',
+    type: 'success',
+    visible: false,
+  });
+
+  const toggleTheme = (): void => {
+    setIsDarkMode((prev) => !prev);
+  };
+
+  useEffect(() => {
+    document.documentElement.setAttribute(
+      'data-theme',
+      isDarkMode ? 'dark' : 'light',
+    );
+    localStorage.setItem('brutige_theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
+
+  const notify: NotifyFunction = (message, type = 'success') => {
+    setNotification({ message, type, visible: true });
+
+    setTimeout(() => {
+      setNotification((prev) => ({ ...prev, visible: false }));
+    }, 4000);
+  };
+
+  return (
+    <Router>
+      {/* Global Notification Layer */}
+      <FloatingMessage
+        message={notification.message}
+        type={notification.type}
+        isVisible={notification.visible}
+      />
+
+      {/* Session state has to sit inside the Router: the guards round-trip. */}
+      <AuthProvider>
+        {/* Session badge + sign out, so both sides of the marketplace can be
+            demoed in one browser without clearing cookies by hand. */}
+        <AccountBadge />
+
+        {/* Pass theme state down to AppRoutes */}
+        <AppRoutes
+          notify={notify}
+          isDarkMode={isDarkMode}
+          toggleTheme={toggleTheme}
+        />
+      </AuthProvider>
     </Router>
   );
-}
+};
 
 export default App;

@@ -1,0 +1,557 @@
+/* src/Admin/Makers/MakerDetail.module.css */
+/* Brutalist maker detail page. Sharp corners, Inter, theme vars. */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap");
+
+.container {
+  max-width: 800px;
+}
+
+/* ─── Back button ─── */
+
+.backBtn {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brut-muted, #666);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  transition: color 0.15s ease;
+}
+
+.backBtn:hover {
+  color: var(--brut-text, #000);
+}
+
+/* ─── Cards ─── */
+
+.card {
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.identityCard {
+  border-width: 2px;
+}
+
+/* ─── Identity header ─── */
+
+.identityTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.makerName {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 900;
+  letter-spacing: -1px;
+  line-height: 1.1;
+  color: var(--brut-text, #000);
+}
+
+.makerId {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brut-muted, #666);
+  letter-spacing: 0.04em;
+}
+
+.statusBadge {
+  padding: 5px 10px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.makerBio {
+  margin: 0 0 14px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--brut-text, #000);
+}
+
+.metaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.metaItem {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--brut-muted, #666);
+}
+
+.verifiedNote {
+  margin: 10px 0 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #047857;
+}
+
+/* ─── Rejection box ─── */
+
+.rejectionBox {
+  margin-top: 14px;
+  border: 1.5px solid #ef4444;
+  background: #fef2f2;
+  padding: 14px 16px;
+  border-radius: 0;
+}
+
+.rejectionLabel {
+  margin: 0 0 6px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #991b1b;
+}
+
+.rejectionText {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: #7f1d1d;
+}
+
+/* ─── Section labels ─── */
+
+.sectionLabel {
+  margin: 0 0 14px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--brut-muted, #666);
+  border-bottom: 1.5px solid var(--brut-border, #000);
+  padding-bottom: 8px;
+}
+
+/* ─── Specializations ─── */
+
+.specGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.specTag {
+  font-size: 0.78rem;
+  font-weight: 700;
+  padding: 6px 12px;
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-bg, #f5f5f5);
+  color: var(--brut-text, #000);
+  border-radius: 0;
+}
+
+.emptyNote {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--brut-muted, #666);
+  font-style: italic;
+}
+
+/* ─── Capability detail grid ─── */
+
+.detailGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.detailLabel {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.detailValue {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--brut-text, #000);
+}
+
+/* ─── Timeline ─── */
+
+.timeline {
+  /* inherits from .card parent */
+}
+
+.timelineList {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  position: relative;
+  padding-left: 20px;
+}
+
+.timelineList::before {
+  content: "";
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 1.5px;
+  background: var(--brut-border, #000);
+}
+
+.timelineItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px 0;
+  position: relative;
+}
+
+.timelineDot {
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  flex-shrink: 0;
+  position: absolute;
+  left: -20px;
+  top: 12px;
+  background: var(--brut-card, #fff);
+}
+
+.dotAmber { background: #f59e0b; }
+.dotGreen { background: #10b981; }
+.dotRed { background: #ef4444; }
+
+.timelineContent {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.timelineLabel {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--brut-text, #000);
+}
+
+.timelineDate {
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--brut-muted, #666);
+}
+
+/* ─── Action card ─── */
+
+.actionCard {
+  border-color: var(--brut-text, #000);
+  border-width: 2px;
+}
+
+.actionRow {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.approveBtn,
+.rejectBtn {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 14px 22px;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.approveBtn {
+  background: var(--brut-text, #000);
+  color: var(--brut-bg, #fff);
+  border-color: var(--brut-text, #000);
+}
+
+.approveBtn:hover:not(:disabled) {
+  background: #333;
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.rejectBtn {
+  background: var(--brut-card, #fff);
+  color: #ef4444;
+  border-color: #ef4444;
+}
+
+.rejectBtn:hover:not(:disabled) {
+  background: #ef4444;
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.approveBtn:disabled,
+.rejectBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ─── Reject form ─── */
+
+.rejectForm {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rejectFormTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--brut-text, #000);
+}
+
+.rejectFormHint {
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--brut-muted, #666);
+  line-height: 1.5;
+}
+
+.rejectForm textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  background: var(--brut-bg, #fff);
+  color: var(--brut-text, #000);
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+  resize: vertical;
+  min-height: 100px;
+}
+
+.rejectForm textarea:focus {
+  background: var(--brut-card, #fff);
+}
+
+.formError {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: #ef4444;
+}
+
+.rejectFormActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.rejectFormActions button {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 18px;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--brut-card, #fff);
+  color: var(--brut-text, #000);
+}
+
+.rejectFormActions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.rejectFormActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.confirmRejectBtn {
+  background: #ef4444 !important;
+  color: #fff !important;
+  border-color: #ef4444 !important;
+}
+
+.confirmRejectBtn:hover:not(:disabled) {
+  background: #dc2626 !important;
+  border-color: #dc2626 !important;
+}
+
+/* ─── Resolved card ─── */
+
+.resolvedCard {
+  border-style: dashed;
+  background: var(--brut-bg, #f5f5f5);
+}
+
+.resolvedText {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--brut-muted, #666);
+}
+
+/* ─── Error box ─── */
+
+.errorBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1.5px solid #ef4444;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 14px 16px;
+  font-weight: 800;
+  border-radius: 0;
+  margin-bottom: 16px;
+}
+
+.errorBox button {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* ─── Empty state ─── */
+
+.emptyState {
+  border: 1.5px dashed var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--brut-muted, #666);
+  font-weight: 800;
+  border-radius: 0;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* ─── Skeleton ─── */
+
+.skeletonBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 24px;
+  border-radius: 0;
+}
+
+.skeletonBar {
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    var(--brut-border, #e5e5e5) 25%,
+    color-mix(in srgb, var(--brut-text, #000) 8%, var(--brut-border, #e5e5e5)) 50%,
+    var(--brut-border, #e5e5e5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 0;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonBar {
+    animation: none;
+  }
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 640px) {
+  .identityTop {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .makerName {
+    font-size: 1.3rem;
+  }
+
+  .metaRow {
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .actionRow {
+    flex-direction: column;
+  }
+
+  .approveBtn,
+  .rejectBtn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .rejectFormActions {
+    flex-direction: column-reverse;
+  }
+
+  .rejectFormActions button {
+    width: 100%;
+  }
+}

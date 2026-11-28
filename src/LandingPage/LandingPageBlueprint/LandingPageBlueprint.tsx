@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react';
+import React, { useRef } from 'react';
 import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -6,13 +6,20 @@ import styles from './LandingPageBlueprint.module.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const products = [
+// 👇 Interface for product data
+interface BlueprintProduct {
+  id: number;
+  title: string;
+  category: string;
+  image: string;
+  specs: string[];
+}
+
+const products: BlueprintProduct[] = [
   {
     id: 1,
     title: "Infrastructure Hoodie",
     category: "Layering",
-    // In a real app, these would be actual SVG paths vs Real Images
-    // For demo, we use CSS filters to simulate "blueprint" vs "real"
     image: "https://images.unsplash.com/photo-1556821840-3a63f95609a7?w=800&q=80",
     specs: ["450GSM French Terry", "Double-Needle Stitch", "Hidden Pocket"]
   },
@@ -32,16 +39,24 @@ const products = [
   }
 ];
 
-const LandingPageBlueprint = () => {
-  const sectionRef = useRef();
-  const cardsRef = useRef([]);
+const LandingPageBlueprint: React.FC = () => {
+  // 👇 Typed refs
+  const sectionRef = useRef<HTMLElement>(null);
+  const cardsRef = useRef<(HTMLElement | null)[]>([]);
 
   useGSAP(() => {
+    if (!sectionRef.current) return;
+    
     const ctx = gsap.context(() => {
       cardsRef.current.forEach((card, i) => {
-        const blueprintLayer = card.querySelector(`.${styles.blueprintLayer}`);
-        const realLayer = card.querySelector(`.${styles.realLayer}`);
-        const svgLines = card.querySelectorAll(`.${styles.svgLine}`);
+        if (!card) return; // Safety check
+        
+        // 👇 Cast querySelector results to HTMLElement/SVGElement so GSAP accepts them
+        const blueprintLayer = card.querySelector(`.${styles.blueprintLayer}`) as HTMLElement | null;
+        const realLayer = card.querySelector(`.${styles.realLayer}`) as HTMLElement | null;
+        const svgLines = card.querySelectorAll(`.${styles.svgLine}`) as NodeListOf<SVGElement>;
+
+        if (!blueprintLayer || !realLayer) return;
 
         // Initial State
         gsap.set(blueprintLayer, { opacity: 1 });
@@ -100,21 +115,19 @@ const LandingPageBlueprint = () => {
         {products.map((product, index) => (
           <div 
             key={product.id} 
-            ref={el => cardsRef.current[index] = el}
+            ref={el => { cardsRef.current[index] = el; }}
             className={styles.card}
           >
-            {/* 1. The Blueprint Layer (Simulated with CSS Filter + SVG Overlay) */}
+            {/* 1. The Blueprint Layer */}
             <div className={styles.blueprintLayer}>
               <img src={product.image} alt={product.title} className={styles.blueprintImg} />
               <div className={styles.overlayGrid}></div>
               
-              {/* Decorative SVG Lines that "draw" themselves */}
               <svg className={styles.svgOverlay} viewBox="0 0 400 500" fill="none">
                 <rect x="50" y="50" width="300" height="400" stroke="#00ffff" strokeWidth="1" className={styles.svgLine} />
                 <line x1="50" y1="150" x2="350" y2="150" stroke="#00ffff" strokeWidth="1" className={styles.svgLine} />
                 <circle cx="200" cy="100" r="40" stroke="#00ffff" strokeWidth="1" className={styles.svgLine} />
                 <path d="M100 300 L300 300 L300 400 L100 400 Z" stroke="#00ffff" strokeWidth="1" className={styles.svgLine} />
-                {/* Measurement Lines */}
                 <line x1="40" y1="50" x2="40" y2="450" stroke="#00ffff" strokeWidth="0.5" strokeDasharray="4 4" className={styles.svgLine} />
                 <line x1="360" y1="50" x2="360" y2="450" stroke="#00ffff" strokeWidth="0.5" strokeDasharray="4 4" className={styles.svgLine} />
               </svg>

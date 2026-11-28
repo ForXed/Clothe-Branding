@@ -56,49 +56,70 @@
     margin-bottom: 40px;
 }
 
-/* --- SOCIAL BUTTONS --- */
+/* --- GOOGLE BUTTON (UPDATED) --- */
 .socialGrid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
+    display: flex;
+    flex-direction: column; /* Single column now */
     gap: 15px;
 }
 
 .socialBtn {
     background: #fff;
     border: 1.5px solid #000;
-    padding: 12px;
+    padding: 14px 20px;
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 10px;
-    font-weight: 800;
-    text-transform: uppercase;
-    font-size: 0.75rem;
+    gap: 12px;
+    font-weight: 600;
+    text-transform: none; /* Natural casing looks better for OAuth */
+    font-size: 0.9rem;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     color: #000;
+    font-family: 'Inter', sans-serif;
+    border-radius: 0;
 }
 
 .socialBtn img {
-    width: 16px;
-    filter: grayscale(100%);
-    transition: filter 0.3s ease;
+    width: 20px;
+    height: 20px;
+    object-fit: contain;
+    /* Removed grayscale filter so Google 'G' keeps its brand colors */
 }
 
-/* FIX: Turn background black, text white */
+/* Hover State: Brutalist black background */
 .socialBtn:hover {
     background: #000;
     color: #fff;
     border-color: #000;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-/* FIX: Apple turns white, Google stays colored (grayscale removed on hover) */
-.socialBtn:hover img:not(.appleIcon) {
-    filter: grayscale(0%);
+/* Keep Google icon colored on black background, add tiny glow for contrast */
+.socialBtn:hover img {
+    filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.4));
 }
 
-.socialBtn:hover .appleIcon {
-    filter: grayscale(100%) invert(1) !important;
+.socialBtn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+/* Disabled State (when form is loading) */
+.socialBtn:disabled {
+    background: #f9f9f9;
+    color: #999;
+    border-color: #ddd;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+.socialBtn:disabled img {
+    opacity: 0.5;
+    filter: grayscale(100%);
 }
 
 /* --- DIVIDER --- */
@@ -125,6 +146,8 @@
     font-size: 0.7rem;
     font-weight: 900;
     color: #ccc;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 /* --- INPUTS --- */
@@ -139,7 +162,6 @@
     flex-direction: column;
     gap: 8px;
     position: relative;
-    /* Needed for absolute positioning of eye icon */
 }
 
 .inputGroup label {
@@ -147,6 +169,7 @@
     font-weight: 900;
     color: #000;
     text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .inputGroup input {
@@ -157,6 +180,7 @@
     border-radius: 0;
     font-family: 'Inter', sans-serif;
     width: 100%;
+    transition: background 0.2s ease;
 }
 
 /* Password Wrapper to hold input + eye icon */
@@ -168,7 +192,6 @@
 
 .passwordWrapper input {
     padding-right: 50px;
-    /* Make space for the eye icon */
 }
 
 /* The Eye Icon Button */
@@ -192,6 +215,11 @@
     color: #000;
 }
 
+.togglePassword:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
 .togglePassword svg {
     width: 20px;
     height: 20px;
@@ -202,6 +230,13 @@
     background: #f9f9f9;
 }
 
+.inputGroup input:disabled {
+    background: #f5f5f5;
+    cursor: not-allowed;
+    opacity: 0.7;
+}
+
+/* --- SUBMIT BUTTON --- */
 .submitBtn {
     background: #000;
     color: #fff;
@@ -211,14 +246,30 @@
     text-transform: uppercase;
     letter-spacing: 0.1em;
     cursor: pointer;
-    transition: all 0.3s ease;
+    transition: all 0.2s ease;
     font-family: 'Inter', sans-serif;
+    font-size: 0.9rem;
 }
 
 .submitBtn:hover {
     background: #333;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
 }
 
+.submitBtn:active {
+    transform: translateY(0);
+    box-shadow: none;
+}
+
+.submitBtn:disabled {
+    background: #666;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* --- FOOTER --- */
 .footerLink {
     margin-top: 30px;
     text-align: center;
@@ -231,6 +282,12 @@
     color: #000;
     font-weight: 900;
     text-decoration: underline;
+    text-underline-offset: 3px;
+    transition: opacity 0.2s;
+}
+
+.footerLink a:hover {
+    opacity: 0.7;
 }
 
 /* --- BRAND SECTION (BLACK - HIDDEN ON MOBILE) --- */
@@ -300,10 +357,6 @@
 
 /* SMALL PHONES */
 @media (max-width: 480px) {
-    .socialGrid {
-        grid-template-columns: 1fr;
-    }
-
     .title {
         font-size: 2rem;
     }
@@ -313,6 +366,11 @@
     }
 
     .socialBtn {
-        padding: 14px;
+        padding: 14px 16px;
+        font-size: 0.85rem;
+    }
+    
+    .submitBtn {
+        padding: 16px;
     }
 }

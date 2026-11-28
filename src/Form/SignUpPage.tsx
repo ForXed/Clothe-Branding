@@ -3,12 +3,33 @@ import { useNavigate, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
-import { validateEmail } from '../App';
+import { validateEmail } from '../utils/validators';
+import { authService } from '../services/authService';
+import { toApiError } from '../services/apiClient';
 import styles from './SignUpPage.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
-const BrutigeLogo = ({ color = 'black' }) => (
+interface NotifyFunction {
+  (message: string, type: 'success' | 'error' | 'info'): void;
+}
+
+interface SignUpPageProps {
+  notify?: NotifyFunction;
+}
+
+interface FormData {
+  firstName: string;
+  lastName: string;
+  email: string;
+  password: string;
+}
+
+interface BrutigeLogoProps {
+  color?: string;
+}
+
+const BrutigeLogo: React.FC<BrutigeLogoProps> = ({ color = 'black' }) => (
   <svg width='40' height='40' viewBox='0 0 100 100' fill='none'>
     <circle cx='50' cy='50' r='50' fill={color} />
     <path
@@ -23,8 +44,7 @@ const BrutigeLogo = ({ color = 'black' }) => (
   </svg>
 );
 
-// Eye Icons
-const EyeIcon = () => (
+const EyeIcon: React.FC = () => (
   <svg
     width='20'
     height='20'
@@ -39,7 +59,8 @@ const EyeIcon = () => (
     <circle cx='12' cy='12' r='3'></circle>
   </svg>
 );
-const EyeOffIcon = () => (
+
+const EyeOffIcon: React.FC = () => (
   <svg
     width='20'
     height='20'
@@ -55,21 +76,22 @@ const EyeOffIcon = () => (
   </svg>
 );
 
-const SignUpPage = ({ notify }) => {
-  const container = useRef();
-  const textRef = useRef();
-  const cursorRef = useRef();
+const SignUpPage: React.FC<SignUpPageProps> = ({ notify }) => {
+  const container = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
   const navigate = useNavigate();
 
-  // FORM STATE
-  const [formData, setFormData] = useState({
-    name: '',
+  const [formData, setFormData] = useState<FormData>({
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
   });
-  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
 
-  const phrases = [
+  const phrases: string[] = [
     'brutige: join the infrastructure.',
     'design the future of fashion.',
     'your brand, engineered.',
@@ -79,7 +101,6 @@ const SignUpPage = ({ notify }) => {
 
   useGSAP(
     () => {
-      // 1. Entrance Animation for Form Elements
       gsap.from(`.${styles.formWrapper} > *`, {
         opacity: 0,
         y: 30,
@@ -88,8 +109,7 @@ const SignUpPage = ({ notify }) => {
         ease: 'expo.out',
       });
 
-      // 2. Background Architectural Line Drift
-      const lines = gsap.utils.toArray(`.${styles.line}`);
+      const lines = gsap.utils.toArray<HTMLElement>(`.${styles.line}`);
       lines.forEach((line, i) => {
         gsap.to(line, {
           x: i % 2 === 0 ? 80 : -80,
@@ -101,7 +121,6 @@ const SignUpPage = ({ notify }) => {
         });
       });
 
-      // 3. Typewriter Logic
       let masterTl = gsap.timeline({ repeat: -1 });
       phrases.forEach((phrase) => {
         let tl = gsap.timeline({ repeat: 1, yoyo: true, repeatDelay: 2 });
@@ -113,7 +132,6 @@ const SignUpPage = ({ notify }) => {
         masterTl.add(tl);
       });
 
-      // 4. Cursor Blink
       gsap.to(cursorRef.current, {
         opacity: 0,
         ease: 'steps(1)',
@@ -124,21 +142,63 @@ const SignUpPage = ({ notify }) => {
     { scope: container },
   );
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (formData.name.length < 2) {
-      return notify('Please enter your full name.', 'error');
+
+    if (formData.firstName.trim().length < 2) {
+      if (notify) notify('Please enter your first name.', 'error');
+      return;
+    }
+    if (formData.lastName.trim().length < 2) {
+      if (notify) notify('Please enter your last name.', 'error');
+      return;
     }
     if (!validateEmail(formData.email)) {
-      return notify('Invalid professional email address.', 'error');
+      if (notify) notify('Please enter a valid email address.', 'error');
+      return;
     }
     if (formData.password.length < 8) {
-      return notify('Security requires at least 8 characters.', 'error');
+      if (notify) notify('Password must be at least 8 characters.', 'error');
+      return;
     }
 
-    // SUCCESS: Notify and Route
-    notify('Identity created. Verifying access...', 'success');
-    setTimeout(() => navigate('/verify'), 1500);
+    setIsLoading(true);
+    try {
+      // ✅ v1.2: signup may return 200 (already registered, unverified) or 201 (new)
+      const response = await authService.signup({
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
+        email: formData.email,
+        password: formData.password,
+        role: 'BUYER',
+      });
+
+      // 200 means the address already existed unverified (a fresh code was sent).
+      const alreadyRegistered = response.success === true && response.message?.toLowerCase().includes('already');
+      if (notify) {
+        notify(
+          alreadyRegistered
+            ? 'We sent a new 6-digit code to your email. Please verify to continue.'
+            : 'Account created! Check your email for the 6-digit verification code.',
+          'success'
+        );
+      }
+
+      // Navigate to OTP verification page, pre-fill email
+      setTimeout(
+        () => navigate(`/verify-email?email=${encodeURIComponent(formData.email)}`),
+        1500
+      );
+    } catch (error: any) {
+      const message = toApiError(error).firstFieldError || toApiError(error).message || 'Registration failed. Please try again.';
+      if (notify) notify(message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleSignUp = () => {
+    window.location.href = authService.getGoogleOAuthUrl();
   };
 
   return (
@@ -160,20 +220,16 @@ const SignUpPage = ({ notify }) => {
           </p>
 
           <div className={styles.socialGrid}>
-            <button type='button' className={styles.socialBtn}>
+            <button
+              type='button'
+              className={styles.socialBtn}
+              onClick={handleGoogleSignUp}
+            >
               <img
                 src='https://www.svgrepo.com/show/475656/google-color.svg'
                 alt='Google'
               />
-              <span>GOOGLE</span>
-            </button>
-            <button type='button' className={styles.socialBtn}>
-              <img
-                src='https://www.svgrepo.com/show/511330/apple-173.svg'
-                alt='Apple'
-                className={styles.appleIcon}
-              />
-              <span>APPLE</span>
+              <span>Continue with Google</span>
             </button>
           </div>
 
@@ -183,63 +239,88 @@ const SignUpPage = ({ notify }) => {
             <span className={styles.dividerLine}></span>
           </div>
 
-          <form className={styles.form} onSubmit={handleSubmit}>
-            <div className={styles.inputGroup}>
-              <label>Full Name</label>
-              <input
-                type='text'
-                onChange={(e) =>
-                  setFormData({ ...formData, name: e.target.value })
-                }
-                placeholder='Alexander McQueen'
-              />
+          <form className={styles.form} onSubmit={handleSubmit} noValidate>
+            <div className={styles.nameRow}>
+              <div className={styles.inputGroup}>
+                <label>First Name</label>
+                <input
+                  type='text'
+                  value={formData.firstName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, firstName: e.target.value })
+                  }
+                  placeholder='Alexander'
+                  disabled={isLoading}
+                  required
+                />
+              </div>
+              <div className={styles.inputGroup}>
+                <label>Last Name</label>
+                <input
+                  type='text'
+                  value={formData.lastName}
+                  onChange={(e) =>
+                    setFormData({ ...formData, lastName: e.target.value })
+                  }
+                  placeholder='McQueen'
+                  disabled={isLoading}
+                  required
+                />
+              </div>
             </div>
+
             <div className={styles.inputGroup}>
-              <label>Professional Email</label>
+              <label>Email</label>
               <input
                 type='email'
+                value={formData.email}
                 onChange={(e) =>
                   setFormData({ ...formData, email: e.target.value })
                 }
                 placeholder='name@company.com'
+                disabled={isLoading}
+                required
               />
             </div>
 
-            {/* PASSWORD WITH TOGGLE */}
             <div className={styles.inputGroup}>
               <label>Password</label>
               <div className={styles.passwordWrapper}>
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
-                  placeholder='••••••••'
+                  placeholder='Minimum 8 characters'
                   className={styles.passwordInput}
+                  disabled={isLoading}
+                  required
                 />
                 <button
                   type='button'
                   className={styles.togglePassword}
                   onClick={() => setShowPassword(!showPassword)}
-                  tabIndex='-1'
+                  tabIndex={-1}
+                  disabled={isLoading}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
             </div>
 
-            <button type='submit' className={styles.submitBtn}>
-              Initialize &rarr;
+            <button
+              type='submit'
+              className={styles.submitBtn}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Creating Account...' : 'Create Account →'}
             </button>
           </form>
 
           <div className={styles.authFooter}>
             <p className={styles.footerLink}>
-              Already a member? <Link to='/login'>Sign In</Link>
-            </p>
-            <p className={styles.footerLink}>
-              Are you an Artisan?{' '}
-              <Link to='/maker-signup'>Join as a Maker</Link>
+              Already have an account? <Link to='/login'>Sign In</Link>
             </p>
           </div>
         </div>

@@ -1,8 +1,8 @@
 import React from 'react';
-import { Link } from 'react-router-dom'; // Using Link for internal navigation
+import { Link } from 'react-router-dom';
 import styles from './LandingPageFooter.module.css';
 
-const BrutigeLogo = () => (
+const BrutigeLogo: React.FC = () => (
   <svg width="36" height="36" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="25" cy="25" r="25" fill="white"/>
     <path d="M24.6 13L24.6 30.5L14 36.5L24.6 13Z" fill="black"/>
@@ -10,21 +10,20 @@ const BrutigeLogo = () => (
   </svg>
 );
 
-// Social Icons Components
-const InstagramIcon = () => (
+const InstagramIcon: React.FC = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
 );
-const TikTokIcon = () => (
+const TikTokIcon: React.FC = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
 );
-const TwitterXIcon = () => (
+const TwitterXIcon: React.FC = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4l11.733 16h4.267l-11.733 -16z"/><path d="M4 20l6.768 -6.768m2.46 -2.46l6.772 -6.772"/></svg>
 );
-const FacebookIcon = () => (
+const FacebookIcon: React.FC = () => (
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
 );
 
-const LandingPageFooter = () => {
+const LandingPageFooter: React.FC = () => {
   return (
     <footer className={styles.footer}>
       <div className={styles.container}>

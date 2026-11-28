@@ -1,0 +1,296 @@
+/* src/Admin/AdminLayout.module.css */
+/* Brutalist admin shell. Sharp corners, Inter, theme variables, no gradients. */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap");
+
+/* ─── Wrapper ─── */
+
+.wrapper {
+  display: flex;
+  min-height: 100vh;
+  background: var(--brut-bg, #fff);
+  color: var(--brut-text, #000);
+  font-family: "Inter", sans-serif;
+}
+
+/* ─── Sidebar ─── */
+
+.sidebar {
+  width: 220px;
+  flex-shrink: 0;
+  border-right: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  display: flex;
+  flex-direction: column;
+  padding: 0;
+}
+
+.brand {
+  padding: 24px 20px 20px;
+  border-bottom: 1.5px solid var(--brut-border, #000);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.brandMark {
+  font-weight: 900;
+  font-size: 1.15rem;
+  letter-spacing: -0.5px;
+  color: var(--brut-text, #000);
+}
+
+.brandSub {
+  font-size: 0.62rem;
+  font-weight: 900;
+  letter-spacing: 0.14em;
+  color: var(--brut-muted, #666);
+}
+
+/* ─── Nav ─── */
+
+.nav {
+  flex: 1;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.navLink {
+  display: block;
+  padding: 12px 20px;
+  font-size: 0.78rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brut-muted, #666);
+  text-decoration: none;
+  border-left: 3px solid transparent;
+  transition:
+    color 0.15s ease,
+    border-color 0.15s ease,
+    background 0.15s ease;
+}
+
+.navLink:hover {
+  color: var(--brut-text, #000);
+  background: var(--brut-bg, #f5f5f5);
+}
+
+.navLinkActive {
+  color: var(--brut-text, #000);
+  border-left-color: var(--brut-text, #000);
+  background: var(--brut-bg, #f5f5f5);
+}
+
+/* ─── Sidebar footer ─── */
+
+.sidebarFooter {
+  padding: 16px 20px;
+  border-top: 1.5px solid var(--brut-border, #000);
+}
+
+.adminName {
+  margin: 0;
+  font-weight: 900;
+  font-size: 0.82rem;
+  color: var(--brut-text, #000);
+}
+
+.adminEmail {
+  margin: 2px 0 0;
+  font-size: 0.72rem;
+  color: var(--brut-muted, #666);
+  word-break: break-all;
+}
+
+.adminRole {
+  margin: 6px 0 0;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+/* ─── Main area ─── */
+
+.main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 32px;
+  border-bottom: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  flex-shrink: 0;
+}
+
+.pageTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  text-transform: uppercase;
+  color: var(--brut-text, #000);
+}
+
+.timestamp {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brut-muted, #666);
+  letter-spacing: 0.04em;
+}
+
+.viewport {
+  flex: 1;
+  padding: 28px 32px 60px;
+  overflow-y: auto;
+}
+
+/* ─── Loading / error states ─── */
+
+.stateWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  background: var(--brut-bg, #fff);
+}
+
+.state {
+  border: 1.5px dashed var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 48px 32px;
+  text-align: center;
+  max-width: 400px;
+  border-radius: 0;
+}
+
+.state p {
+  margin: 0;
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--brut-muted, #666);
+}
+
+.stateSpinner {
+  font-size: 1.4rem;
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-bottom: 12px;
+}
+
+.stateError {
+  color: var(--brut-danger, #ef4444) !important;
+}
+
+.stateRetryBtn {
+  margin-top: 18px;
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  font-size: 0.75rem;
+  padding: 12px 18px;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  cursor: pointer;
+  background: var(--brut-text, #000);
+  color: var(--brut-bg, #fff);
+  transition:
+    background 0.2s ease,
+    transform 0.2s ease;
+}
+
+.stateRetryBtn:hover {
+  background: #333;
+  transform: translateY(-1px);
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 768px) {
+  .wrapper {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1.5px solid var(--brut-border, #000);
+    flex-direction: row;
+    align-items: center;
+    padding: 0;
+    overflow-x: auto;
+  }
+
+  .brand {
+    border-bottom: none;
+    border-right: 1.5px solid var(--brut-border, #000);
+    padding: 12px 16px;
+    flex-shrink: 0;
+  }
+
+  .nav {
+    flex-direction: row;
+    padding: 0;
+    gap: 0;
+  }
+
+  .navLink {
+    border-left: none;
+    border-bottom: 3px solid transparent;
+    padding: 14px 16px;
+    white-space: nowrap;
+  }
+
+  .navLinkActive {
+    border-left-color: transparent;
+    border-bottom-color: var(--brut-text, #000);
+  }
+
+  .sidebarFooter {
+    display: none;
+  }
+
+  .topBar {
+    padding: 16px 20px;
+  }
+
+  .viewport {
+    padding: 20px 16px 60px;
+  }
+}
+
+/* ─── Dev bypass banner ─── */
+
+.devBanner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9999;
+  background: #f59e0b;
+  color: #000;
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 6px 16px;
+  text-align: center;
+  border-bottom: 1.5px solid #000;
+}

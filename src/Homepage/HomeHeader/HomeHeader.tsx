@@ -1,8 +1,20 @@
+// src/HomeHeader/HomeHeader.tsx
+
 import React, { useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom'; // Import navigate
+import { useNavigate } from 'react-router-dom';
 import styles from './HomeHeader.module.css';
 
-const HomeHeader = ({ 
+interface HomeHeaderProps {
+  setActiveTab: (tab: string) => void;
+  activeTab: string;
+  cartCount?: number;
+  orderCount?: number;
+  notificationCount?: number;
+  userAvatar?: string | null;
+  userName?: string;
+}
+
+const HomeHeader: React.FC<HomeHeaderProps> = ({ 
   setActiveTab, 
   activeTab,
   cartCount = 0, 
@@ -12,11 +24,11 @@ const HomeHeader = ({
   userName = 'User'
 }) => {
   const navigate = useNavigate();
-  const searchInputRef = useRef(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
-  // Keyboard Shortcut (⌘ + K) - Now navigates to search page
+  // Keyboard Shortcut (⌘ + K)
   useEffect(() => {
-    const handleKeyDown = (e) => {
+    const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
         e.preventDefault();
         navigate('/platform/search');
@@ -38,24 +50,31 @@ const HomeHeader = ({
     navigate('/platform/settings');
   };
 
-  // New handler to redirect to SearchView
   const handleSearchClick = () => {
     navigate('/platform/search');
   };
+
+  // ✅ Format user name (show first name only)
+  const getFirstName = () => {
+    if (!userName || userName === 'User') return '';
+    return userName.split(' ')[0];
+  };
+
+  const firstName = getFirstName();
 
   return (
     <div className={styles.headerWrapper}>
       {/* 1. STUDIO TICKER */}
       <div className={styles.ticker}>
         <div className={styles.tickerTrack}>
-          {/* Ticker content remains the same */}
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
-          {/* Duplicate for infinite scroll effect */}
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New 450GSM Heavyweight Fleece templates added</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Global shipping now active for 52 countries</span>
-          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Julian V. just started a 50pc production</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Free shipping on orders over ₦50,000</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New makers joining daily from Lagos to Abuja</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Secure escrow payments protect every order</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Track your custom orders in real-time</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Free shipping on orders over ₦50,000</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> New makers joining daily from Lagos to Abuja</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Secure escrow payments protect every order</span>
+          <span className={styles.tickerItem}><span className={styles.tickerDot}>•</span> Track your custom orders in real-time</span>
         </div>
       </div>
 
@@ -63,11 +82,11 @@ const HomeHeader = ({
         <div className={styles.container}>
           
           {/* MOBILE ONLY: BRANDING */}
-          <div className={styles.mobileBrand} onClick={() => setActiveTab('shop')}>
+          <div className={styles.mobileBrand} onClick={() => setActiveTab('discovery')}>
             <BrutigeLogo />
           </div>
 
-          {/* LAPTOP ONLY: SEARCH - Now acts as a button/link to SearchView */}
+          {/* LAPTOP ONLY: SEARCH */}
           <div 
             className={styles.searchContainer} 
             onClick={handleSearchClick}
@@ -81,8 +100,8 @@ const HomeHeader = ({
                 ref={searchInputRef}
                 type="text" 
                 placeholder="Search aesthetics, infrastructure..." 
-                readOnly // Prevents typing here since it redirects
-                onFocus={handleSearchClick} // Also triggers on focus
+                readOnly 
+                onFocus={handleSearchClick} 
               />
               <div className={styles.kbdShortcut}>
                 <kbd>⌘</kbd><kbd>K</kbd>
@@ -93,8 +112,9 @@ const HomeHeader = ({
           {/* ACTIONS WITH LABELS */}
           <div className={styles.headerActions}>
             
-            {/* Profile */}
+            {/* ✅ UPDATED: Profile with actual name */}
             <button 
+              type="button"
               className={`${styles.actionItem} ${activeTab === 'profile' ? styles.activeAction : ''}`} 
               onClick={handleProfileClick}
               aria-label="Profile"
@@ -110,11 +130,14 @@ const HomeHeader = ({
                 )}
                 {notificationCount > 0 && <span className={styles.badge}>{notificationCount}</span>}
               </div>
-              <span className={styles.actionLabel}>Profile</span>
+              <span className={styles.actionLabel}>
+                {firstName || 'Profile'}
+              </span>
             </button>
 
             {/* Notifications */}
             <button 
+              type="button"
               className={`${styles.actionItem} ${activeTab === 'notifications' ? styles.activeAction : ''}`} 
               onClick={() => setActiveTab('notifications')}
               aria-label="Notifications"
@@ -131,6 +154,7 @@ const HomeHeader = ({
 
             {/* Orders */}
             <button 
+              type="button"
               className={`${styles.actionItem} ${activeTab === 'orders' ? styles.activeAction : ''}`} 
               onClick={() => setActiveTab('orders')}
               aria-label="Orders"
@@ -146,21 +170,7 @@ const HomeHeader = ({
               <span className={styles.actionLabel}>Orders</span>
             </button>
 
-            {/* Cart */}
-            <button 
-              className={`${styles.actionItem} ${activeTab === 'cart' ? styles.activeAction : ''}`} 
-              onClick={() => setActiveTab('cart')}
-              aria-label="Cart"
-            >
-              <div className={styles.iconWrapper}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-                  <path d="M16 10a4 4 0 0 1-8 0"/>
-                </svg>
-                {cartCount > 0 && <span className={styles.badge}>{cartCount}</span>}
-              </div>
-              <span className={styles.actionLabel}>Cart</span>
-            </button>
+            {/* 🚫 REMOVED: Cart button (now fenced off in B2B flow) */}
 
           </div>
 
