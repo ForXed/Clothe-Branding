@@ -1,38 +1,164 @@
-import React from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import styles from './Transaction.module.css';
+import { orderService } from '../../services/orderService';
+import type { ApiOrder } from '../../types/order';
+import type { Escrow } from '../../types/escrow';
 
-interface TransactionData { id: string; date: string; customer: string; type: string; amount: number; status: string; }
-interface TransactionProps { transactions: TransactionData[]; }
+/**
+ * Escrow ledger for the signed-in maker.
+ *
+ * There is no /transactions endpoint: the money in v1 *is* the escrow, one per
+ * order, so this screen reads the maker's orders (`GET /orders`) and each
+ * order's escrow (`GET /orders/{id}/escrow`). Amounts are naira, fees are the
+ * real 10% split the API computed, and every figure is a sum of those rows —
+ * nothing here is mocked.
+ */
+const formatNaira = (amount: number): string => `₦${Math.round(amount).toLocaleString('en-NG')}`;
 
-const Transaction: React.FC<TransactionProps> = ({ transactions }) => {
-  const totalSales = transactions.filter(t => t.type === 'Sale' && t.status === 'completed').reduce((sum, t) => sum + t.amount, 0);
-  const totalRefunds = transactions.filter(t => t.type === 'Refund').reduce((sum, t) => sum + Math.abs(t.amount), 0);
-  const handleExport = () => console.log('Exporting transactions...');
+const ESCROW_LABEL: Record<string, string> = {
+  AWAITING: 'Not funded',
+  HELD: 'Held in escrow',
+  RELEASED: 'Released to you',
+  REFUNDED: 'Refunded to buyer',
+  DISPUTED: 'Disputed',
+};
+
+interface Row {
+  order: ApiOrder;
+  escrow: Escrow | null;
+}
+
+const Transaction: React.FC = () => {
+  const [rows, setRows] = useState<Row[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const orders = await orderService.getOrders({ page: 0, size: 50 });
+        const withEscrow = await Promise.all(
+          orders.map(async (order) => {
+            try {
+              const escrow = await orderService.getOrderEscrow(order.id);
+              return { order, escrow } as Row;
+            } catch {
+              return { order, escrow: null } as Row;
+            }
+          }),
+        );
+        if (!cancelled) {
+          setRows(withEscrow);
+          setError(null);
+        }
+      } catch (e) {
+        const message = e instanceof Error ? e.message : 'Could not load your escrow ledger.';
+        if (!cancelled) setError(message);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const totals = useMemo(() => {
+    const sum = (status: string) =>
+      rows
+        .filter((row) => row.escrow?.status === status)
+        .reduce((total, row) => total + (row.escrow?.makerPayoutNgn ?? 0), 0);
+
+    return {
+      released: sum('RELEASED'),
+      held: sum('HELD'),
+      refunded: rows
+        .filter((row) => row.escrow?.status === 'REFUNDED')
+        .reduce((total, row) => total + (row.escrow?.feeAmountNgn ?? 0), 0),
+    };
+  }, [rows]);
+
+  if (loading) {
+    return (
+      <div className={styles.container}>
+        <p>Loading your escrow ledger…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className={styles.container}>
+        <p>{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
       <div className={styles.summary}>
-        <div className={styles.summaryCard}><span className={styles.label}>Total Sales</span><span className={styles.value}>${totalSales.toLocaleString()}</span></div>
-        <div className={styles.summaryCard}><span className={styles.label}>Total Refunds</span><span className={`${styles.value} ${styles.negative}`}>${totalRefunds.toLocaleString()}</span></div>
-        <div className={styles.summaryCard}><span className={styles.label}>Net Revenue</span><span className={styles.value}>${(totalSales - totalRefunds).toLocaleString()}</span></div>
+        <div className={styles.summaryCard}>
+          <span className={styles.label}>Released to you</span>
+          <span className={styles.value}>{formatNaira(totals.released)}</span>
+        </div>
+        <div className={styles.summaryCard}>
+          <span className={styles.label}>Still held in escrow</span>
+          <span className={styles.value}>{formatNaira(totals.held)}</span>
+        </div>
+        <div className={styles.summaryCard}>
+          <span className={styles.label}>Brutige fees refunded</span>
+          <span className={`${styles.value} ${styles.negative}`}>{formatNaira(totals.refunded)}</span>
+        </div>
       </div>
+
       <div className={styles.tableWrapper}>
-        <div className={styles.tableHeader}><h3>Recent Transactions</h3><button type="button" className={styles.exportBtn} onClick={handleExport}>Export</button></div>
+        <div className={styles.tableHeader}>
+          <h3>Escrow by order</h3>
+        </div>
         <table className={styles.table}>
-          <thead><tr><th>Transaction ID</th><th>Date</th><th>Customer</th><th>Type</th><th>Amount</th><th>Status</th></tr></thead>
+          <thead>
+            <tr>
+              <th>Order</th>
+              <th>Paid</th>
+              <th>Amount</th>
+              <th>Brutige fee</th>
+              <th>Your payout</th>
+              <th>Status</th>
+            </tr>
+          </thead>
           <tbody>
-            {transactions.map(txn => (
-              <tr key={txn.id}>
-                <td className={styles.txnId}>{txn.id}</td><td>{txn.date}</td><td>{txn.customer}</td>
-                <td><span className={`${styles.type} ${styles[txn.type.toLowerCase()]}`}>{txn.type}</span></td>
-                <td className={txn.amount < 0 ? styles.negative : styles.positive}>{txn.amount < 0 ? '-' : ''}${Math.abs(txn.amount).toLocaleString()}</td>
-                <td><span className={`${styles.status} ${styles[txn.status]}`}>{txn.status}</span></td>
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={6}>No escrow yet. An order appears here once a buyer accepts a quote and pays.</td>
               </tr>
-            ))}
+            ) : (
+              rows.map(({ order, escrow }) => (
+                <tr key={order.id}>
+                  <td className={styles.txnId}>#{order.id.slice(0, 8)}</td>
+                  <td>{escrow?.paidAt ? new Date(escrow.paidAt).toLocaleDateString('en-NG') : '—'}</td>
+                  <td>{escrow ? formatNaira(escrow.amountNgn) : '—'}</td>
+                  <td>{escrow ? formatNaira(escrow.feeAmountNgn) : '—'}</td>
+                  <td className={styles.positive}>{escrow ? formatNaira(escrow.makerPayoutNgn) : '—'}</td>
+                  <td>
+                    <span
+                      className={`${styles.status} ${
+                        escrow?.status === 'RELEASED' ? styles.completed : styles.pending
+                      }`}
+                    >
+                      {escrow ? (ESCROW_LABEL[escrow.status] ?? escrow.status) : 'Unknown'}
+                    </span>
+                  </td>
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>
     </div>
   );
 };
+
 export default Transaction;

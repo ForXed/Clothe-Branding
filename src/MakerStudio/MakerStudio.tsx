@@ -14,7 +14,6 @@ import StudioMobileNav from "./StudioMobileNav/StudioMobileNav";
 
 // ✅ KEEP: Existing Studio Components
 import OverView from "./OverView/OverView";
-import Order from "./Order/Order";
 import Messages from "./Messages/Messages";
 import { CHAT_ENABLED } from "../config/features";
 import ChatUnavailable from "../pages/ChatUnavailable";
@@ -27,8 +26,7 @@ import ProModal from "./ProModal/ProModal";
 import IncomingBriefs from "../Transform/MakerBriefs/IncomingBriefs";
 import ProductionOrdersView from "../Transform/Orders/ProductionOrdersView";
 
-// @ts-ignore
-import useStudioData from "../hooks/useStudioData";
+import useMakerStudio from "../hooks/useMakerStudio";
 import styles from "./MakerStudio.module.css";
 import OrderView from "./Order/OrderView";
 
@@ -47,7 +45,7 @@ const MakerStudio: React.FC = () => {
   const pathSegments = location.pathname.split("/");
   const currentTab = pathSegments[2] || "overview";
 
-  const studioData = useStudioData();
+  const studio = useMakerStudio();
 
   const showStudioHeader = currentTab !== "messages";
 
@@ -105,7 +103,19 @@ const MakerStudio: React.FC = () => {
             <Route path="/" element={<Navigate to="overview" replace />} />
 
             {/* ✅ KEEP: Existing routes (maker's production view) */}
-            <Route path="overview" element={<OverView {...studioData} />} />
+            <Route
+          path="overview"
+          element={
+            <OverView
+              dashboard={studio.dashboard}
+              orders={studio.orders}
+              maker={studio.maker}
+              loading={studio.loading}
+              error={studio.error}
+              onReload={studio.reload}
+            />
+          }
+        />
             <Route path="orders" element={<ProductionOrdersView />} />
             <Route path="orders/:orderId" element={<OrderView />} />
             <Route
@@ -113,7 +123,6 @@ const MakerStudio: React.FC = () => {
               element={
                 CHAT_ENABLED ? (
                   <Messages
-                    {...studioData}
                     onMobileNavChange={setHideMobileNav}
                     isCollapsed={isCollapsed}
                   />
@@ -127,7 +136,7 @@ const MakerStudio: React.FC = () => {
             />
             <Route
               path="transactions"
-              element={<Transaction {...studioData} />}
+              element={<Transaction />}
             />
             <Route path="analytics" element={<Analytics />} />
             <Route
