@@ -24,6 +24,19 @@ export interface OverViewProps {
   onReload: () => void;
 }
 
+const STATUS_TONE: Record<string, "pending" | "processing" | "shipped" | "completed" | "disputed"> = {
+  AWAITING_PAYMENT: "pending",
+  PENDING: "pending",
+  IN_ESCROW: "processing",
+  IN_PRODUCTION: "shipped",
+  DELIVERED: "shipped",
+  COMPLETED: "completed",
+  CANCELLED: "completed",
+  DISPUTED: "disputed",
+};
+
+const toneOf = (status: string) => STATUS_TONE[status as keyof typeof STATUS_TONE] ?? "pending";
+
 const STATUS_LABEL: Record<string, string> = {
   AWAITING_PAYMENT: 'Awaiting payment',
   IN_ESCROW: 'In escrow',
@@ -120,19 +133,7 @@ const OverView: React.FC<OverViewProps> = ({ dashboard, orders, maker, loading, 
     [chartData],
   );
 
-  const STATUS_TONE: Record<string, "pending" | "processing" | "shipped" | "completed"> = {
-  AWAITING_PAYMENT: "pending",
-  PENDING: "pending",
-  IN_ESCROW: "processing",
-  IN_PRODUCTION: "shipped",
-  DELIVERED: "shipped",
-  COMPLETED: "completed",
-  CANCELLED: "pending",
-  DISPUTED: "pending",
-};
-const toneOf = (status: string) => STATUS_TONE[status] ?? "pending";
-
-const recentOrders = orders.slice(0, 5);
+  const recentOrders = orders.slice(0, 5);
   const displayName = maker?.brandName || 'Your studio';
   const verified = maker?.verificationStatus === 'VERIFIED';
 

@@ -163,8 +163,8 @@ const [rows, setRows] = useState<Row[]>([]);
           </tbody>
         </table>
         <p className={styles.note}>
-          Showing the {LEDGER_WINDOW} most recent orders. Each row costs one escrow request,
-          because v1 has no batch escrow endpoint yet.
+          Showing {rows.length} of up to {LEDGER_WINDOW} recent orders. Each row costs one
+          escrow request, because v1 has no batch escrow endpoint yet.
         </p>
       </div>
     </div>
