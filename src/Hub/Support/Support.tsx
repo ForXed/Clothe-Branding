@@ -1,4 +1,5 @@
 import React, { useState, ChangeEvent, FormEvent } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import styles from './Support.module.css';
 import { validateEmail } from '../../utils/validators'; 
 
@@ -39,12 +40,22 @@ const topicsData: Topic[] = [
 ];
 
 const Support: React.FC = () => {
+  // A studio screen can hand us a pre-filled request (?subject=&message=), so the
+  // "Ask about this project" button lands on a form that already says what it is about.
+  const [searchParams] = useSearchParams();
+  const prefillSubject = searchParams.get('subject')?.trim().slice(0, 80) ?? '';
+  const prefillMessage = searchParams.get('message')?.trim().slice(0, 600) ?? '';
+
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [activeArticle, setActiveArticle] = useState<Article | null>(null);
   const [file, setFile] = useState<File | null>(null);
   
-  const [formData, setFormData] = useState<FormData>({ email: '', subject: '', message: '' });
+  const [formData, setFormData] = useState<FormData>({
+    email: '',
+    subject: prefillSubject,
+    message: prefillMessage,
+  });
   const [errors, setErrors] = useState<FormErrors>({});
 
   const filteredTopics = topicsData.filter(topic => 
