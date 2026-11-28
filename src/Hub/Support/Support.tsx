@@ -1,4 +1,4 @@
-import React, { useState, ChangeEvent, FormEvent } from 'react';
+import React, { useEffect, useRef, useState, ChangeEvent, FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import styles from './Support.module.css';
 import { validateEmail } from '../../utils/validators'; 
@@ -39,24 +39,49 @@ const topicsData: Topic[] = [
   ]},
 ];
 
+// The dropdown only accepts these codes; anything else the caller sends is context.
+const TOPIC_CODES = new Set(['order', 'product', 'billing', 'other']);
+
 const Support: React.FC = () => {
-  // A studio screen can hand us a pre-filled request (?subject=&message=), so the
-  // "Ask about this project" button lands on a form that already says what it is about.
+  // A studio screen can hand this form a request (?subject=&message=), so "View
+  // Blueprint" lands on a form that already says which project it is about.
   const [searchParams] = useSearchParams();
-  const prefillSubject = searchParams.get('subject')?.trim().slice(0, 80) ?? '';
-  const prefillMessage = searchParams.get('message')?.trim().slice(0, 600) ?? '';
 
   const [searchTerm, setSearchTerm] = useState<string>('');
   const [formStatus, setFormStatus] = useState<'idle' | 'submitting' | 'success'>('idle');
   const [activeArticle, setActiveArticle] = useState<Article | null>(null);
   const [file, setFile] = useState<File | null>(null);
-  
-  const [formData, setFormData] = useState<FormData>({
-    email: '',
-    subject: prefillSubject,
-    message: prefillMessage,
-  });
+
+  const [formData, setFormData] = useState<FormData>({ email: '', subject: '', message: '' });
   const [errors, setErrors] = useState<FormErrors>({});
+
+  // Applied on every query-string change, not just the first render: a second
+  // "View Blueprint" click while this screen is mounted must retarget the form.
+  // Text the visitor typed is left alone; only what we filled in is replaced.
+  const appliedPrefill = useRef({ key: '', body: '' });
+  const { message: typedMessage } = formData;
+
+  useEffect(() => {
+    const rawSubject = searchParams.get('subject')?.trim() ?? '';
+    const rawMessage = searchParams.get('message')?.trim() ?? '';
+    if (!rawSubject && !rawMessage) return;
+
+    const key = `${rawSubject}||${rawMessage}`;
+    if (key === appliedPrefill.current.key) return;
+
+    const isTopicCode = TOPIC_CODES.has(rawSubject.toLowerCase());
+    // A blueprint link sends a sentence, not a dropdown code, so it becomes context
+    // in the body instead of silently failing to match an option.
+    const body = isTopicCode ? rawMessage : [rawSubject, rawMessage].filter(Boolean).join('\n\n');
+    const typedByVisitor = typedMessage !== '' && typedMessage !== appliedPrefill.current.body;
+
+    appliedPrefill.current = { key, body };
+    setFormData((prev) => ({
+      ...prev,
+      subject: isTopicCode ? rawSubject.toLowerCase() : prev.subject,
+      message: typedByVisitor ? prev.message : body,
+    }));
+  }, [searchParams, typedMessage]);
 
   const filteredTopics = topicsData.filter(topic => 
     topic.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
