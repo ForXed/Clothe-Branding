@@ -120,7 +120,19 @@ const OverView: React.FC<OverViewProps> = ({ dashboard, orders, maker, loading, 
     [chartData],
   );
 
-  const recentOrders = orders.slice(0, 5);
+  const STATUS_TONE: Record<string, "pending" | "processing" | "shipped" | "completed"> = {
+  AWAITING_PAYMENT: "pending",
+  PENDING: "pending",
+  IN_ESCROW: "processing",
+  IN_PRODUCTION: "shipped",
+  DELIVERED: "shipped",
+  COMPLETED: "completed",
+  CANCELLED: "pending",
+  DISPUTED: "pending",
+};
+const toneOf = (status: string) => STATUS_TONE[status] ?? "pending";
+
+const recentOrders = orders.slice(0, 5);
   const displayName = maker?.brandName || 'Your studio';
   const verified = maker?.verificationStatus === 'VERIFIED';
 
@@ -194,7 +206,7 @@ const OverView: React.FC<OverViewProps> = ({ dashboard, orders, maker, loading, 
             </div>
             <div className={styles.statValue}>{stat.value}</div>
             <div className={styles.statLabel}>{stat.label}</div>
-            <div className={styles.orderDate}>{stat.hint}</div>
+            <div className={styles.statHint}>{stat.hint}</div>
           </div>
         ))}
       </div>
@@ -262,6 +274,12 @@ const OverView: React.FC<OverViewProps> = ({ dashboard, orders, maker, loading, 
                   key={order.id}
                   className={styles.orderRow}
                   onClick={() => navigate(`/studio/orders/${order.id}`)}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter" || event.key === " ") {
+                      event.preventDefault();
+                      navigate(`/studio/orders/${order.id}`);
+                    }
+                  }}
                   role="button"
                   tabIndex={0}
                 >
@@ -269,7 +287,7 @@ const OverView: React.FC<OverViewProps> = ({ dashboard, orders, maker, loading, 
                     <span className={styles.orderId}>#{shortId(order.id)}</span>
                     <span className={styles.orderDate}>{formatDate(order.createdAt)}</span>
                   </div>
-                  <span className={`${styles.orderStatus} ${styles.pending}`}>
+                  <span className={`${styles.orderStatus} ${styles[toneOf(order.status)]}`}>
                     {STATUS_LABEL[order.status] ?? order.status}
                   </span>
                 </div>

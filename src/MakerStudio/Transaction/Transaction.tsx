@@ -29,7 +29,10 @@ interface Row {
 }
 
 const Transaction: React.FC = () => {
-  const [rows, setRows] = useState<Row[]>([]);
+  /** Rows the ledger loads per view — bounded because each row costs one escrow request. */
+const LEDGER_WINDOW = 12;
+
+const [rows, setRows] = useState<Row[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -38,7 +41,10 @@ const Transaction: React.FC = () => {
 
     void (async () => {
       try {
-        const orders = await orderService.getOrders({ page: 0, size: 50 });
+        // v1 has no batch escrow endpoint, so this is one request per row. Keep the
+        // window small (and say so in the note under the table) instead of firing
+        // dozens of requests on a page a maker may not even look at.
+        const orders = await orderService.getOrders({ page: 0, size: LEDGER_WINDOW });
         const withEscrow = await Promise.all(
           orders.map(async (order) => {
             try {
@@ -156,6 +162,10 @@ const Transaction: React.FC = () => {
             )}
           </tbody>
         </table>
+        <p className={styles.note}>
+          Showing the {LEDGER_WINDOW} most recent orders. Each row costs one escrow request,
+          because v1 has no batch escrow endpoint yet.
+        </p>
       </div>
     </div>
   );
