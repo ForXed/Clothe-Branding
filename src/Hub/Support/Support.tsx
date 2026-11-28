@@ -121,9 +121,9 @@ const Support: React.FC = () => {
     setTimeout(() => {
       setFormStatus('success');
       messageTouched.current = false;
-    subjectTouched.current = false;
-    appliedPrefill.current = { key: '', body: '' };
-    setFormData({ email: '', subject: '', message: '' });
+      subjectTouched.current = false;
+      appliedPrefill.current = { key: '', body: '' };
+      setFormData({ email: '', subject: '', message: '' });
       setFile(null);
       setTimeout(() => setFormStatus('idle'), 4000);
     }, 1500);
