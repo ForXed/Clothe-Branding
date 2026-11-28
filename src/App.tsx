@@ -1,15 +1,19 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+
+// The landing page and the auth forms are the entry points everyone pays for, so they
+// stay in the main bundle. Everything else is a separate chunk that loads on first visit.
 
 // Pages
 import LandingPage from './LandingPage/LandingPage';
-import BrutigePlatform from './Homepage/BrutigePlatform';
 import SignInPage from './Form/SignInPage';
 import SignUpPage from './Form/SignUpPage';
 import MakerSignUp from './Form/MakerSignUp';
 import VerifyPassword from './Form/VerifyPassword';
 import ResetPassword from './Form/ResetPassword';
-import MakerStudio from './MakerStudio/MakerStudio';
+
+const BrutigePlatform = lazy(() => import('./Homepage/BrutigePlatform'));
+const MakerStudio = lazy(() => import('./MakerStudio/MakerStudio'));
 
 // Form Components
 import ChangePasswordForm from './Form/ChangePasswordForm';
@@ -17,31 +21,31 @@ import TwoFactorSetup from './Form/TwoFactorSetup';
 import MakerApplication from './Form/MakerApplication';
 
 // Hub Pages
-import HubLayout from './Hub/HubLayout';
-import Collections from './Hub/Collections/Collections';
-import Process from './Hub/Process/Process';
-import Showcase from './Hub/ShowCase/ShowCase';
-import FAQ from './Hub/FAQ/FAQ';
-import Blog from './Hub/Blog/Blog';
-import BlogPost from './Hub/Blog/BlogPost';
-import Guides from './Hub/Guides/Guides';
-import GuideDetail from './Hub/Guides/GuidesDetail';
-import Support from './Hub/Support/Support';
-import Privacy from './Hub/Legal/Privacy';
-import Terms from './Hub/Legal/Terms';
-import Cookies from './Hub/Legal/Cookies';
-import CustomOrderPolicy from './Hub/Legal/CustomOrderPolicy';
+const HubLayout = lazy(() => import('./Hub/HubLayout'));
+const Collections = lazy(() => import('./Hub/Collections/Collections'));
+const Process = lazy(() => import('./Hub/Process/Process'));
+const Showcase = lazy(() => import('./Hub/ShowCase/ShowCase'));
+const FAQ = lazy(() => import('./Hub/FAQ/FAQ'));
+const Blog = lazy(() => import('./Hub/Blog/Blog'));
+const BlogPost = lazy(() => import('./Hub/Blog/BlogPost'));
+const Guides = lazy(() => import('./Hub/Guides/Guides'));
+const GuideDetail = lazy(() => import('./Hub/Guides/GuidesDetail'));
+const Support = lazy(() => import('./Hub/Support/Support'));
+const Privacy = lazy(() => import('./Hub/Legal/Privacy'));
+const Terms = lazy(() => import('./Hub/Legal/Terms'));
+const Cookies = lazy(() => import('./Hub/Legal/Cookies'));
+const CustomOrderPolicy = lazy(() => import('./Hub/Legal/CustomOrderPolicy'));
 
 // Admin
-import AdminLayout from './Admin/AdminLayout';
-import AdminDashboard from './Admin/AdminDashboard';
-import MakerList from './Admin/Makers/MakerList';
-import MakerDetail from './Admin/Makers/MakerDetail';
-import DisputeList from './Admin/Disputes/DisputeList';
-import DisputeDetail from './Admin/Disputes/DisputeDetail';
-import OrderList from './Admin/Orders/OrderList';
-import AdminOrderDetail from './Admin/Orders/AdminOrderDetail';
-import UserList from './Admin/Users/UserList';
+const AdminLayout = lazy(() => import('./Admin/AdminLayout'));
+const AdminDashboard = lazy(() => import('./Admin/AdminDashboard'));
+const MakerList = lazy(() => import('./Admin/Makers/MakerList'));
+const MakerDetail = lazy(() => import('./Admin/Makers/MakerDetail'));
+const DisputeList = lazy(() => import('./Admin/Disputes/DisputeList'));
+const DisputeDetail = lazy(() => import('./Admin/Disputes/DisputeDetail'));
+const OrderList = lazy(() => import('./Admin/Orders/OrderList'));
+const AdminOrderDetail = lazy(() => import('./Admin/Orders/AdminOrderDetail'));
+const UserList = lazy(() => import('./Admin/Users/UserList'));
 
 // Global Infrastructure Components
 import Preloader from './Homepage/Preloader/Preloader';
@@ -53,6 +57,7 @@ import { RequireAuth } from './auth/RequireAuth';
 import { ADMIN_ROLES, STUDIO_ROLES } from './auth/homePath';
 import OAuthCallback from './pages/OAuthCallback';
 import AccountBadge from './auth/AccountBadge';
+import RouteFallback from './pages/RouteFallback';
 
 // --- Type Definitions ---
 interface NotificationState {
@@ -82,7 +87,8 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
 
   return (
     <>
-      <Routes>
+      <Suspense fallback={<RouteFallback />}>
+        <Routes>
         {/* Public Landing Page */}
         <Route path="/" element={<LandingPage />} />
 
@@ -200,7 +206,8 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
 
         {/* Catch-all */}
         <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+        </Routes>
+      </Suspense>
     </>
   );
 };
