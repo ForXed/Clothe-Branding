@@ -17,7 +17,6 @@ const MakerStudio = lazy(() => import('./MakerStudio/MakerStudio'));
 
 // Form Components
 import ChangePasswordForm from './Form/ChangePasswordForm';
-import TwoFactorSetup from './Form/TwoFactorSetup';
 import MakerApplication from './Form/MakerApplication';
 
 // Hub Pages
@@ -115,15 +114,6 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
           }
         />
 
-        <Route
-          path="/2fa-setup"
-          element={
-            <TwoFactorSetup
-              onClose={() => navigate('/studio/settings')}
-              onSuccess={() => notify('2FA enabled successfully', 'success')}
-            />
-          }
-        />
 
         {/* Google sign-in lands here: the backend already set the cookies. */}
         <Route path="/oauth/callback" element={<OAuthCallback />} />
