@@ -8,7 +8,10 @@ export default defineConfig({
     allowedHosts: [
       'brutige.name.ng',
       'staging.brutige.name.ng',
-      'dev.brutige.name.ng'
+      'dev.brutige.name.ng',
+      'www.brutige.name.ng',
+      // Cloudflare tunnel hostname used while there is no server: one origin
+      // serves the SPA and the API under /api.
     ],
     host: true,
     port: 5173,

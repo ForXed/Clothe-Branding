@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:tunnel": "vite --mode tunnel",
     "build": "vite build",
     "typecheck": "tsc --noEmit",
     "verify": "tsc --noEmit && vite build",
