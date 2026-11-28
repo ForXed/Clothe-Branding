@@ -43,7 +43,6 @@ const Guides: React.FC = () => {
     link.download = `${title}.pdf`;
     link.target = '_blank';
     link.click();
-    console.log(`Downloading ${title}...`);
   };
 
   const handleRequestGuide = () => {

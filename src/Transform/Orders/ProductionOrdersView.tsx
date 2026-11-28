@@ -9,7 +9,6 @@ import { useAuth } from "../../auth/AuthContext";
 import { CHAT_ENABLED } from "../../config/features";
 import ProductionOrdersSkeleton from "./ProductionOrdersSkeleton";
 import styles from "./ProductionOrdersView.module.css";
-// import { dummyOrders } from "../../data/mockOrders";
 
 /* ------------------------------ constants ------------------------------ */
 
