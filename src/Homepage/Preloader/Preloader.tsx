@@ -2,12 +2,19 @@ import React, { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import styles from './Preloader.module.css';
 
-const Preloader = ({ onComplete }) => {
-  const containerRef = useRef();
-  const logoRef = useRef();
-  const textRef = useRef();
+interface PreloaderProps {
+  onComplete: () => void;
+}
+
+const Preloader: React.FC<PreloaderProps> = ({ onComplete }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const logoRef = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLParagraphElement>(null);
 
   useEffect(() => {
+    // Safety check to ensure refs are attached before animating
+    if (!containerRef.current || !logoRef.current || !textRef.current) return;
+
     const tl = gsap.timeline({
       onComplete: () => onComplete()
     });

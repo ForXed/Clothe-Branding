@@ -1,47 +1,30 @@
-import React, { useRef, useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useEffect, useRef, useState } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { TextPlugin } from 'gsap/TextPlugin';
-import { validateEmail } from '../App';
+import { validateEmail } from '../utils/validators';
+import { authService } from '../services/authService';
+import { toApiError } from '../services/apiClient';
+import { useAuth } from '../auth/AuthContext';
+import { homePathFor } from '../auth/homePath';
 import styles from './SignInPage.module.css';
 
 gsap.registerPlugin(TextPlugin);
 
-// --- Icons ---
-const EyeIcon = () => (
-  <svg
-    width='20'
-    height='20'
-    viewBox='0 0 24 24'
-    fill='none'
-    stroke='currentColor'
-    strokeWidth='2'
-    strokeLinecap='round'
-    strokeLinejoin='round'
-  >
-    <path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path>
-    <circle cx='12' cy='12' r='3'></circle>
-  </svg>
-);
+interface NotifyFunction {
+  (message: string, type: 'success' | 'error' | 'info'): void;
+}
 
-const EyeOffIcon = () => (
-  <svg
-    width='20'
-    height='20'
-    viewBox='0 0 24 24'
-    fill='none'
-    stroke='currentColor'
-    strokeWidth='2'
-    strokeLinecap='round'
-    strokeLinejoin='round'
-  >
-    <path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'></path>
-    <line x1='1' y1='1' x2='23' y2='23'></line>
-  </svg>
-);
+interface SignInPageProps {
+  notify?: NotifyFunction;
+}
 
-const BrutigeLogo = ({ color = 'black' }) => (
+interface BrutigeLogoProps {
+  color?: string;
+}
+
+const BrutigeLogo: React.FC<BrutigeLogoProps> = ({ color = 'black' }) => (
   <svg width='40' height='40' viewBox='0 0 100 100' fill='none'>
     <circle cx='50' cy='50' r='50' fill={color} />
     <path
@@ -56,18 +39,37 @@ const BrutigeLogo = ({ color = 'black' }) => (
   </svg>
 );
 
-const SignInPage = ({ notify }) => {
-  const container = useRef();
-  const textRef = useRef();
-  const cursorRef = useRef();
+const EyeIcon: React.FC = () => (
+  <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+    <path d='M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z'></path>
+    <circle cx='12' cy='12' r='3'></circle>
+  </svg>
+);
+
+const EyeOffIcon: React.FC = () => (
+  <svg width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2' strokeLinecap='round' strokeLinejoin='round'>
+    <path d='M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24'></path>
+    <line x1='1' y1='1' x2='23' y2='23'></line>
+  </svg>
+);
+
+const SignInPage: React.FC<SignInPageProps> = ({ notify }) => {
+  const container = useRef<HTMLDivElement>(null);
+  const textRef = useRef<HTMLSpanElement>(null);
+  const cursorRef = useRef<HTMLSpanElement>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const { login } = useAuth();
 
-  // FORM STATE
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false); // New State
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const navTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
 
-  const phrases = [
+  useEffect(() => () => clearTimeout(navTimerRef.current), []);
+
+  const phrases: string[] = [
     'brutige: access your workspace.',
     'infrastructure for the bold.',
     'raw vision. refined reality.',
@@ -77,7 +79,6 @@ const SignInPage = ({ notify }) => {
 
   useGSAP(
     () => {
-      // 1. Entrance Animation
       gsap.from(`.${styles.formWrapper} > *`, {
         opacity: 0,
         y: 30,
@@ -86,8 +87,7 @@ const SignInPage = ({ notify }) => {
         ease: 'expo.out',
       });
 
-      // 2. Background Lines
-      const lines = gsap.utils.toArray(`.${styles.line}`);
+      const lines = gsap.utils.toArray<HTMLElement>(`.${styles.line}`);
       lines.forEach((line, i) => {
         gsap.to(line, {
           x: i % 2 === 0 ? 100 : -100,
@@ -99,7 +99,6 @@ const SignInPage = ({ notify }) => {
         });
       });
 
-      // 3. Typewriter
       let masterTl = gsap.timeline({ repeat: -1 });
       phrases.forEach((phrase) => {
         let tl = gsap.timeline({ repeat: 1, yoyo: true, repeatDelay: 2 });
@@ -119,19 +118,60 @@ const SignInPage = ({ notify }) => {
     { scope: container },
   );
 
-  const handleLogin = (e) => {
+  const handleLogin = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     if (!validateEmail(email)) {
-      notify('Authentication failed. Invalid email format.', 'error');
+      if (notify) notify('Please enter a valid email address.', 'error');
       return;
     }
     if (password.length < 6) {
-      notify('Security requirement. Password too short.', 'error');
+      if (notify) notify('Password must be at least 6 characters.', 'error');
       return;
     }
 
-    notify('Identity verified. Entering platform...', 'success');
-    setTimeout(() => navigate('/platform/shop'), 1500);
+    setIsLoading(true);
+    try {
+      // login() sets the cookies and then loads /me, so the guard and the
+      // redirect below both see the same identity.
+      const user = await login({ email, password });
+
+      if (notify) notify(`Welcome back, ${user.firstName || user.email}!`, 'success');
+
+      // Deep link first: a guard sent the visitor here from a protected page.
+      const state = location.state as { from?: string } | null;
+      const destination = state?.from || homePathFor(user);
+
+      navTimerRef.current = setTimeout(() => navigate(destination), 800);
+    } catch (error: any) {
+      const apiError = toApiError(error);
+      const serverMessage = apiError.message;
+
+      let message = 'Login failed. Please check your credentials.';
+
+      if (apiError.code === 'EMAIL_NOT_VERIFIED') {
+        message = 'Please verify your email first. Redirecting...';
+        if (notify) notify(message, 'error');
+        setTimeout(
+          () => navigate(`/verify-email?email=${encodeURIComponent(email)}`),
+          1500
+        );
+        return;
+      }
+      if (apiError.code === 'OAUTH_ONLY_ACCOUNT') {
+        message = 'This account uses Google sign-in. Please use "Continue with Google".';
+      } else if (serverMessage) {
+        message = serverMessage;
+      }
+
+      if (notify) notify(message, 'error');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = authService.getGoogleOAuthUrl();
   };
 
   return (
@@ -147,26 +187,19 @@ const SignInPage = ({ notify }) => {
             <span className={styles.brandName}>brutige</span>
           </div>
 
-          <h1 className={styles.title}>Secure Access</h1>
+          <h1 className={styles.title}>Welcome Back</h1>
           <p className={styles.subtitle}>
-            Sign in to your branding infrastructure.
+            Sign in to manage your brand and production orders.
           </p>
 
           <div className={styles.socialGrid}>
-            <button type='button' className={styles.socialBtn}>
-              <img
-                src='https://www.svgrepo.com/show/475656/google-color.svg'
-                alt=''
-              />
-              <span>Google</span>
-            </button>
-            <button type='button' className={styles.socialBtn}>
-              <img
-                src='https://www.svgrepo.com/show/511330/apple-173.svg'
-                className={styles.appleIcon}
-                alt=''
-              />
-              <span>Apple</span>
+            <button
+              type='button'
+              className={styles.socialBtn}
+              onClick={handleGoogleLogin}
+            >
+              <img src='https://www.svgrepo.com/show/475656/google-color.svg' alt='Google' />
+              <span>Continue with Google</span>
             </button>
           </div>
 
@@ -176,14 +209,16 @@ const SignInPage = ({ notify }) => {
             <span className={styles.dividerLine}></span>
           </div>
 
-          <form className={styles.form} onSubmit={handleLogin}>
+          <form className={styles.form} onSubmit={handleLogin} noValidate>
             <div className={styles.inputGroup}>
-              <label>Professional Email</label>
+              <label>Email</label>
               <input
                 type='email'
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder='name@company.com'
+                disabled={isLoading}
+                required
               />
             </div>
 
@@ -196,33 +231,37 @@ const SignInPage = ({ notify }) => {
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder='••••••••'
                   className={styles.passwordInput}
+                  disabled={isLoading}
+                  required
                 />
                 <button
                   type='button'
                   className={styles.togglePassword}
                   onClick={() => setShowPassword(!showPassword)}
-                  tabIndex='-1'
+                  tabIndex={-1}
+                  disabled={isLoading}
                 >
                   {showPassword ? <EyeOffIcon /> : <EyeIcon />}
                 </button>
               </div>
             </div>
 
-            <button type='submit' className={styles.submitBtn}>
-              Continue &rarr;
+            <button
+              type='submit'
+              className={styles.submitBtn}
+              disabled={isLoading}
+            >
+              {isLoading ? 'Signing in...' : 'Sign In →'}
             </button>
           </form>
 
           <div className={styles.authFooter}>
             <p className={styles.footerLink}>
-              New here? <Link to='/signup'>Request Access</Link>
+              New to Brutige? <Link to='/signup'>Create Account</Link>
             </p>
             <p className={styles.footerLink}>
-              Artisan? <Link to='/maker-signup'>Join as a Maker</Link>
-            </p>
-            <p className={styles.footerLink}>
-              <Link to='/forgot-password' style={{ opacity: 0.5 }}>
-                Forgotten credentials?
+              <Link to='/reset-password' style={{ opacity: 0.5 }}>
+                Forgot password?
               </Link>
             </p>
           </div>
@@ -230,20 +269,12 @@ const SignInPage = ({ notify }) => {
       </div>
 
       <div className={styles.brandSection}>
-        <div
-          className={styles.line}
-          style={{ top: '20%', left: '10%', width: '300px' }}
-        />
-        <div
-          className={styles.line}
-          style={{ top: '50%', right: '10%', width: '400px' }}
-        />
+        <div className={styles.line} style={{ top: '20%', left: '10%', width: '300px' }} />
+        <div className={styles.line} style={{ top: '50%', right: '10%', width: '400px' }} />
         <div className={styles.typewriterBox}>
           <h2 className={styles.typewriterText}>
             <span ref={textRef}></span>
-            <span ref={cursorRef} className={styles.cursor}>
-              |
-            </span>
+            <span ref={cursorRef} className={styles.cursor}>|</span>
           </h2>
         </div>
       </div>

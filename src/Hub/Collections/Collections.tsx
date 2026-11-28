@@ -2,27 +2,35 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import styles from './Collections.module.css';
 
-// Mock Data for Both Audiences
-const brandCollections = [
+// --- TypeScript Interfaces ---
+interface CollectionItem {
+  id: number;
+  title: string;
+  count: string;
+  image: string;
+  tag: string;
+  specs: string;
+}
+
+const brandCollections: CollectionItem[] = [
   { id: 1, title: 'Heavyweight Basics', count: '12 Blanks', image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600', tag: 'Best Seller', specs: '450GSM • 100% Cotton' },
   { id: 2, title: 'Techwear Shell', count: '8 Variants', image: 'https://images.unsplash.com/photo-1551028719-00167b16eac5?w=600', tag: 'New Drop', specs: 'Waterproof • Ripstop' },
   { id: 3, title: 'Denim Blueprint', count: '5 Washes', image: 'https://images.unsplash.com/photo-1542272604-787c3835535d?w=600', tag: 'Limited', specs: '14oz • Selvedge' },
   { id: 4, title: 'Organic Loop', count: '20 Colors', image: 'https://images.unsplash.com/photo-1509551388413-e18d0ac5d493?w=600', tag: 'Sustainable', specs: 'GOTS Certified' },
 ];
 
-const makerCollections = [
+const makerCollections: CollectionItem[] = [
   { id: 101, title: 'Bulk Cotton Orders', count: '12 Requests', image: 'https://images.unsplash.com/photo-1598532163257-ae3c6b2524b6?w=600', tag: 'High Volume', specs: 'MOQ: 500+ units' },
   { id: 102, title: 'Technical Outerwear', count: '8 Projects', image: 'https://images.unsplash.com/photo-1559582798-678dfc71ccd9?w=600', tag: 'Complex Build', specs: 'Bonded Fabrics' },
   { id: 103, title: 'Premium Denim Run', count: '5 Batches', image: 'https://images.unsplash.com/photo-1582552966377-98e490e940d4?w=600', tag: 'Sourcing Needed', specs: 'Japanese Mills' },
   { id: 104, title: 'Sustainable Dyeing', count: '20 Jobs', image: 'https://images.unsplash.com/photo-1524250502761-1ac6f2e30d43?w=600', tag: 'Eco-Friendly', specs: 'Low Water Usage' },
 ];
 
-const Collections = () => {
+const Collections: React.FC = () => {
   const navigate = useNavigate();
-  // Default to 'brand' but allow switching
-  const [viewMode, setViewMode] = useState('brand'); 
-  const [activeFilter, setActiveFilter] = useState('All');
-  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [viewMode, setViewMode] = useState<'brand' | 'maker'>('brand'); 
+  const [activeFilter, setActiveFilter] = useState<string>('All');
+  const [showAuthModal, setShowAuthModal] = useState<boolean>(false);
 
   const data = viewMode === 'brand' ? brandCollections : makerCollections;
   const filters = viewMode === 'brand' 
@@ -53,7 +61,7 @@ const Collections = () => {
       {showAuthModal && (
         <div className={styles.modalOverlay} onClick={() => setShowAuthModal(false)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>
-            <button className={styles.closeModal} onClick={() => setShowAuthModal(false)}>✕</button>
+            <button type="button" className={styles.closeModal} onClick={() => setShowAuthModal(false)}>✕</button>
             <h2 className={styles.modalTitle}>Access the Infrastructure</h2>
             <p className={styles.modalText}>
               {viewMode === 'brand' 
@@ -61,8 +69,8 @@ const Collections = () => {
                 : "Join as a Maker to see factory capacity, bid on production requests, and manage orders."}
             </p>
             <div className={styles.modalActions}>
-              <button className={styles.modalBtnSecondary} onClick={handleLoginRedirect}>Log In</button>
-              <button className={styles.modalBtnPrimary} onClick={handleSignupRedirect}>
+              <button type="button" className={styles.modalBtnSecondary} onClick={handleLoginRedirect}>Log In</button>
+              <button type="button" className={styles.modalBtnPrimary} onClick={handleSignupRedirect}>
                 {viewMode === 'brand' ? 'Start Brand Account' : 'Apply as Maker'}
               </button>
             </div>
@@ -85,12 +93,14 @@ const Collections = () => {
         {/* Dual Path Toggle */}
         <div className={styles.modeToggle}>
           <button 
+            type="button"
             className={`${styles.toggleBtn} ${viewMode === 'brand' ? styles.active : ''}`}
             onClick={() => { setViewMode('brand'); setActiveFilter('All'); }}
           >
             For Brands
           </button>
           <button 
+            type="button"
             className={`${styles.toggleBtn} ${viewMode === 'maker' ? styles.active : ''}`}
             onClick={() => { setViewMode('maker'); setActiveFilter('All'); }}
           >
@@ -104,6 +114,7 @@ const Collections = () => {
         {filters.map(filter => (
           <button
             key={filter}
+            type="button"
             className={`${styles.filterBtn} ${activeFilter === filter ? styles.active : ''}`}
             onClick={() => setActiveFilter(filter)}
           >
@@ -128,7 +139,7 @@ const Collections = () => {
                 <span className={styles.count}>{item.count}</span>
               </div>
               <p className={styles.specs}>{item.specs}</p>
-              <button className={styles.exploreBtn} onClick={handleExplore}>
+              <button type="button" className={styles.exploreBtn} onClick={handleExplore}>
                 {viewMode === 'brand' ? 'View Tech Pack →' : 'Bid on Project →'}
               </button>
             </div>

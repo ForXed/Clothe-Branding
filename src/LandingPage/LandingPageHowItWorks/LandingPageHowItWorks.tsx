@@ -6,17 +6,28 @@ import styles from './LandingPageHowItWorks.module.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const steps = [
+// 👇 Interface for step data
+interface StepItem {
+  num: string;
+  title: string;
+  desc: string;
+}
+
+const steps: StepItem[] = [
   { num: "01", title: "Design", desc: "Upload sketches or use our design canvas to create your vision." },
   { num: "02", title: "Customize", desc: "Select artisan fabrics, weights, and premium branding options." },
   { num: "03", title: "Produce", desc: "Our vetted master-makers bring your designs to life." },
   { num: "04", title: "Ship", desc: "Receive your collection in 14 days, ready for the storefront." }
 ];
 
-const LandingPageHowItWorks = () => {
-  const sectionRef = useRef();
+const LandingPageHowItWorks: React.FC = () => {
+  // 👇 Typed ref
+  const sectionRef = useRef<HTMLElement>(null);
 
   useGSAP(() => {
+    // 👇 Safety check for GSAP trigger
+    if (!sectionRef.current) return;
+
     // 1. Reveal the cards one by one
     gsap.from(`.${styles.card}`, {
       scrollTrigger: {
@@ -58,7 +69,6 @@ const LandingPageHowItWorks = () => {
               <div className={styles.stepNumber}>{step.num}</div>
               <h3 className={styles.title}>{step.title}</h3>
               <p className={styles.desc}>{step.desc}</p>
-              {/* The line only appears between cards or below them in a Brutalist style */}
               <div className={styles.stepLine}></div>
             </div>
           ))}

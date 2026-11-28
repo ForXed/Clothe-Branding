@@ -1,7 +1,15 @@
 import React, { useState } from 'react';
 import styles from './FAQ.module.css';
 
-const faqData = [
+// --- TypeScript Interfaces ---
+interface FAQItem {
+  id: number;
+  category: string;
+  question: string;
+  answer: string;
+}
+
+const faqData: FAQItem[] = [
   {
     id: 1,
     category: 'Production',
@@ -40,13 +48,13 @@ const faqData = [
   }
 ];
 
-const categories = ['All', 'Production', 'Shipping', 'Design', 'Samples', 'Billing'];
+const categories: string[] = ['All', 'Production', 'Shipping', 'Design', 'Samples', 'Billing'];
 
-const FAQ = () => {
-  const [activeId, setActiveId] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('All');
+const FAQ: React.FC = () => {
+  const [activeId, setActiveId] = useState<number | null>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('All');
 
-  const toggleItem = (id) => {
+  const toggleItem = (id: number) => {
     setActiveId(activeId === id ? null : id);
   };
 
@@ -64,6 +72,7 @@ const FAQ = () => {
           {categories.map(cat => (
             <button
               key={cat}
+              type="button"
               className={`${styles.filterBtn} ${selectedCategory === cat ? styles.active : ''}`}
               onClick={() => setSelectedCategory(cat)}
             >
@@ -80,6 +89,7 @@ const FAQ = () => {
             className={`${styles.item} ${activeId === item.id ? styles.active : ''}`}
           >
             <button 
+              type="button"
               className={styles.question} 
               onClick={() => toggleItem(item.id)}
             >

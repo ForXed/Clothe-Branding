@@ -1,0 +1,280 @@
+/* StudioHeader - Brutige Studio */
+
+.header {
+  height: 70px;
+  background: var(--brut-card);
+  border-bottom: 1px solid var(--brut-border);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  flex-shrink: 0;
+  backdrop-filter: blur(10px);
+}
+
+.container {
+  height: 100%;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  max-width: 1600px;
+  margin: 0 auto;
+}
+
+/* Back Button */
+.backBtn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--brut-text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  padding: 8px 12px;
+  border-radius: 10px;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: 'Outfit', sans-serif;
+}
+
+.backBtn:hover {
+  background: var(--brut-hover);
+  border-color: var(--brut-border);
+}
+
+.backBtn:focus-visible {
+  outline: 2px solid var(--brut-text);
+  outline-offset: 2px;
+}
+
+.backBtn svg {
+  flex-shrink: 0;
+  transition: transform 0.2s ease;
+}
+
+.backBtn:hover svg {
+  transform: translateX(-2px);
+}
+
+.backText {
+  display: block;
+}
+
+/* Title Area */
+.titleWrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: center;
+  position: relative;
+}
+
+.pageTitle {
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--brut-text);
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  text-align: center;
+  white-space: nowrap;
+}
+
+.mobileProBadge {
+  display: none;
+  color: var(--brut-warning, #f59e0b);
+}
+
+/* Actions Area */
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Pro Badge */
+.proBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, var(--brut-warning, #f59e0b) 0%, #d97706 100%);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 900;
+  border-radius: 100px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.25);
+  margin-right: 4px;
+}
+
+.proBadge svg {
+  width: 12px;
+  height: 12px;
+  fill: currentColor;
+}
+
+/* Icon Buttons */
+.iconBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  border: 1px solid var(--brut-border);
+  background: var(--brut-bg);
+  color: var(--brut-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.iconBtn:hover {
+  background: var(--brut-hover);
+  border-color: var(--brut-text);
+  transform: translateY(-1px);
+}
+
+.iconBtn:active {
+  transform: translateY(0);
+}
+
+.iconBtn:focus-visible {
+  outline: 2px solid var(--brut-text);
+  outline-offset: 2px;
+}
+
+/* Notification Dot */
+.notificationDot {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 8px;
+  height: 8px;
+  background: var(--brut-danger, #ef4444);
+  border-radius: 50%;
+  border: 2px solid var(--brut-card);
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* ✅ NEW: User Avatar Button */
+.avatarBtn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid var(--brut-border);
+  background: var(--brut-bg);
+  color: var(--brut-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  overflow: hidden;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  padding: 0;
+}
+
+.avatarBtn:hover {
+  border-color: var(--brut-text);
+  transform: scale(1.05);
+}
+
+.avatarBtn:active {
+  transform: scale(1);
+}
+
+.avatarBtn:focus-visible {
+  outline: 2px solid var(--brut-text);
+  outline-offset: 2px;
+}
+
+.avatarThumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 16px;
+  }
+
+  .backText {
+    display: none;
+  }
+
+  .backBtn {
+    padding: 8px;
+    border-radius: 50%;
+  }
+  
+  .backBtn:hover {
+    background: var(--brut-hover);
+  }
+
+  .pageTitle {
+    font-size: 0.95rem;
+    letter-spacing: 0.5px;
+  }
+
+  .proBadge {
+    display: none;
+  }
+  
+  .mobileProBadge {
+    display: flex;
+  }
+
+  .iconBtn {
+    width: 38px;
+    height: 38px;
+  }
+
+  .avatarBtn {
+    width: 38px;
+    height: 38px;
+  }
+}
+
+@media (max-width: 480px) {
+  .pageTitle {
+    font-size: 0.85rem;
+    max-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .actions {
+    gap: 8px;
+  }
+
+  .iconBtn {
+    width: 36px;
+    height: 36px;
+  }
+
+  .avatarBtn {
+    width: 36px;
+    height: 36px;
+  }
+}

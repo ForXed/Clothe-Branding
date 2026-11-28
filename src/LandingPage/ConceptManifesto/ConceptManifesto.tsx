@@ -6,10 +6,13 @@ import styles from './ConceptManifesto.module.css';
 
 gsap.registerPlugin(ScrollTrigger);
 
-const ConceptManifesto = () => {
-    const sectionRef = useRef();
+const ConceptManifesto: React.FC = () => {
+    // 👇 Typed ref for the section element
+    const sectionRef = useRef<HTMLElement>(null);
 
     useGSAP(() => {
+        if (!sectionRef.current) return; // Safety check for GSAP trigger
+        
         gsap.from(`.${styles.text} span`, {
             scrollTrigger: {
                 trigger: sectionRef.current,

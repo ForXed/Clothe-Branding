@@ -1,0 +1,857 @@
+/* src/Admin/Disputes/DisputeDetail.module.css */
+/* Brutalist dispute resolution screen. Sharp corners, Inter, theme vars. */
+
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap");
+
+.container {
+  max-width: 860px;
+}
+
+/* ─── Back button ─── */
+
+.backBtn {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brut-muted, #666);
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-bottom: 20px;
+  transition: color 0.15s ease;
+}
+
+.backBtn:hover {
+  color: var(--brut-text, #000);
+}
+
+/* ─── Cards ─── */
+
+.card {
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 22px 24px;
+  margin-bottom: 14px;
+  border-radius: 0;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.06);
+}
+
+.disputeHeaderCard {
+  border-width: 2px;
+  border-color: var(--brut-text, #000);
+}
+
+.escrowCard {
+  border-color: #3b82f6;
+}
+
+.formCard {
+  border-color: var(--brut-text, #000);
+  border-width: 2px;
+  background: var(--brut-bg, #fafafa);
+}
+
+.historyCard {
+  border-style: dashed;
+  background: var(--brut-bg, #f5f5f5);
+}
+
+/* ─── Section labels ─── */
+
+.sectionLabel {
+  margin: 0 0 16px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--brut-muted, #666);
+  border-bottom: 1.5px solid var(--brut-border, #000);
+  padding-bottom: 8px;
+}
+
+/* ─── Dispute header ─── */
+
+.disputeHeaderTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.disputeTitle {
+  margin: 0;
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: -0.8px;
+  line-height: 1.2;
+  color: var(--brut-text, #000);
+}
+
+.disputeSubtitle {
+  margin: 4px 0 0;
+  font-size: 0.85rem;
+  color: var(--brut-muted, #666);
+}
+
+.disputeStatusBadge {
+  padding: 6px 12px;
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+/* ─── Transition buttons ─── */
+
+.transitionRow {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding-top: 14px;
+  border-top: 1.5px solid var(--brut-border, #000);
+}
+
+.transitionBtn,
+.resolveTriggerBtn {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 12px 18px;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.transitionBtn {
+  background: var(--brut-card, #fff);
+  color: var(--brut-text, #000);
+}
+
+.transitionBtn:hover:not(:disabled) {
+  background: var(--brut-bg, #f5f5f5);
+  transform: translateY(-1px);
+}
+
+.resolveTriggerBtn {
+  background: var(--brut-text, #000);
+  color: var(--brut-bg, #fff);
+  border-color: var(--brut-text, #000);
+}
+
+.resolveTriggerBtn:hover:not(:disabled) {
+  background: #333;
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.15);
+}
+
+.transitionBtn:disabled,
+.resolveTriggerBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* ─── Resolved notice ─── */
+
+.resolvedNotice {
+  margin-top: 14px;
+  padding: 12px 16px;
+  border: 1.5px dashed var(--brut-border, #000);
+  background: var(--brut-bg, #f5f5f5);
+  border-radius: 0;
+}
+
+.resolvedNotice p {
+  margin: 0;
+  font-size: 0.88rem;
+  font-weight: 800;
+  color: var(--brut-muted, #666);
+}
+
+/* ─── Evidence section ─── */
+
+.evidenceGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
+  margin-bottom: 16px;
+}
+
+.evidenceItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.evidenceLabel {
+  margin: 0;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.evidenceValue {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--brut-text, #000);
+}
+
+.explanationBlock {
+  margin-bottom: 16px;
+}
+
+.explanationText {
+  margin: 6px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--brut-text, #000);
+  background: var(--brut-bg, #f9f9f9);
+  border: 1px solid var(--brut-border, #000);
+  padding: 14px 16px;
+  border-radius: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─── Proof images ─── */
+
+.proofSection {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--brut-border, #000);
+}
+
+.proofGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.proofThumb {
+  width: 100px;
+  height: 100px;
+  border: 1.5px solid var(--brut-border, #000);
+  overflow: hidden;
+  border-radius: 0;
+}
+
+.proofThumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* ─── Order summary ─── */
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.orderTitle {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--brut-text, #000);
+}
+
+.orderId {
+  margin: 4px 0 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--brut-muted, #666);
+  letter-spacing: 0.03em;
+}
+
+.orderStatusBadge {
+  padding: 5px 10px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  flex-shrink: 0;
+}
+
+.partiesRow {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  padding-bottom: 14px;
+  border-bottom: 1px dashed var(--brut-border, #000);
+}
+
+.partyBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.partyLabel {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.partyName {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 900;
+  color: var(--brut-text, #000);
+}
+
+.partyId {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--brut-muted, #666);
+}
+
+.partySep {
+  font-size: 1.2rem;
+  font-weight: 900;
+  color: var(--brut-muted, #666);
+}
+
+.briefDetails {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.detailItem {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.detailLabel {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.detailValue {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--brut-text, #000);
+}
+
+.descBlock {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px dashed var(--brut-border, #000);
+}
+
+.descText {
+  margin: 6px 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--brut-text, #000);
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─── Escrow section ─── */
+
+.escrowHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.escrowTitle {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--brut-text, #000);
+}
+
+.escrowNote {
+  margin: 4px 0 0;
+  font-size: 0.82rem;
+  color: var(--brut-muted, #666);
+}
+
+.escrowStatusBlock {
+  text-align: right;
+}
+
+.escrowStatusLabel {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.escrowBadge {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 5px 10px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+}
+
+.escrowGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  border-top: 1.5px solid var(--brut-border, #000);
+  padding-top: 16px;
+}
+
+.escrowItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.escrowItemLabel {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.escrowItemValue {
+  margin: 0;
+  font-size: 1.2rem;
+  font-weight: 900;
+  letter-spacing: -0.5px;
+  color: var(--brut-text, #000);
+}
+
+/* ─── Resolution form ─── */
+
+.resolutionForm {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.formTitle {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: var(--brut-text, #000);
+}
+
+.formHint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--brut-muted, #666);
+  line-height: 1.5;
+}
+
+.formHint strong {
+  color: var(--brut-text, #000);
+}
+
+/* ─── Radio group ─── */
+
+.actionGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border-radius: 0;
+}
+
+.radioLabel:hover {
+  background: var(--brut-bg, #f5f5f5);
+}
+
+.radioLabel input[type="radio"] {
+  margin-top: 3px;
+  accent-color: var(--brut-text, #000);
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
+}
+
+.radioText {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.radioText strong {
+  font-size: 0.92rem;
+  font-weight: 900;
+  color: var(--brut-text, #000);
+}
+
+.radioSub {
+  font-size: 0.8rem;
+  color: var(--brut-muted, #666);
+  line-height: 1.4;
+}
+
+/* ─── Partial inputs ─── */
+
+.partialInputs {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 16px;
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-bg, #f9f9f9);
+  border-radius: 0;
+}
+
+.inputGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.inputGroup label {
+  font-size: 0.68rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--brut-text, #000);
+}
+
+.inputGroup input,
+.inputGroup textarea {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  background: var(--brut-card, #fff);
+  color: var(--brut-text, #000);
+  font-family: "Inter", sans-serif;
+  font-size: 0.95rem;
+  outline: none;
+}
+
+.inputGroup input:focus,
+.inputGroup textarea:focus {
+  background: var(--brut-bg, #fff);
+}
+
+.inputGroup textarea {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.partialSum {
+  margin: 0;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--brut-muted, #666);
+}
+
+.partialSum strong {
+  color: var(--brut-text, #000);
+}
+
+/* ─── Form error / actions ─── */
+
+.formError {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #ef4444;
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+}
+
+.formActions button {
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 13px 20px;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: var(--brut-card, #fff);
+  color: var(--brut-text, #000);
+}
+
+.formActions button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.1);
+}
+
+.formActions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.submitBtn {
+  background: var(--brut-text, #000) !important;
+  color: var(--brut-bg, #fff) !important;
+  border-color: var(--brut-text, #000) !important;
+}
+
+.submitBtn:hover:not(:disabled) {
+  background: #333 !important;
+  border-color: #333 !important;
+}
+
+/* ─── Resolution history ─── */
+
+.historyGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.historyItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.historyLabel {
+  margin: 0;
+  font-size: 0.62rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--brut-muted, #666);
+}
+
+.historyValue {
+  margin: 0;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--brut-text, #000);
+}
+
+.historyBadge {
+  display: inline-block;
+  padding: 5px 10px;
+  font-size: 0.65rem;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #fff;
+  border: 1.5px solid var(--brut-border, #000);
+  border-radius: 0;
+}
+
+.resolutionNoteBlock {
+  padding-top: 14px;
+  border-top: 1px dashed var(--brut-border, #000);
+}
+
+.resolutionNoteText {
+  margin: 6px 0 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--brut-text, #000);
+  background: var(--brut-card, #fff);
+  border: 1px solid var(--brut-border, #000);
+  padding: 14px 16px;
+  border-radius: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+/* ─── Error box ─── */
+
+.errorBox {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+  border: 1.5px solid #ef4444;
+  background: #fee2e2;
+  color: #ef4444;
+  padding: 14px 16px;
+  font-weight: 800;
+  border-radius: 0;
+  margin-bottom: 16px;
+}
+
+.errorBox button {
+  background: none;
+  border: none;
+  color: #ef4444;
+  font-family: "Inter", sans-serif;
+  font-weight: 900;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+/* ─── Empty state ─── */
+
+.emptyState {
+  border: 1.5px dashed var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 48px 24px;
+  text-align: center;
+  color: var(--brut-muted, #666);
+  font-weight: 800;
+  border-radius: 0;
+}
+
+.emptyState p {
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+/* ─── Skeleton ─── */
+
+.skeletonBlock {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  border: 1.5px solid var(--brut-border, #000);
+  background: var(--brut-card, #fff);
+  padding: 24px;
+  border-radius: 0;
+}
+
+.skeletonBar {
+  height: 16px;
+  background: linear-gradient(
+    90deg,
+    var(--brut-border, #e5e5e5) 25%,
+    color-mix(in srgb, var(--brut-text, #000) 8%, var(--brut-border, #e5e5e5)) 50%,
+    var(--brut-border, #e5e5e5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  border-radius: 0;
+}
+
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeletonBar {
+    animation: none;
+  }
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 640px) {
+  .disputeHeaderTop {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .disputeTitle {
+    font-size: 1.1rem;
+  }
+
+  .transitionRow {
+    flex-direction: column;
+  }
+
+  .transitionBtn,
+  .resolveTriggerBtn {
+    width: 100%;
+    text-align: center;
+  }
+
+  .partiesRow {
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .partySep {
+    display: none;
+  }
+
+  .briefDetails {
+    grid-template-columns: 1fr;
+  }
+
+  .escrowGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .evidenceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .historyGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .formActions {
+    flex-direction: column-reverse;
+  }
+
+  .formActions button {
+    width: 100%;
+  }
+
+  .radioLabel {
+    padding: 12px 14px;
+  }
+}

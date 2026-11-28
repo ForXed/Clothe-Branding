@@ -1,11 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import styles from './PromoBanner.module.css';
 
-const PromoBanner = () => {
-  const [currentSlide, setCurrentSlide] = useState(0);
+// --- TypeScript Interfaces ---
+interface Slide {
+  id: number;
+  title: string;
+  subtitle: string;
+  cta: string;
+  image: string;
+  bgGradient: string;
+}
+
+const PromoBanner: React.FC = () => {
+  const [currentSlide, setCurrentSlide] = useState<number>(0);
 
   // Promo Data
-  const slides = [
+  const slides: Slide[] = [
     {
       id: 1,
       title: "New Infrastructure Drop",
@@ -36,11 +46,11 @@ const PromoBanner = () => {
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentSlide((prev) => (prev + 1) % slides.length);
-    }, 5000); // Change every 5 seconds
+    }, 5000); 
     return () => clearInterval(timer);
   }, [slides.length]);
 
-  const handleDotClick = (index) => {
+  const handleDotClick = (index: number) => {
     setCurrentSlide(index);
   };
 
@@ -57,7 +67,7 @@ const PromoBanner = () => {
             <div className={styles.content}>
               <h2 className={styles.slideTitle}>{slide.title}</h2>
               <p className={styles.slideSubtitle}>{slide.subtitle}</p>
-              <button className={styles.slideBtn}>{slide.cta}</button>
+              <button type="button" className={styles.slideBtn}>{slide.cta}</button>
             </div>
           </div>
         ))}
@@ -68,6 +78,7 @@ const PromoBanner = () => {
         {slides.map((_, index) => (
           <button
             key={index}
+            type="button"
             className={`${styles.dot} ${index === currentSlide ? styles.activeDot : ''}`}
             onClick={() => handleDotClick(index)}
             aria-label={`Go to slide ${index + 1}`}
