@@ -115,11 +115,11 @@ const AppRoutes: React.FC<AppRoutesProps> = ({
         />
 
 
-        {/* Google sign-in lands here: the backend already set the cookies. */}
         {/* 2FA does not exist in v1: old links land on the settings page that says so
             rather than on a dead route. */}
         <Route path="/2fa-setup" element={<Navigate to="/platform/settings" replace />} />
 
+        {/* Google sign-in lands here: the backend already set the cookies. */}
         <Route path="/oauth/callback" element={<OAuthCallback />} />
 
         {/* MAKER STUDIO */}
