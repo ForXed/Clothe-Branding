@@ -30,10 +30,11 @@ const MakerSearchView: React.FC = () => {
   const activeQuery = (searchParams.get('q') ?? '').trim();
   const activeMinBatch = searchParams.get('minBatch') ?? '';
   // A hand-edited URL can carry anything, and Number('abc') would be sent as NaN.
-  const parsedMinBatch =
-    activeMinBatch !== '' && Number.isFinite(Number(activeMinBatch))
-      ? Number(activeMinBatch)
-      : undefined;
+  const parsedMinBatch = (() => {
+    const value = Number(activeMinBatch);
+    // Only a positive whole number is a batch size; -5 or 7.5 means the URL was hand-edited.
+    return activeMinBatch !== '' && Number.isInteger(value) && value > 0 ? value : undefined;
+  })();
 
   useEffect(() => {
     const id = ++requestId.current;
