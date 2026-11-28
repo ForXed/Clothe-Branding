@@ -58,6 +58,7 @@ import { ADMIN_ROLES, STUDIO_ROLES } from './auth/homePath';
 import OAuthCallback from './pages/OAuthCallback';
 import AccountBadge from './auth/AccountBadge';
 import RouteFallback from './pages/RouteFallback';
+import RouteErrorBoundary from './pages/RouteErrorBoundary';
 
 // --- Type Definitions ---
 interface NotificationState {

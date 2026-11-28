@@ -23,7 +23,9 @@ export default defineConfig({
         // app code, so a deploy does not invalidate it in the browser cache.
         manualChunks(id) {
           if (!id.includes('node_modules')) return undefined
-          if (id.includes('react-router') || id.includes('/react-dom/') || id.includes('/react/')) {
+          // Anchored to the package segment so scoped packages that merely contain
+          // "/react/" in their path (@emotion/react, @headlessui/react) stay in vendor.
+          if (/[\\/]node_modules[\\/]react(-dom|-router(-dom)?)?[\\/]/.test(id)) {
             return 'react'
           }
           return 'vendor'

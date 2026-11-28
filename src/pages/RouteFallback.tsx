@@ -19,18 +19,31 @@ const RouteFallback: React.FC = () => (
       fontFamily: 'inherit',
     }}
   >
-    <span
-      style={{
-        width: 28,
-        height: 28,
-        borderRadius: '50%',
-        border: '3px solid #e2e8f0',
-        borderTopColor: '#6C47FF',
-        animation: 'brutige-spin 0.8s linear infinite',
-      }}
-    />
+    {/* Animation lives in the stylesheet below so it can respect prefers-reduced-motion. */}
+    <span className="brutige-spinner" />
     <span style={{ fontSize: 14 }}>Loading…</span>
-    <style>{'@keyframes brutige-spin { to { transform: rotate(360deg); } }'}</style>
+    <style>{`
+      .brutige-spinner {
+        display: block;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: 3px solid #e2e8f0;
+        border-top-color: #6C47FF;
+        animation: brutige-spin 0.8s linear infinite;
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .brutige-spinner {
+          animation: none;
+          border-top-color: #cbd5e1;
+        }
+      }
+      @keyframes brutige-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    `}</style>
   </div>
 );
 
